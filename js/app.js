@@ -250,8 +250,8 @@
   }
 
   /* ════════ KTV 沉浸模式：全屏，只留背景 + 当前句/下一句 ════════
-     跟顶部的双行槽位不一样，这里位置固定不用来回换：
-     上面永远是正在唱的那句，下面永远是下一句。 */
+     跟顶部的双行槽位用的是同一套逻辑：单数句永远在槽 0，双数句永远在槽 1，
+     位置从不跳动，换的只是哪个槽亮（正在唱）。 */
   function setMode(mode) {
     state.mode = mode;
     document.body.classList.toggle('mode-ktv', mode === 'ktv');
@@ -267,20 +267,28 @@
     }
   }
 
-  function fillKtvViewLine(el, line) {
+  function fillKtvViewSlot(el, line, isLive) {
     const thEl = el.querySelector('.ktv-vline-th');
     const cnroEl = el.querySelector('.ktv-vline-cnro');
     thEl.textContent = line ? line.th : '🎉 这一轮唱完了';
     cnroEl.textContent = line ? cnRoOf(line) : '';
     el.classList.toggle('en-slot', !!line && line.lang === 'en');
+    el.classList.toggle('live', isLive);
   }
 
   function renderKtvView() {
     if (state.mode !== 'ktv') return;
     const c = state.activeIdx;
-    const curIdx = c < 0 ? 0 : c;
-    fillKtvViewLine($('#ktvLineCur'), LINES[curIdx]);
-    fillKtvViewLine($('#ktvLineNext'), LINES[curIdx + 1]);
+    const base = c < 0 ? 0 : c;
+    const activeSlot = base % 2;
+
+    const want = [];
+    want[activeSlot] = base;
+    want[1 - activeSlot] = base + 1;
+
+    want.forEach((lineIdx, slot) => {
+      fillKtvViewSlot($('#ktvSlot' + slot), LINES[lineIdx], c >= 0 && lineIdx === c);
+    });
   }
 
   /* ════════ KTV 弹幕 + 反应特效 ════════

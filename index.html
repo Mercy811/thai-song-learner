@@ -188,11 +188,13 @@
       <input type="text" id="ktvDanmakuInput" maxlength="40" placeholder="发一条弹幕…" autocomplete="off">
       <button type="submit" class="ktv-pill">发送</button>
     </form>
-    <div class="ktv-vline ktv-vline-cur" id="ktvLineCur">
+    <!-- 位置固定：单数句永远在上边槽位，双数句永远在下边槽位，
+         哪句在唱只切亮暗，物理位置不会跳，跟唱时眼睛不用来回找 -->
+    <div class="ktv-vline" id="ktvSlot0">
       <div class="ktv-vline-th"></div>
       <div class="ktv-vline-cnro"></div>
     </div>
-    <div class="ktv-vline ktv-vline-next" id="ktvLineNext">
+    <div class="ktv-vline" id="ktvSlot1">
       <div class="ktv-vline-th"></div>
       <div class="ktv-vline-cnro"></div>
     </div>
