@@ -344,14 +344,20 @@
     function spawnEffect(kind) {
       const emoji = EFFECT_EMOJI[kind];
       if (!emoji) return;
-      const el = document.createElement('div');
-      el.className = 'ktv-effect';
-      el.textContent = emoji;
-      el.style.setProperty('--x', (18 + Math.random() * 64) + '%');
-      el.style.setProperty('--y', (18 + Math.random() * 55) + '%');
-      el.style.setProperty('--r', (Math.random() * 30 - 15) + 'deg');
-      effectsLayer.appendChild(el);
-      el.addEventListener('animationend', () => el.remove());
+      const COUNT = 16;
+      for (let i = 0; i < COUNT; i++) {
+        const el = document.createElement('div');
+        el.className = 'ktv-effect';
+        el.textContent = emoji;
+        el.style.setProperty('--x', (4 + Math.random() * 92) + '%');
+        el.style.setProperty('--dx', (Math.random() * 160 - 80) + 'px');
+        el.style.setProperty('--r', (Math.random() * 50 - 25) + 'deg');
+        el.style.setProperty('--dur', (2.4 + Math.random() * 1.6) + 's');
+        el.style.setProperty('--delay', (Math.random() * 0.9) + 's');
+        el.style.setProperty('--size', Math.round(32 + Math.random() * 30) + 'px');
+        effectsLayer.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }
     }
 
     $$('.ktv-tbtn[data-effect]').forEach((b) => {

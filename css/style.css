@@ -673,9 +673,9 @@ body.mode-ktv { overflow: hidden; }
   position: absolute; z-index: 1; left: 0; right: 0; top: 64px; bottom: 32%;
   overflow: hidden; pointer-events: none;
 }
-/* 鼓掌/献花/拖鞋/臭鸡蛋：限制在上半屏 */
+/* 鼓掌/献花/拖鞋/臭鸡蛋：满屏冒泡，跟歌词区不冲突（z-index 比歌词层低） */
 .ktv-effects-layer {
-  position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 52%;
+  position: absolute; z-index: 2; inset: 0;
   overflow: hidden; pointer-events: none;
 }
 
@@ -742,17 +742,20 @@ body.mode-ktv { overflow: hidden; }
   to   { transform: translateX(-130vw); }
 }
 
-/* 鼓掌 / 献花 / 拖鞋 / 臭鸡蛋：放大再淡出的 zoom 特效 */
+/* 鼓掌 / 献花 / 拖鞋 / 臭鸡蛋：一次点击满屏交错冒出一串，从下往上飘着淡出，
+   跟 Zoom 的表情雨效果类似。每个粒子的位置/摆动/时长/延迟都由内联变量随机决定 */
 .ktv-effect {
-  position: absolute; left: var(--x, 50%); top: var(--y, 30%);
-  font-size: 58px; line-height: 1; pointer-events: none;
-  animation: ktv-effect-pop 1.3s cubic-bezier(.22,.85,.32,1) forwards;
+  position: absolute; left: var(--x, 50%); bottom: -10%;
+  font-size: var(--size, 46px); line-height: 1; pointer-events: none;
+  opacity: 0;
+  animation: ktv-effect-rise var(--dur, 3s) cubic-bezier(.22,.7,.4,1) forwards;
+  animation-delay: var(--delay, 0s);
 }
-@keyframes ktv-effect-pop {
-  0%   { transform: translate(-50%,-50%) scale(.3) rotate(var(--r, 0deg)); opacity: 0; }
-  18%  { transform: translate(-50%,-50%) scale(1.2) rotate(var(--r, 0deg)); opacity: 1; }
-  35%  { transform: translate(-50%,-50%) scale(1) rotate(var(--r, 0deg)); opacity: 1; }
-  100% { transform: translate(-50%,-50%) scale(1.35) rotate(var(--r, 0deg)); opacity: 0; }
+@keyframes ktv-effect-rise {
+  0%   { transform: translate(-50%, 0) scale(.4) rotate(var(--r, 0deg)); opacity: 0; }
+  12%  { transform: translate(-50%, -14vh) scale(1) rotate(var(--r, 0deg)); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx, 0px)), -108vh) scale(.85) rotate(var(--r, 0deg)); opacity: 0; }
 }
 .ktv-vline-th {
   font-family: var(--thai-font); color: #fff; font-weight: 700;
@@ -790,7 +793,7 @@ body.mode-ktv { overflow: hidden; }
   .ktv-toolbar { right: 10px; gap: 8px; }
   .ktv-tbtn { width: 38px; height: 38px; font-size: 17px; }
   .ktv-danmaku-item { font-size: 16px; }
-  .ktv-effect { font-size: 46px; }
+  .ktv-effect { font-size: var(--size, 34px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
