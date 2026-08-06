@@ -8,9 +8,9 @@
  *   mean = 中文意思
  *
  * 时间轴说明：
- *   下面的 start 是「估算值」，不是从原曲量出来的。
- *   打开网页 → 右上角「⏱ 校准时间轴」→ 跟着歌按空格，30 秒就能校准准确。
- *   校准结果自动存在浏览器里；点「导出」可以把数字贴回这个文件，分享给别人。
+ *   下面的 start 已经用原曲逐句校准过（synced: true），单位是秒。
+ *   如果之后觉得某几句偏了，打开网页 → 右上角「⏱ 校准时间轴」重新标一遍，
+ *   校准结果会存在浏览器里覆盖这里的值；点「导出」可以把新数字贴回来分享给别人。
  */
 window.SONGS = window.SONGS || {};
 
@@ -24,7 +24,7 @@ window.SONGS['safe-near-me'] = {
   youtubeId: 'YuKjzwzTewI',
 
   // 时间轴是否已经用真实音频校准过
-  synced: false,
+  synced: true,
 
   sections: [
     {
@@ -34,7 +34,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-1',
           lang: 'th',
-          start: 15.0,
+          start: 15.34,
           th: 'อาจจะมีบางทีที่เผลอพลาดไป',
           ro: 'at cha mi bangthi thi phloe phlat pai',
           cn: '也许有时候会不小心犯错',
@@ -48,7 +48,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-2',
           lang: 'th',
-          start: 21.0,
+          start: 18.6,
           th: 'ทำให้เธอรู้สึกว่าฉันหายไป',
           ro: 'thamhai thoe rusuek wa chan hai pai',
           cn: '让你觉得我消失了',
@@ -62,7 +62,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-3',
           lang: 'th',
-          start: 27.0,
+          start: 21.89,
           th: 'ทำเธอน้อยใจ ทำให้เธอเหงา',
           ro: 'tham thoe noichai thamhai thoe ngao',
           cn: '让你委屈，让你孤单',
@@ -81,7 +81,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-1',
           lang: 'th',
-          start: 33.0,
+          start: 28.81,
           th: 'อยากจะบอกให้เธอได้รู้ความจริง',
           ro: 'ayak cha bok hai thoe dai ru khwam ching',
           cn: '想要让你知道真相',
@@ -95,7 +95,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-2',
           lang: 'th',
-          start: 39.0,
+          start: 31.77,
           th: 'ว่าที่ทำลงไปกับเธอทุกสิ่ง',
           ro: 'wathi tham long pai kap thoe thuk sing',
           cn: '就是我对你做的每一件事',
@@ -109,7 +109,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-3',
           lang: 'th',
-          start: 45.0,
+          start: 34.7,
           th: 'อาจจะไม่จริง ไม่ตรงกับใจฉันทุกอย่าง',
           ro: 'at cha mai ching mai trong kap chai chan thuk yang',
           cn: '也许都不是真的，并不完全符合我的心意',
@@ -130,7 +130,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-1',
           lang: 'th',
-          start: 51.0,
+          start: 41.47,
           th: 'อย่าโกรธ อย่าลงโทษฉัน',
           ro: 'aya krot aya longthot chan',
           cn: '别生气，别惩罚我',
@@ -143,7 +143,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-2',
           lang: 'th',
-          start: 56.0,
+          start: 44.72,
           th: 'ด้วยท่าทางที่เฉยเมย',
           ro: 'duai thathang thi choeimei',
           cn: '用那种冷漠的态度',
@@ -156,7 +156,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-3',
           lang: 'th',
-          start: 61.0,
+          start: 47.95,
           th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
           ro: 'ru laeo wa mai di loei aphai dai haimai',
           cn: '知道自己不好，可以原谅我吗',
@@ -177,7 +177,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-1',
           lang: 'th',
-          start: 67.0,
+          start: 54.37,
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
           cn: '因为你就是我身边最安全的地方',
@@ -194,7 +194,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-2',
           lang: 'th',
-          start: 73.0,
+          start: 57.54,
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
           cn: '如果没有你，我该在哪里',
@@ -208,7 +208,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-3',
           lang: 'th',
-          start: 79.0,
+          start: 61.49,
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
           cn: '你就是我的 Safe zone',
@@ -221,7 +221,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-4',
           lang: 'th',
-          start: 83.0,
+          start: 62.9,
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
           cn: '不想孤单',
@@ -233,7 +233,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-5',
           lang: 'th',
-          start: 87.0,
+          start: 64.91,
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
           cn: '我们可以回到从前吗',
@@ -253,7 +253,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-1',
           lang: 'th',
-          start: 95.0,
+          start: 68.41,
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
           cn: '因为你就是我身边那份牵挂',
@@ -268,7 +268,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-2',
           lang: 'th',
-          start: 101.0,
+          start: 71.73,
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
           cn: '是我把心钉住的那个位置',
@@ -282,7 +282,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-3',
           lang: 'th',
-          start: 107.0,
+          start: 75.94,
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
           cn: '我发誓，从今以后',
@@ -295,7 +295,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-4',
           lang: 'th',
-          start: 113.0,
+          start: 79.23,
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
           cn: '只待在你心里的这片区域',
@@ -315,25 +315,25 @@ window.SONGS['safe-near-me'] = {
       note: '这一段基本是英语，只有第 5 句是泰语',
       lines: [
         {
-          id: 'br-1', lang: 'en', start: 125.0,
+          id: 'br-1', lang: 'en', start: 96.9,
           th: 'You can trust me', ro: '', cn: '你可以相信我', words: [],
         },
         {
-          id: 'br-2', lang: 'en', start: 129.0,
+          id: 'br-2', lang: 'en', start: 98.58,
           th: 'Please you can trust me', ro: '', cn: '求你相信我', words: [],
         },
         {
-          id: 'br-3', lang: 'en', start: 133.0,
+          id: 'br-3', lang: 'en', start: 99.32,
           th: 'Let me touch ur body', ro: '', cn: '让我触碰你', words: [],
         },
         {
-          id: 'br-4', lang: 'en', start: 137.0,
+          id: 'br-4', lang: 'en', start: 100.55,
           th: 'Look in my eyes', ro: '', cn: '看着我的眼睛', words: [],
         },
         {
           id: 'br-5',
           lang: 'th',
-          start: 141.0,
+          start: 102.31,
           th: 'ฉันจะอยู่ตรงนี้',
           ro: 'chan cha yu trong ni',
           cn: '我会在这里',
@@ -345,15 +345,15 @@ window.SONGS['safe-near-me'] = {
           ],
         },
         {
-          id: 'br-6', lang: 'en', start: 145.0,
+          id: 'br-6', lang: 'en', start: 103.61,
           th: 'Come on stay with me', ro: '', cn: '留下来陪着我', words: [],
         },
         {
-          id: 'br-7', lang: 'en', start: 149.0,
+          id: 'br-7', lang: 'en', start: 105.4,
           th: "You won't be lonely", ro: '', cn: '你不会孤单', words: [],
         },
         {
-          id: 'br-8', lang: 'en', start: 153.0,
+          id: 'br-8', lang: 'en', start: 107.11,
           th: 'Come on Baby Cause you save me', ro: '', cn: '因为你拯救了我', words: [],
         },
       ],
