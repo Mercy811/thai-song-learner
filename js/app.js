@@ -625,6 +625,20 @@
 
   /* ════════ 工具 ════════ */
 
+  // 把吸顶区的实际高度写进 CSS 变量，供 .line 的 scroll-margin-top 用。
+  // 高度会随「画面」档位、窗口宽度、歌词长短变化，所以用 ResizeObserver 持续跟。
+  function watchDeckHeight() {
+    const deck = $('.stickydeck');
+    if (!deck) return;
+    const apply = () => {
+      const h = Math.round(deck.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--deck-h', h + 'px');
+    };
+    apply();
+    if (window.ResizeObserver) new ResizeObserver(apply).observe(deck);
+    window.addEventListener('resize', apply);
+  }
+
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -670,6 +684,7 @@
     render();
     bind();
     renderKtv();
+    watchDeckHeight();
 
     if (!isCalibrated()) $('#syncBanner').classList.remove('hidden');
 
