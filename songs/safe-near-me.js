@@ -1,7 +1,8 @@
 /**
  * Safe Near Me (ที่ปลอดภัยใกล้ฉัน) — Lena Lalina / Ost. My Safe Zone
  *
- * 逐词数据来源：用户提供的《Safe_Zone_泰语逐句跟读_完整版.pdf》学习卡片
+ * 歌词顺序来源：Siamzone 完整歌词页（https://www.siamzone.com/music/thailyric/36337）
+ * 逐词数据基础：用户提供的《Safe_Zone_泰语逐句跟读_完整版.pdf》学习卡片
  *
  * 句子上的字段：
  *   th   = 泰文
@@ -14,7 +15,7 @@
  *   mean = 中文意思
  *
  * 时间轴说明：
- *   下面的 start 已经用原曲逐句校准过（synced: true），单位是秒。
+ *   0:15–1:47 的原有 start 已按原曲校准；新增重复段为按结构估算的时间，单位是秒。
  *   如果之后觉得某几句偏了，打开网页 → 右上角「⏱ 校准时间轴」重新标一遍，
  *   校准结果会存在浏览器里覆盖这里的值；点「导出」可以把新数字贴回来分享给别人。
  */
@@ -29,8 +30,8 @@ window.SONGS['safe-near-me'] = {
   album: 'Ost. My Safe Zone',
   youtubeId: 'YuKjzwzTewI',
 
-  // 时间轴是否已经用真实音频校准过
-  synced: true,
+  // 完整歌词已补齐；新增重复段的时间仍需在网页中做一次最终校准
+  synced: false,
 
   sections: [
     {
@@ -71,13 +72,14 @@ window.SONGS['safe-near-me'] = {
           id: 'v1-3',
           lang: 'th',
           start: 21.89,
-          th: 'ทำเธอน้อยใจ ทำให้เธอเหงา',
-          ro: 'tham thoe noichai thamhai thoe ngao',
-          cnRo: '探特挪猜 探还特熬',
+          th: 'ทำเธอน้อยใจ ทำให้เธอเหงา Hohoho',
+          ro: 'tham thoe noichai thamhai thoe ngao Hohoho',
+          cnRo: '探特挪猜 探还特熬 吼吼吼',
           cn: '让你委屈，让你孤单',
           words: [
             { th: 'ทำเธอน้อยใจ', ro: 'tham thoe noichai', cn: '探特挪猜', mean: '让你难过委屈' },
             { th: 'ทำให้เธอเหงา', ro: 'thamhai thoe ngao', cn: '探还特熬', mean: '让你孤单' },
+            { th: 'Hohoho', ro: 'ho ho ho', cn: '吼吼吼', mean: '语气吟唱', lang: 'en' },
           ],
         },
       ],
@@ -380,6 +382,357 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'br-8', lang: 'en', start: 107.11,
           th: 'Come on Baby Cause you save me', ro: '', cn: '因为你拯救了我', words: [],
+        },
+      ],
+    },
+
+    {
+      name: '过渡段（重复）',
+      nameEn: 'Pre-chorus reprise',
+      note: '网页完整歌词中的桥段后重复；时间为结构估算，需最终校准',
+      lines: [
+        {
+          id: 'pc2-1',
+          lang: 'th',
+          start: 111.0,
+          th: 'อย่าโกรธ อย่าลงโทษฉัน',
+          ro: 'aya krot aya longthot chan',
+          cnRo: '啊亚罗 啊亚隆透 禅',
+          cn: '别生气，别惩罚我',
+          words: [
+            { th: 'อย่าโกรธ', ro: 'aya krot', cn: '啊亚罗', mean: '别生气' },
+            { th: 'อย่าลงโทษ', ro: 'aya longthot', cn: '啊亚隆透', mean: '别惩罚' },
+            { th: 'ฉัน', ro: 'chan', cn: '禅', mean: '我' },
+          ],
+        },
+        {
+          id: 'pc2-2',
+          lang: 'th',
+          start: 114.25,
+          th: 'ด้วยท่าทางที่เฉยเมย',
+          ro: 'duai thathang thi choeimei',
+          cnRo: '堆 他堂 替拽妹',
+          cn: '用那种冷漠的态度',
+          words: [
+            { th: 'ด้วย', ro: 'duai', cn: '堆', mean: '用、以' },
+            { th: 'ท่าทาง', ro: 'thathang', cn: '他堂', mean: '态度' },
+            { th: 'ที่เฉยเมย', ro: 'thi choeimei', cn: '替拽妹', mean: '冷漠的' },
+          ],
+        },
+        {
+          id: 'pc2-3',
+          lang: 'th',
+          start: 117.48,
+          th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
+          ro: 'ru laeo wa mai di loei aphai dai haimai',
+          cnRo: '如廖哇 埋弟类 啊拍 呆还埋',
+          cn: '知道自己不好，可以原谅我吗',
+          words: [
+            { th: 'รู้แล้วว่า', ro: 'ru laeo wa', cn: '如廖哇', mean: '知道了' },
+            { th: 'ไม่ดีเลย', ro: 'mai di loei', cn: '埋弟类', mean: '不好啦' },
+            { th: 'อภัย', ro: 'aphai', cn: '啊拍', mean: '原谅' },
+            { th: 'ได้ไหม', ro: 'dai haimai', cn: '呆还埋', mean: '可以吗' },
+          ],
+        },
+      ],
+    },
+
+    {
+      name: '副歌 1（第二次）',
+      nameEn: 'Chorus 1 reprise',
+      note: '网页完整歌词中的第二次副歌；时间为结构估算，需最终校准',
+      lines: [
+        {
+          id: 'c1b-1',
+          lang: 'th',
+          start: 123.9,
+          th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
+          ro: 'ko phro wa thoe khue thi plotphai klai chan',
+          cnRo: '戈坡哇 特 科 替 波拍 盖 禅',
+          cn: '因为你就是我身边最安全的地方',
+          words: [
+            { th: 'ก็เพราะว่า', ro: 'ko phro wa', cn: '戈坡哇', mean: '因为' },
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'คือ', ro: 'khue', cn: '科', mean: '是' },
+            { th: 'ที่', ro: 'thi', cn: '替', mean: '的' },
+            { th: 'ปลอดภัย', ro: 'plotphai', cn: '波拍', mean: '安全' },
+            { th: 'ใกล้', ro: 'klai', cn: '盖', mean: '靠近' },
+            { th: 'ฉัน', ro: 'chan', cn: '禅', mean: '我' },
+          ],
+        },
+        {
+          id: 'c1b-2',
+          lang: 'th',
+          start: 127.07,
+          th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
+          ro: 'tha mai mi thoe chan cha yu thi nai',
+          cnRo: '他埋米 特 禅杂优 替奈',
+          cn: '如果没有你，我该在哪里',
+          words: [
+            { th: 'ถ้าไม่มี', ro: 'tha mai mi', cn: '他埋米', mean: '如果没有' },
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'ฉันจะอยู่', ro: 'chan cha yu', cn: '禅杂优', mean: '我会在' },
+            { th: 'ที่ไหน', ro: 'thi nai', cn: '替奈', mean: '哪里' },
+          ],
+        },
+        {
+          id: 'c1b-3',
+          lang: 'th',
+          start: 131.02,
+          th: 'เธอคือ Save zone',
+          ro: 'thoe khue save zone',
+          cnRo: '特 科 Save zone',
+          cn: '你就是我的 Safe zone',
+          words: [
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'คือ', ro: 'khue', cn: '科', mean: '是' },
+            { th: 'Save zone', ro: 'save zone', cn: '（英语直接读）', mean: 'Save zone', lang: 'en' },
+          ],
+        },
+        {
+          id: 'c1b-4',
+          lang: 'th',
+          start: 132.43,
+          th: 'ไม่อยาก Alone',
+          ro: 'mai ayak alone',
+          cnRo: '埋啊呀 Alone',
+          cn: '不想孤单',
+          words: [
+            { th: 'ไม่อยาก', ro: 'mai ayak', cn: '埋啊呀', mean: '不想' },
+            { th: 'Alone', ro: 'alone', cn: '（英语）', mean: '孤单', lang: 'en' },
+          ],
+        },
+        {
+          id: 'c1b-5',
+          lang: 'th',
+          start: 134.44,
+          th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
+          ro: 'rao klap ma pen muean doem dai haimai',
+          cnRo: '绕卡普妈喷 棉登 呆还埋',
+          cn: '我们可以回到从前吗',
+          words: [
+            { th: 'เรากลับมาเป็น', ro: 'rao klap ma pen', cn: '绕卡普妈喷', mean: '我们回来变成' },
+            { th: 'เหมือนเดิม', ro: 'muean doem', cn: '棉登', mean: '像以前' },
+            { th: 'ได้ไหม', ro: 'dai haimai', cn: '呆还埋', mean: '可以吗' },
+          ],
+        },
+      ],
+    },
+
+    {
+      name: '副歌 2（第二次）',
+      nameEn: 'Chorus 2 reprise',
+      note: '网页完整歌词中的第二次副歌；时间为结构估算，需最终校准',
+      lines: [
+        {
+          id: 'c2b-1',
+          lang: 'th',
+          start: 137.94,
+          th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
+          ro: 'phro wa thoe khue thi huangyai klai chan',
+          cnRo: '坡哇 特 科 替环牙 盖禅',
+          cn: '因为你就是我身边那份牵挂',
+          words: [
+            { th: 'เพราะว่า', ro: 'phro wa', cn: '坡哇', mean: '因为' },
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'คือ', ro: 'khue', cn: '科', mean: '是' },
+            { th: 'ที่ห่วงใย', ro: 'thi huangyai', cn: '替环牙', mean: '关心的' },
+            { th: 'ใกล้ฉัน', ro: 'klai chan', cn: '盖禅', mean: '靠近我' },
+          ],
+        },
+        {
+          id: 'c2b-2',
+          lang: 'th',
+          start: 141.26,
+          th: 'Location ที่ฉันปักหมุดใจเอาไว้',
+          ro: 'location thi chan pak mut chai ao wai',
+          cnRo: 'Location 替禅 帕木 猜凹歪',
+          cn: '是我把心钉住的那个位置',
+          words: [
+            { th: 'Location', ro: 'location', cn: '（英语）', mean: '位置', lang: 'en' },
+            { th: 'ที่ฉัน', ro: 'thi chan', cn: '替禅', mean: '我的' },
+            { th: 'ปักหมุด', ro: 'pak mut', cn: '帕木', mean: '标记、钉住' },
+            { th: 'ใจเอาไว้', ro: 'chai ao wai', cn: '猜凹歪', mean: '放在心里' },
+          ],
+        },
+        {
+          id: 'c2b-3',
+          lang: 'th',
+          start: 145.47,
+          th: 'สัญญาเลยว่า จากนี้ไป',
+          ro: 'sanya loei wa chak ni pai',
+          cnRo: '散雅类 哇 扎妮拍',
+          cn: '我发誓，从今以后',
+          words: [
+            { th: 'สัญญาเลย', ro: 'sanya loei', cn: '散雅类', mean: '发誓' },
+            { th: 'ว่า', ro: 'wa', cn: '哇', mean: '说' },
+            { th: 'จากนี้ไป', ro: 'chak ni pai', cn: '扎妮拍', mean: '从今以后' },
+          ],
+        },
+        {
+          id: 'c2b-4',
+          lang: 'th',
+          start: 148.76,
+          th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
+          ro: 'cha yu tae nai phuenthi huachai khong thoe',
+          cnRo: '杂优代 乃喷替 华猜 空特',
+          cn: '只待在你心里的这片区域',
+          words: [
+            { th: 'จะอยู่แต่', ro: 'cha yu tae', cn: '杂优代', mean: '只会在' },
+            { th: 'ในพื้นที่', ro: 'nai phuenthi', cn: '乃喷替', mean: '在这片区域' },
+            { th: 'หัวใจ', ro: 'huachai', cn: '华猜', mean: '心' },
+            { th: 'ของเธอ', ro: 'khong thoe', cn: '空特', mean: '你的' },
+          ],
+        },
+      ],
+    },
+
+    {
+      name: '副歌 1（最终）',
+      nameEn: 'Final Chorus 1',
+      note: '网页完整歌词中的最终轮副歌；时间为结构估算，需最终校准',
+      lines: [
+        {
+          id: 'c1c-1',
+          lang: 'th',
+          start: 153.1,
+          th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
+          ro: 'ko phro wa thoe khue thi plotphai klai chan',
+          cnRo: '戈坡哇 特 科 替 波拍 盖 禅',
+          cn: '因为你就是我身边最安全的地方',
+          words: [
+            { th: 'ก็เพราะว่า', ro: 'ko phro wa', cn: '戈坡哇', mean: '因为' },
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'คือ', ro: 'khue', cn: '科', mean: '是' },
+            { th: 'ที่', ro: 'thi', cn: '替', mean: '的' },
+            { th: 'ปลอดภัย', ro: 'plotphai', cn: '波拍', mean: '安全' },
+            { th: 'ใกล้', ro: 'klai', cn: '盖', mean: '靠近' },
+            { th: 'ฉัน', ro: 'chan', cn: '禅', mean: '我' },
+          ],
+        },
+        {
+          id: 'c1c-2',
+          lang: 'th',
+          start: 156.27,
+          th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
+          ro: 'tha mai mi thoe chan cha yu thi nai',
+          cnRo: '他埋米 特 禅杂优 替奈',
+          cn: '如果没有你，我该在哪里',
+          words: [
+            { th: 'ถ้าไม่มี', ro: 'tha mai mi', cn: '他埋米', mean: '如果没有' },
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'ฉันจะอยู่', ro: 'chan cha yu', cn: '禅杂优', mean: '我会在' },
+            { th: 'ที่ไหน', ro: 'thi nai', cn: '替奈', mean: '哪里' },
+          ],
+        },
+        {
+          id: 'c1c-3',
+          lang: 'th',
+          start: 160.22,
+          th: 'เธอคือ Save zone',
+          ro: 'thoe khue save zone',
+          cnRo: '特 科 Save zone',
+          cn: '你就是我的 Safe zone',
+          words: [
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'คือ', ro: 'khue', cn: '科', mean: '是' },
+            { th: 'Save zone', ro: 'save zone', cn: '（英语直接读）', mean: 'Save zone', lang: 'en' },
+          ],
+        },
+        {
+          id: 'c1c-4',
+          lang: 'th',
+          start: 161.63,
+          th: 'ไม่อยาก Alone',
+          ro: 'mai ayak alone',
+          cnRo: '埋啊呀 Alone',
+          cn: '不想孤单',
+          words: [
+            { th: 'ไม่อยาก', ro: 'mai ayak', cn: '埋啊呀', mean: '不想' },
+            { th: 'Alone', ro: 'alone', cn: '（英语）', mean: '孤单', lang: 'en' },
+          ],
+        },
+        {
+          id: 'c1c-5',
+          lang: 'th',
+          start: 163.64,
+          th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
+          ro: 'rao klap ma pen muean doem dai haimai',
+          cnRo: '绕卡普妈喷 棉登 呆还埋',
+          cn: '我们可以回到从前吗',
+          words: [
+            { th: 'เรากลับมาเป็น', ro: 'rao klap ma pen', cn: '绕卡普妈喷', mean: '我们回来变成' },
+            { th: 'เหมือนเดิม', ro: 'muean doem', cn: '棉登', mean: '像以前' },
+            { th: 'ได้ไหม', ro: 'dai haimai', cn: '呆还埋', mean: '可以吗' },
+          ],
+        },
+      ],
+    },
+
+    {
+      name: '副歌 2（最终）',
+      nameEn: 'Final Chorus 2',
+      note: '网页完整歌词中的最终轮副歌；时间为结构估算，需最终校准',
+      lines: [
+        {
+          id: 'c2c-1',
+          lang: 'th',
+          start: 167.14,
+          th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
+          ro: 'phro wa thoe khue thi huangyai klai chan',
+          cnRo: '坡哇 特 科 替环牙 盖禅',
+          cn: '因为你就是我身边那份牵挂',
+          words: [
+            { th: 'เพราะว่า', ro: 'phro wa', cn: '坡哇', mean: '因为' },
+            { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
+            { th: 'คือ', ro: 'khue', cn: '科', mean: '是' },
+            { th: 'ที่ห่วงใย', ro: 'thi huangyai', cn: '替环牙', mean: '关心的' },
+            { th: 'ใกล้ฉัน', ro: 'klai chan', cn: '盖禅', mean: '靠近我' },
+          ],
+        },
+        {
+          id: 'c2c-2',
+          lang: 'th',
+          start: 170.46,
+          th: 'Location ที่ฉันปักหมุดใจเอาไว้',
+          ro: 'location thi chan pak mut chai ao wai',
+          cnRo: 'Location 替禅 帕木 猜凹歪',
+          cn: '是我把心钉住的那个位置',
+          words: [
+            { th: 'Location', ro: 'location', cn: '（英语）', mean: '位置', lang: 'en' },
+            { th: 'ที่ฉัน', ro: 'thi chan', cn: '替禅', mean: '我的' },
+            { th: 'ปักหมุด', ro: 'pak mut', cn: '帕木', mean: '标记、钉住' },
+            { th: 'ใจเอาไว้', ro: 'chai ao wai', cn: '猜凹歪', mean: '放在心里' },
+          ],
+        },
+        {
+          id: 'c2c-3',
+          lang: 'th',
+          start: 174.67,
+          th: 'สัญญาเลยว่า จากนี้ไป',
+          ro: 'sanya loei wa chak ni pai',
+          cnRo: '散雅类 哇 扎妮拍',
+          cn: '我发誓，从今以后',
+          words: [
+            { th: 'สัญญาเลย', ro: 'sanya loei', cn: '散雅类', mean: '发誓' },
+            { th: 'ว่า', ro: 'wa', cn: '哇', mean: '说' },
+            { th: 'จากนี้ไป', ro: 'chak ni pai', cn: '扎妮拍', mean: '从今以后' },
+          ],
+        },
+        {
+          id: 'c2c-4',
+          lang: 'th',
+          start: 177.96,
+          th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
+          ro: 'cha yu tae nai phuenthi huachai khong thoe',
+          cnRo: '杂优代 乃喷替 华猜 空特',
+          cn: '只待在你心里的这片区域',
+          words: [
+            { th: 'จะอยู่แต่', ro: 'cha yu tae', cn: '杂优代', mean: '只会在' },
+            { th: 'ในพื้นที่', ro: 'nai phuenthi', cn: '乃喷替', mean: '在这片区域' },
+            { th: 'หัวใจ', ro: 'huachai', cn: '华猜', mean: '心' },
+            { th: 'ของเธอ', ro: 'khong thoe', cn: '空特', mean: '你的' },
+          ],
         },
       ],
     },

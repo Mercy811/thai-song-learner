@@ -52,7 +52,13 @@
     LINES.forEach((l) => { map[l.id] = +l.start.toFixed(2); });
     localStorage.setItem(LS.times, JSON.stringify(map));
   }
-  const isCalibrated = () => SONG.synced || !!localStorage.getItem(LS.times);
+  // 补了新歌词之后，浏览器里存的旧时间轴只覆盖一部分句子；
+  // 只有每一句都有时间才算校准过，否则仍然提示去校准。
+  const isCalibrated = () => {
+    if (SONG.synced) return true;
+    const saved = JSON.parse(localStorage.getItem(LS.times) || 'null');
+    return !!saved && LINES.every((l) => typeof saved[l.id] === 'number');
+  };
 
   // 一句的结束时间 = 下一句的开始
   function lineEnd(i) {
