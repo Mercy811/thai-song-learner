@@ -771,14 +771,14 @@ body.mode-ktv { overflow: hidden; }
 /* 位置固定不跳：槽位由句子序号的单双决定，谁在唱只切亮暗/大小，
    物理位置（上边槽 / 下边槽）从不改变，跟着 .live 类切换的是样式而不是位置 */
 .ktv-vline {
-  opacity: .55; transition: opacity .2s;
+  opacity: .45; transition: opacity .2s;
 }
-.ktv-vline .ktv-vline-th { font-size: 28px; line-height: 1.4; }
-.ktv-vline .ktv-vline-cnro { font-size: 21px; margin-top: 4px; }
+/* 字号两句一样大：当前句突然放大会让整块歌词重排、看花眼，
+   所以「谁在唱」不靠字号区分，只靠亮度（后面再叠上逐字变色）。 */
+.ktv-vline .ktv-vline-th { font-size: 42px; line-height: 1.4; }
+.ktv-vline .ktv-vline-cnro { font-size: 30px; margin-top: 6px; }
 
 .ktv-vline.live { opacity: 1; }
-.ktv-vline.live .ktv-vline-th { font-size: 42px; line-height: 1.4; }
-.ktv-vline.live .ktv-vline-cnro { font-size: 30px; margin-top: 6px; }
 
 .ktv-vline.en-slot .ktv-vline-th { font-family: inherit; font-style: italic; }
 
@@ -786,10 +786,8 @@ body.mode-ktv { overflow: hidden; }
   .ktv-view-top { padding: max(12px, env(safe-area-inset-top)) 12px 0; }
   .ktv-pill { padding: 7px 13px; font-size: 12.5px; }
   .ktv-view-lines { padding: 18px 14px calc(22px + env(safe-area-inset-bottom)); gap: 10px; }
-  .ktv-vline .ktv-vline-th { font-size: 21px; }
-  .ktv-vline .ktv-vline-cnro { font-size: 16px; }
-  .ktv-vline.live .ktv-vline-th { font-size: 30px; }
-  .ktv-vline.live .ktv-vline-cnro { font-size: 22px; }
+  .ktv-vline .ktv-vline-th { font-size: 30px; }
+  .ktv-vline .ktv-vline-cnro { font-size: 22px; }
 
   .ktv-toolbar { right: 10px; gap: 8px; }
   .ktv-tbtn { width: 38px; height: 38px; font-size: 17px; }
