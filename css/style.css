@@ -90,7 +90,20 @@ body {
   margin: 2px 0 0; font-size: 13px; color: var(--text-2);
 }
 .brand .sub span:first-child { font-family: var(--thai-font); }
-.topbar-actions { margin-left: auto; display: flex; gap: 8px; }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* 练习 / KTV 模式切换 */
+.mode-toggle {
+  display: flex; gap: 2px; background: var(--card-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 3px; margin-right: 2px;
+}
+.mode-btn {
+  background: transparent; border: none; border-radius: 999px; cursor: pointer;
+  padding: 6px 13px; font-size: 12.5px; color: var(--text-2); font-family: inherit;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.mode-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
 
 .icon-btn {
   background: var(--card); border: 1px solid var(--line); color: var(--text);
@@ -637,6 +650,71 @@ body {
   .modal { padding: 0; align-items: flex-end; }
   .modal-card { max-width: none; border-radius: 18px 18px 0 0; max-height: 92vh; }
   .foot-tip { display: none; }
+}
+
+/* ── KTV 沉浸模式 ─────────────────────
+   全屏盖在练习模式上面，练习模式的 DOM 不做 display:none，
+   只是被这层盖住看不见 —— 这样 YouTube iframe 还在正常尺寸，音频不会被打断。
+   背景先随便给个渐变色占位，以后换成用户自己选的照片。 */
+.ktv-view {
+  position: fixed; inset: 0; z-index: 500;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  overflow: hidden;
+}
+body.mode-ktv { overflow: hidden; }
+
+.ktv-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(120% 90% at 50% 15%, #3a3252 0%, #1c1826 55%, #100e16 100%);
+  background-size: cover; background-position: center;
+}
+
+.ktv-view-top {
+  position: relative; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: max(14px, env(safe-area-inset-top)) 16px 0;
+}
+.ktv-pill {
+  background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.22); color: #fff;
+  border-radius: 999px; padding: 8px 16px; font-size: 13.5px; cursor: pointer;
+  backdrop-filter: blur(4px); font-family: inherit; transition: background .15s;
+}
+.ktv-pill:hover { background: rgba(0,0,0,.58); }
+
+.ktv-view-lines {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 26px 22px calc(30px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.55) 60%, transparent 100%);
+  text-align: center;
+}
+.ktv-vline-th {
+  font-family: var(--thai-font); color: #fff; font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0,0,0,.55); word-break: break-word;
+}
+.ktv-vline-cnro {
+  color: #ffe9b8; font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0,0,0,.55);
+}
+.ktv-vline-cnro:empty { display: none; }
+
+.ktv-vline-cur .ktv-vline-th { font-size: 32px; line-height: 1.4; }
+.ktv-vline-cur .ktv-vline-cnro { font-size: 25px; margin-top: 5px; }
+
+.ktv-vline-next { opacity: .55; }
+.ktv-vline-next .ktv-vline-th { font-size: 21px; line-height: 1.4; }
+.ktv-vline-next .ktv-vline-cnro { font-size: 17px; margin-top: 3px; }
+
+.ktv-vline.en-slot .ktv-vline-th { font-family: inherit; font-style: italic; }
+
+@media (max-width: 720px) {
+  .ktv-view-top { padding: max(12px, env(safe-area-inset-top)) 12px 0; }
+  .ktv-pill { padding: 7px 13px; font-size: 12.5px; }
+  .ktv-view-lines { padding: 18px 16px calc(22px + env(safe-area-inset-bottom)); gap: 9px; }
+  .ktv-vline-cur .ktv-vline-th { font-size: 25px; }
+  .ktv-vline-cur .ktv-vline-cnro { font-size: 20px; }
+  .ktv-vline-next .ktv-vline-th { font-size: 17px; }
+  .ktv-vline-next .ktv-vline-cnro { font-size: 14.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

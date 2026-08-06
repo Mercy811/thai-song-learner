@@ -19,6 +19,10 @@
       <p class="sub"><span id="songTitleTh">ที่ปลอดภัยใกล้ฉัน</span> · <span id="songArtist">Lena Lalina</span></p>
     </div>
     <div class="topbar-actions">
+      <div class="mode-toggle" role="group" aria-label="切换模式">
+        <button id="btnModePractice" class="mode-btn active" title="练习模式：逐句逐词、发音、录音">📖 练习</button>
+        <button id="btnModeKtv" class="mode-btn" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
+      </div>
       <button id="btnVoice" class="icon-btn" title="发音设置">
         <span class="dot" id="voiceDot"></span> 发音
       </button>
@@ -156,6 +160,27 @@
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
   <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句 · <kbd>R</kbd> 单句循环 · <kbd>S</kbd> 朗读当前句</p>
 </footer>
+
+<!-- ══ KTV 模式：沉浸式全屏，只留背景 + 当前句/下一句 ══ -->
+<div class="ktv-view hidden" id="ktvView">
+  <div class="ktv-bg" id="ktvBg"></div>
+
+  <div class="ktv-view-top">
+    <button id="ktvExit" class="ktv-pill" title="退出 KTV 模式">✕ 退出</button>
+    <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
+  </div>
+
+  <div class="ktv-view-lines">
+    <div class="ktv-vline ktv-vline-cur" id="ktvLineCur">
+      <div class="ktv-vline-th"></div>
+      <div class="ktv-vline-cnro"></div>
+    </div>
+    <div class="ktv-vline ktv-vline-next" id="ktvLineNext">
+      <div class="ktv-vline-th"></div>
+      <div class="ktv-vline-cnro"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ 发音设置面板 ══ -->
 <div class="modal hidden" id="voiceModal">

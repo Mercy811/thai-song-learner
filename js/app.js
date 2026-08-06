@@ -13,6 +13,7 @@
     theme:  'tsl.theme',
     ttsRate:'tsl.ttsRate',
     videoSize:'tsl.videoSize',
+    mode:   'tsl.mode',
   };
 
   const $  = (s, r = document) => r.querySelector(s);
@@ -24,6 +25,7 @@
   );
 
   const state = {
+    mode: localStorage.getItem(LS.mode) === 'ktv' ? 'ktv' : 'practice',
     activeIdx: -1,
     follow: true,
     loopOn: false,
@@ -176,6 +178,7 @@
       }
     }
     renderKtv();
+    renderKtvView();
     highlightMark(idx);
     // 拖进度条的过程中不要重设单句循环，否则会被循环区间拽回去
     if (state.loopOn && idx >= 0 && !seek.dragging) Player.setLoop(LINES[idx].start, lineEnd(idx));
@@ -246,6 +249,34 @@
     el.classList.toggle('idle', !isLive);
   }
 
+  /* ════════ KTV 沉浸模式：全屏，只留背景 + 当前句/下一句 ════════
+     跟顶部的双行槽位不一样，这里位置固定不用来回换：
+     上面永远是正在唱的那句，下面永远是下一句。 */
+  function setMode(mode) {
+    state.mode = mode;
+    document.body.classList.toggle('mode-ktv', mode === 'ktv');
+    $('#ktvView').classList.toggle('hidden', mode !== 'ktv');
+    $('#btnModePractice').classList.toggle('active', mode === 'practice');
+    $('#btnModeKtv').classList.toggle('active', mode === 'ktv');
+    localStorage.setItem(LS.mode, mode);
+    if (mode === 'ktv') renderKtvView();
+  }
+
+  function fillKtvViewLine(el, line) {
+    const thEl = el.querySelector('.ktv-vline-th');
+    const cnroEl = el.querySelector('.ktv-vline-cnro');
+    thEl.textContent = line ? line.th : '🎉 这一轮唱完了';
+    cnroEl.textContent = line ? cnRoOf(line) : '';
+    el.classList.toggle('en-slot', !!line && line.lang === 'en');
+  }
+
+  function renderKtvView() {
+    if (state.mode !== 'ktv') return;
+    const c = state.activeIdx;
+    const curIdx = c < 0 ? 0 : c;
+    fillKtvViewLine($('#ktvLineCur'), LINES[curIdx]);
+    fillKtvViewLine($('#ktvLineNext'), LINES[curIdx + 1]);
+  }
 
   /* ════════ 整首歌的进度条 ════════
      点一下跳过去，按住拖着走。拖的过程中：
@@ -659,6 +690,13 @@
       if (LINES[idx]) jumpTo(idx);
     }));
 
+    // 练习 / KTV 模式切换
+    $('#btnModePractice').addEventListener('click', () => setMode('practice'));
+    $('#btnModeKtv').addEventListener('click', () => setMode('ktv'));
+    $('#ktvExit').addEventListener('click', () => setMode('practice'));
+    $('#ktvPlayPause').addEventListener('click', () => Player.toggle());
+    $('#ktvBg').addEventListener('click', () => Player.toggle());
+
     // 画面大小：只要声音 / 小窗 / 大窗
     const vs = $('#videoSize');
     const savedSize = localStorage.getItem(LS.videoSize) || 'off';
@@ -768,7 +806,10 @@
           if (l) speakLine(l, $(`.line[data-idx="${state.activeIdx}"] [data-act="speak"]`));
           break;
         }
-        case 'Escape': $$('.modal').forEach((m) => m.classList.add('hidden')); break;
+        case 'Escape':
+          if (state.mode === 'ktv') setMode('practice');
+          $$('.modal').forEach((m) => m.classList.add('hidden'));
+          break;
       }
     });
 
@@ -895,6 +936,7 @@
     initSeek();
     bind();
     renderKtv();
+    setMode(state.mode);
     watchDeckHeight();
 
     if (!isCalibrated()) $('#syncBanner').classList.remove('hidden');
@@ -906,7 +948,9 @@
     Player.load(SONG.youtubeId, 'ytplayer');
     Player.on('ready', setupSeekScale);
     Player.on('state', (s) => {
-      $('#btnPlay').textContent = s === 1 ? '⏸' : '▶';
+      const icon = s === 1 ? '⏸' : '▶';
+      $('#btnPlay').textContent = icon;
+      $('#ktvPlayPause').textContent = icon;
       // 有些情况下 onReady 时还拿不到时长，换视频状态后再补一次
       if (!seek.scaleReady) setupSeekScale();
     });
