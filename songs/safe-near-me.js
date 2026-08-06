@@ -2,8 +2,14 @@
  * Safe Near Me (ที่ปลอดภัยใกล้ฉัน) — Lena Lalina / Ost. My Safe Zone
  *
  * 逐词数据来源：用户提供的《Safe_Zone_泰语逐句跟读_完整版.pdf》学习卡片
+ *
+ * 句子上的字段：
  *   th   = 泰文
  *   ro   = 罗马音（拼读）
+ *   cnRo = 整句中文谐音（就是下面逐词 cn 串起来的，唱的时候照着念）
+ *   cn   = 中文意思
+ * 逐词卡片（words）上的字段：
+ *   th / ro = 泰文、罗马音
  *   cn   = 中文谐音
  *   mean = 中文意思
  *
@@ -37,6 +43,7 @@ window.SONGS['safe-near-me'] = {
           start: 15.34,
           th: 'อาจจะมีบางทีที่เผลอพลาดไป',
           ro: 'at cha mi bangthi thi phloe phlat pai',
+          cnRo: '啊扎 米 邦替 替拽拍拍',
           cn: '也许有时候会不小心犯错',
           words: [
             { th: 'อาจจะ', ro: 'at cha', cn: '啊扎', mean: '也许' },
@@ -51,6 +58,7 @@ window.SONGS['safe-near-me'] = {
           start: 18.6,
           th: 'ทำให้เธอรู้สึกว่าฉันหายไป',
           ro: 'thamhai thoe rusuek wa chan hai pai',
+          cnRo: '探还 特 如涑哇 禅还拍',
           cn: '让你觉得我消失了',
           words: [
             { th: 'ทำให้', ro: 'thamhai', cn: '探还', mean: '让' },
@@ -65,6 +73,7 @@ window.SONGS['safe-near-me'] = {
           start: 21.89,
           th: 'ทำเธอน้อยใจ ทำให้เธอเหงา',
           ro: 'tham thoe noichai thamhai thoe ngao',
+          cnRo: '探特挪猜 探还特熬',
           cn: '让你委屈，让你孤单',
           words: [
             { th: 'ทำเธอน้อยใจ', ro: 'tham thoe noichai', cn: '探特挪猜', mean: '让你难过委屈' },
@@ -84,6 +93,7 @@ window.SONGS['safe-near-me'] = {
           start: 28.81,
           th: 'อยากจะบอกให้เธอได้รู้ความจริง',
           ro: 'ayak cha bok hai thoe dai ru khwam ching',
+          cnRo: '啊呀扎 波还特 呆如 宽京',
           cn: '想要让你知道真相',
           words: [
             { th: 'อยากจะ', ro: 'ayak cha', cn: '啊呀扎', mean: '想要' },
@@ -98,6 +108,7 @@ window.SONGS['safe-near-me'] = {
           start: 31.77,
           th: 'ว่าที่ทำลงไปกับเธอทุกสิ่ง',
           ro: 'wathi tham long pai kap thoe thuk sing',
+          cnRo: '哇替 探隆拍 卡特 秃兴',
           cn: '就是我对你做的每一件事',
           words: [
             { th: 'ว่าที่', ro: 'wathi', cn: '哇替', mean: '就是' },
@@ -112,6 +123,7 @@ window.SONGS['safe-near-me'] = {
           start: 34.7,
           th: 'อาจจะไม่จริง ไม่ตรงกับใจฉันทุกอย่าง',
           ro: 'at cha mai ching mai trong kap chai chan thuk yang',
+          cnRo: '啊扎埋京 埋中卡 猜禅 秃央',
           cn: '也许都不是真的，并不完全符合我的心意',
           words: [
             { th: 'อาจจะไม่จริง', ro: 'at cha mai ching', cn: '啊扎埋京', mean: '也许不是真的' },
@@ -133,6 +145,7 @@ window.SONGS['safe-near-me'] = {
           start: 41.47,
           th: 'อย่าโกรธ อย่าลงโทษฉัน',
           ro: 'aya krot aya longthot chan',
+          cnRo: '啊亚罗 啊亚隆透 禅',
           cn: '别生气，别惩罚我',
           words: [
             { th: 'อย่าโกรธ', ro: 'aya krot', cn: '啊亚罗', mean: '别生气' },
@@ -146,6 +159,7 @@ window.SONGS['safe-near-me'] = {
           start: 44.72,
           th: 'ด้วยท่าทางที่เฉยเมย',
           ro: 'duai thathang thi choeimei',
+          cnRo: '堆 他堂 替拽妹',
           cn: '用那种冷漠的态度',
           words: [
             { th: 'ด้วย', ro: 'duai', cn: '堆', mean: '用、以' },
@@ -159,6 +173,7 @@ window.SONGS['safe-near-me'] = {
           start: 47.95,
           th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
           ro: 'ru laeo wa mai di loei aphai dai haimai',
+          cnRo: '如廖哇 埋弟类 啊拍 呆还埋',
           cn: '知道自己不好，可以原谅我吗',
           words: [
             { th: 'รู้แล้วว่า', ro: 'ru laeo wa', cn: '如廖哇', mean: '知道了' },
@@ -180,6 +195,7 @@ window.SONGS['safe-near-me'] = {
           start: 54.37,
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
+          cnRo: '戈坡哇 特 科 替 波拍 盖 禅',
           cn: '因为你就是我身边最安全的地方',
           words: [
             { th: 'ก็เพราะว่า', ro: 'ko phro wa', cn: '戈坡哇', mean: '因为' },
@@ -197,6 +213,7 @@ window.SONGS['safe-near-me'] = {
           start: 57.54,
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
+          cnRo: '他埋米 特 禅杂优 替奈',
           cn: '如果没有你，我该在哪里',
           words: [
             { th: 'ถ้าไม่มี', ro: 'tha mai mi', cn: '他埋米', mean: '如果没有' },
@@ -211,6 +228,7 @@ window.SONGS['safe-near-me'] = {
           start: 61.49,
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
+          cnRo: '特 科 Save zone',
           cn: '你就是我的 Safe zone',
           words: [
             { th: 'เธอ', ro: 'thoe', cn: '特', mean: '你' },
@@ -224,6 +242,7 @@ window.SONGS['safe-near-me'] = {
           start: 62.9,
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
+          cnRo: '埋啊呀 Alone',
           cn: '不想孤单',
           words: [
             { th: 'ไม่อยาก', ro: 'mai ayak', cn: '埋啊呀', mean: '不想' },
@@ -236,6 +255,7 @@ window.SONGS['safe-near-me'] = {
           start: 64.91,
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
+          cnRo: '绕卡普妈喷 棉登 呆还埋',
           cn: '我们可以回到从前吗',
           words: [
             { th: 'เรากลับมาเป็น', ro: 'rao klap ma pen', cn: '绕卡普妈喷', mean: '我们回来变成' },
@@ -256,6 +276,7 @@ window.SONGS['safe-near-me'] = {
           start: 68.41,
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
+          cnRo: '坡哇 特 科 替环牙 盖禅',
           cn: '因为你就是我身边那份牵挂',
           words: [
             { th: 'เพราะว่า', ro: 'phro wa', cn: '坡哇', mean: '因为' },
@@ -271,6 +292,7 @@ window.SONGS['safe-near-me'] = {
           start: 71.73,
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
+          cnRo: 'Location 替禅 帕木 猜凹歪',
           cn: '是我把心钉住的那个位置',
           words: [
             { th: 'Location', ro: 'location', cn: '（英语）', mean: '位置', lang: 'en' },
@@ -285,6 +307,7 @@ window.SONGS['safe-near-me'] = {
           start: 75.94,
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
+          cnRo: '散雅类 哇 扎妮拍',
           cn: '我发誓，从今以后',
           words: [
             { th: 'สัญญาเลย', ro: 'sanya loei', cn: '散雅类', mean: '发誓' },
@@ -298,6 +321,7 @@ window.SONGS['safe-near-me'] = {
           start: 79.23,
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
+          cnRo: '杂优代 乃喷替 华猜 空特',
           cn: '只待在你心里的这片区域',
           words: [
             { th: 'จะอยู่แต่', ro: 'cha yu tae', cn: '杂优代', mean: '只会在' },
@@ -336,6 +360,7 @@ window.SONGS['safe-near-me'] = {
           start: 102.31,
           th: 'ฉันจะอยู่ตรงนี้',
           ro: 'chan cha yu trong ni',
+          cnRo: '禅 杂 优 中妮',
           cn: '我会在这里',
           words: [
             { th: 'ฉัน', ro: 'chan', cn: '禅', mean: '我' },

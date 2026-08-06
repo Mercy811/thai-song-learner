@@ -112,6 +112,7 @@
         <div class="line-main">
           <p class="line-th">${esc(line.th)}</p>
           ${line.ro ? `<p class="line-ro" data-f="ro">${esc(line.ro)}</p>` : ''}
+          ${cnRoOf(line) ? `<p class="line-cnro" data-f="cn">${esc(cnRoOf(line))}</p>` : ''}
           <p class="line-cn" data-f="mean">${esc(line.cn)}</p>
         </div>
         <div class="line-tools">
@@ -126,6 +127,17 @@
       <div class="take-row hidden" data-take></div>
     `;
     return el;
+  }
+
+  // 整句中文谐音：数据里写好的优先；没写就拿逐词的谐音拼起来。
+  // 英文词的谐音位写的是「（英语）」这类说明，拼整句时用词本身代替。
+  function cnRoOf(line) {
+    if (line.cnRo) return line.cnRo;
+    if (!line.words || !line.words.length) return '';
+    const parts = line.words
+      .map((w) => (w.lang === 'en' ? w.th : w.cn))
+      .filter((s) => s && !/^[（(]/.test(s));
+    return parts.length ? parts.join(' ') : '';
   }
 
   function wordHtml(w) {
@@ -188,6 +200,13 @@
     want.forEach((lineIdx, slot) => fillSlot(slot, lineIdx, c >= 0 && lineIdx === c));
   }
 
+  // 视图开关用的是 .hidden 类，这里只动 display，两边互不干扰
+  function setRow(root, sel, text) {
+    const n = root.querySelector(sel);
+    n.textContent = text;
+    n.style.display = text ? '' : 'none';
+  }
+
   function fillSlot(slot, lineIdx, isLive) {
     const el = $('#slot' + slot);
     const l = LINES[lineIdx];
@@ -197,8 +216,10 @@
       slotShowing[slot] = lineIdx;
       el.querySelector('.ktv-no').textContent  = l ? lineIdx + 1 : '—';
       el.querySelector('.ktv-th').textContent  = l ? l.th : '🎉 这一轮唱完了';
-      el.querySelector('.ktv-ro').textContent  = l ? (l.ro || '') : '';
-      el.querySelector('.ktv-cn').textContent  = l ? (l.cn || '') : '';
+      // 罗马音 / 中文谐音 / 中文意思：空的那行直接收起来，别留一道空白
+      setRow(el, '.ktv-ro',   l ? (l.ro || '') : '');
+      setRow(el, '.ktv-cnro', l ? cnRoOf(l) : '');
+      setRow(el, '.ktv-cn',   l ? (l.cn || '') : '');
       el.classList.toggle('empty', !l);
       el.classList.toggle('en-slot', !!l && l.lang === 'en');
       el.dataset.idx = l ? lineIdx : '';
@@ -361,8 +382,9 @@
     // 当前要标的句子：泰文 + 罗马音 + 中文，三行都给
     $('#calibNext').textContent = done ? '🎉 全部标完了，点「保存时间轴」' : next.th;
     $('#calibNext').style.fontFamily = (done || next.lang === 'en') ? 'inherit' : 'var(--thai-font)';
-    $('#calibNextRo').textContent = done ? '' : (next.ro || '');
-    $('#calibNextCn').textContent = done ? '' : (next.cn || '');
+    $('#calibNextRo').textContent   = done ? '' : (next.ro || '');
+    $('#calibNextCnRo').textContent = done ? '' : cnRoOf(next);
+    $('#calibNextCn').textContent   = done ? '' : (next.cn || '');
     $('#calibListen').classList.toggle('hidden', done);
 
     // 预告再下一句，好提前准备

@@ -235,6 +235,11 @@ body {
 }
 .ktv-slot.en-slot .ktv-th { font-family: inherit; font-size: 25px; font-style: italic; }
 .ktv-ro { font-size: 14.5px; color: var(--accent-2); line-height: 1.5; }
+/* 中文谐音：跟着唱主要看这行，所以给到仅次于泰文的字号 */
+.ktv-cnro {
+  font-size: 21px; font-weight: 600; line-height: 1.45;
+  color: var(--text); letter-spacing: .02em; margin-top: 1px;
+}
 .ktv-cn { font-size: 14.5px; color: var(--text-2); line-height: 1.5; }
 .ktv-slot.live .ktv-cn { color: var(--text); }
 
@@ -315,6 +320,11 @@ body {
 }
 .line.en-line .line-th { font-family: inherit; font-size: 22px; font-style: italic; }
 .line-ro { font-size: 14px; color: var(--accent-2); letter-spacing: .01em; margin: 2px 0; }
+/* 中文谐音：唱的时候照着念的就是这行，比罗马音和意思都要大 */
+.line-cnro {
+  font-size: 19px; font-weight: 600; color: var(--text);
+  letter-spacing: .02em; line-height: 1.5; margin: 3px 0 2px;
+}
 .line-cn { font-size: 14.5px; color: var(--text-2); margin: 2px 0; }
 
 .line-tools { display: flex; gap: 6px; flex: none; flex-wrap: wrap; justify-content: flex-end; max-width: 190px; }
@@ -349,8 +359,11 @@ body {
 .word.speaking .w-cn, .word.speaking .w-mean { color: #fff; }
 .w-th { font-family: var(--thai-font); font-size: 19px; font-weight: 600; line-height: 1.4; }
 .word.en-word .w-th { font-family: inherit; font-size: 16px; font-style: italic; }
+/* 英文词的「谐音」位写的是（英语）这类说明，不用放大 */
+.word.en-word .w-cn { font-size: 11px; font-weight: 400; color: var(--text-3); }
 .w-ro { font-size: 11px; color: var(--accent-2); margin-top: 1px; }
-.w-cn { font-size: 11px; color: var(--text-3); }
+/* 谐音在词卡里也放大：这是跟唱时真正在看的东西 */
+.w-cn { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.35; margin-top: 2px; }
 .w-mean { font-size: 12px; color: var(--text-2); margin-top: 3px; font-weight: 500; }
 
 /* 录音回放条 */
@@ -440,8 +453,13 @@ body {
 .calib-next-ro {
   font-size: 14px; color: var(--accent-2); margin-top: 4px; line-height: 1.5;
 }
+.calib-next-cnro {
+  font-size: 19px; font-weight: 600; color: var(--text);
+  letter-spacing: .02em; margin-top: 4px; line-height: 1.45;
+}
+.calib-next-cnro:empty { display: none; }
 .calib-next-cn {
-  font-size: 15px; color: var(--text); margin-top: 3px; line-height: 1.5; font-weight: 500;
+  font-size: 14px; color: var(--text-2); margin-top: 3px; line-height: 1.5;
 }
 .calib-listen { margin-top: 11px; font-size: 12.5px; padding: 6px 13px; }
 .calib-progress { font-size: 12.5px; color: var(--text-2); margin-top: 10px; font-variant-numeric: tabular-nums; }
@@ -520,6 +538,7 @@ body {
   .ktv-th { font-size: 22px; }
   .ktv-slot.en-slot .ktv-th { font-size: 19px; }
   .ktv-ro, .ktv-cn { font-size: 12.5px; }
+  .ktv-cnro { font-size: 18px; }
   .ktv-tag { margin-bottom: 0; }
   .ktv-slot.idle { opacity: .45; }
   .viewbar-inner { padding: 9px 13px; }
@@ -529,6 +548,7 @@ body {
   .line-tools { max-width: none; width: 100%; justify-content: flex-start; }
   .line-no { margin-top: 0; align-self: flex-start; }
   .line-th { font-size: 24px; }
+  .line-cnro { font-size: 17.5px; }
   .words { padding: 2px 14px 12px; }
   .time-readout { order: 10; }
   .transport .ctl { font-size: 12px; }
