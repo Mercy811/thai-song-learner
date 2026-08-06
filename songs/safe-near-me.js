@@ -15,7 +15,7 @@
  *   mean = 中文意思
  *
  * 时间轴说明：
- *   0:15–1:47 的原有 start 已按原曲校准；新增重复段为按结构估算的时间，单位是秒。
+ *   全部 47 句的 start 都已在网页里跟着原曲逐句标记校准，单位是秒。
  *   如果之后觉得某几句偏了，打开网页 → 右上角「⏱ 校准时间轴」重新标一遍，
  *   校准结果会存在浏览器里覆盖这里的值；点「导出」可以把新数字贴回来分享给别人。
  */
@@ -30,8 +30,8 @@ window.SONGS['safe-near-me'] = {
   album: 'Ost. My Safe Zone',
   youtubeId: 'YuKjzwzTewI',
 
-  // 完整歌词已补齐；新增重复段的时间仍需在网页中做一次最终校准
-  synced: false,
+  // 完整歌词已补齐，47 句时间轴已全部校准完成
+  synced: true,
 
   sections: [
     {
@@ -41,7 +41,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-1',
           lang: 'th',
-          start: 15.34,
+          start: 14.74,
           th: 'อาจจะมีบางทีที่เผลอพลาดไป',
           ro: 'at cha mi bangthi thi phloe phlat pai',
           cnRo: '啊扎 米 邦替 替拽拍拍',
@@ -56,7 +56,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-2',
           lang: 'th',
-          start: 18.6,
+          start: 18.23,
           th: 'ทำให้เธอรู้สึกว่าฉันหายไป',
           ro: 'thamhai thoe rusuek wa chan hai pai',
           cnRo: '探还 特 如涑哇 禅还拍',
@@ -71,7 +71,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-3',
           lang: 'th',
-          start: 21.89,
+          start: 21.39,
           th: 'ทำเธอน้อยใจ ทำให้เธอเหงา Hohoho',
           ro: 'tham thoe noichai thamhai thoe ngao Hohoho',
           cnRo: '探特挪猜 探还特熬 吼吼吼',
@@ -92,7 +92,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-1',
           lang: 'th',
-          start: 28.81,
+          start: 27.26,
           th: 'อยากจะบอกให้เธอได้รู้ความจริง',
           ro: 'ayak cha bok hai thoe dai ru khwam ching',
           cnRo: '啊呀扎 波还特 呆如 宽京',
@@ -107,7 +107,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-2',
           lang: 'th',
-          start: 31.77,
+          start: 31.3,
           th: 'ว่าที่ทำลงไปกับเธอทุกสิ่ง',
           ro: 'wathi tham long pai kap thoe thuk sing',
           cnRo: '哇替 探隆拍 卡特 秃兴',
@@ -122,7 +122,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-3',
           lang: 'th',
-          start: 34.7,
+          start: 34.53,
           th: 'อาจจะไม่จริง ไม่ตรงกับใจฉันทุกอย่าง',
           ro: 'at cha mai ching mai trong kap chai chan thuk yang',
           cnRo: '啊扎埋京 埋中卡 猜禅 秃央',
@@ -144,7 +144,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-1',
           lang: 'th',
-          start: 41.47,
+          start: 40.8,
           th: 'อย่าโกรธ อย่าลงโทษฉัน',
           ro: 'aya krot aya longthot chan',
           cnRo: '啊亚罗 啊亚隆透 禅',
@@ -158,7 +158,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-2',
           lang: 'th',
-          start: 44.72,
+          start: 44.2,
           th: 'ด้วยท่าทางที่เฉยเมย',
           ro: 'duai thathang thi choeimei',
           cnRo: '堆 他堂 替拽妹',
@@ -172,7 +172,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-3',
           lang: 'th',
-          start: 47.95,
+          start: 47.01,
           th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
           ro: 'ru laeo wa mai di loei aphai dai haimai',
           cnRo: '如廖哇 埋弟类 啊拍 呆还埋',
@@ -194,7 +194,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-1',
           lang: 'th',
-          start: 54.37,
+          start: 53.23,
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
           cnRo: '戈坡哇 特 科 替 波拍 盖 禅',
@@ -212,7 +212,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-2',
           lang: 'th',
-          start: 57.54,
+          start: 57.27,
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
           cnRo: '他埋米 特 禅杂优 替奈',
@@ -227,7 +227,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-3',
           lang: 'th',
-          start: 61.49,
+          start: 60.56,
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
           cnRo: '特 科 Save zone',
@@ -241,7 +241,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-4',
           lang: 'th',
-          start: 62.9,
+          start: 62.46,
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
           cnRo: '埋啊呀 Alone',
@@ -254,7 +254,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-5',
           lang: 'th',
-          start: 64.91,
+          start: 64.29,
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
           cnRo: '绕卡普妈喷 棉登 呆还埋',
@@ -275,7 +275,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-1',
           lang: 'th',
-          start: 68.41,
+          start: 67.97,
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
           cnRo: '坡哇 特 科 替环牙 盖禅',
@@ -291,7 +291,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-2',
           lang: 'th',
-          start: 71.73,
+          start: 70.78,
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
           cnRo: 'Location 替禅 帕木 猜凹歪',
@@ -306,7 +306,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-3',
           lang: 'th',
-          start: 75.94,
+          start: 75.61,
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
           cnRo: '散雅类 哇 扎妮拍',
@@ -320,7 +320,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-4',
           lang: 'th',
-          start: 79.23,
+          start: 78.8,
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
           cnRo: '杂优代 乃喷替 华猜 空特',
@@ -341,25 +341,25 @@ window.SONGS['safe-near-me'] = {
       note: '这一段基本是英语，只有第 5 句是泰语',
       lines: [
         {
-          id: 'br-1', lang: 'en', start: 96.9,
+          id: 'br-1', lang: 'en', start: 86.96,
           th: 'You can trust me', ro: '', cn: '你可以相信我', words: [],
         },
         {
-          id: 'br-2', lang: 'en', start: 98.58,
+          id: 'br-2', lang: 'en', start: 96.85,
           th: 'Please you can trust me', ro: '', cn: '求你相信我', words: [],
         },
         {
-          id: 'br-3', lang: 'en', start: 99.32,
+          id: 'br-3', lang: 'en', start: 98.07,
           th: 'Let me touch ur body', ro: '', cn: '让我触碰你', words: [],
         },
         {
-          id: 'br-4', lang: 'en', start: 100.55,
+          id: 'br-4', lang: 'en', start: 99.62,
           th: 'Look in my eyes', ro: '', cn: '看着我的眼睛', words: [],
         },
         {
           id: 'br-5',
           lang: 'th',
-          start: 102.31,
+          start: 101.47,
           th: 'ฉันจะอยู่ตรงนี้',
           ro: 'chan cha yu trong ni',
           cnRo: '禅 杂 优 中妮',
@@ -372,15 +372,15 @@ window.SONGS['safe-near-me'] = {
           ],
         },
         {
-          id: 'br-6', lang: 'en', start: 103.61,
+          id: 'br-6', lang: 'en', start: 102.92,
           th: 'Come on stay with me', ro: '', cn: '留下来陪着我', words: [],
         },
         {
-          id: 'br-7', lang: 'en', start: 105.4,
+          id: 'br-7', lang: 'en', start: 104.6,
           th: "You won't be lonely", ro: '', cn: '你不会孤单', words: [],
         },
         {
-          id: 'br-8', lang: 'en', start: 107.11,
+          id: 'br-8', lang: 'en', start: 106.99,
           th: 'Come on Baby Cause you save me', ro: '', cn: '因为你拯救了我', words: [],
         },
       ],
@@ -389,12 +389,12 @@ window.SONGS['safe-near-me'] = {
     {
       name: '过渡段（重复）',
       nameEn: 'Pre-chorus reprise',
-      note: '网页完整歌词中的桥段后重复；时间为结构估算，需最终校准',
+      note: '网页完整歌词中的桥段后重复',
       lines: [
         {
           id: 'pc2-1',
           lang: 'th',
-          start: 111.0,
+          start: 110.04,
           th: 'อย่าโกรธ อย่าลงโทษฉัน',
           ro: 'aya krot aya longthot chan',
           cnRo: '啊亚罗 啊亚隆透 禅',
@@ -408,7 +408,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc2-2',
           lang: 'th',
-          start: 114.25,
+          start: 113.01,
           th: 'ด้วยท่าทางที่เฉยเมย',
           ro: 'duai thathang thi choeimei',
           cnRo: '堆 他堂 替拽妹',
@@ -422,7 +422,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc2-3',
           lang: 'th',
-          start: 117.48,
+          start: 115.49,
           th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
           ro: 'ru laeo wa mai di loei aphai dai haimai',
           cnRo: '如廖哇 埋弟类 啊拍 呆还埋',
@@ -440,12 +440,12 @@ window.SONGS['safe-near-me'] = {
     {
       name: '副歌 1（第二次）',
       nameEn: 'Chorus 1 reprise',
-      note: '网页完整歌词中的第二次副歌；时间为结构估算，需最终校准',
+      note: '网页完整歌词中的第二次副歌',
       lines: [
         {
           id: 'c1b-1',
           lang: 'th',
-          start: 123.9,
+          start: 121.64,
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
           cnRo: '戈坡哇 特 科 替 波拍 盖 禅',
@@ -463,7 +463,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-2',
           lang: 'th',
-          start: 127.07,
+          start: 125.79,
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
           cnRo: '他埋米 特 禅杂优 替奈',
@@ -478,7 +478,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-3',
           lang: 'th',
-          start: 131.02,
+          start: 129.09,
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
           cnRo: '特 科 Save zone',
@@ -492,7 +492,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-4',
           lang: 'th',
-          start: 132.43,
+          start: 130.91,
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
           cnRo: '埋啊呀 Alone',
@@ -505,7 +505,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-5',
           lang: 'th',
-          start: 134.44,
+          start: 132.64,
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
           cnRo: '绕卡普妈喷 棉登 呆还埋',
@@ -522,12 +522,12 @@ window.SONGS['safe-near-me'] = {
     {
       name: '副歌 2（第二次）',
       nameEn: 'Chorus 2 reprise',
-      note: '网页完整歌词中的第二次副歌；时间为结构估算，需最终校准',
+      note: '网页完整歌词中的第二次副歌',
       lines: [
         {
           id: 'c2b-1',
           lang: 'th',
-          start: 137.94,
+          start: 136.35,
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
           cnRo: '坡哇 特 科 替环牙 盖禅',
@@ -543,7 +543,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-2',
           lang: 'th',
-          start: 141.26,
+          start: 139.53,
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
           cnRo: 'Location 替禅 帕木 猜凹歪',
@@ -558,7 +558,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-3',
           lang: 'th',
-          start: 145.47,
+          start: 144.06,
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
           cnRo: '散雅类 哇 扎妮拍',
@@ -572,7 +572,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-4',
           lang: 'th',
-          start: 148.76,
+          start: 147.25,
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
           cnRo: '杂优代 乃喷替 华猜 空特',
@@ -590,12 +590,12 @@ window.SONGS['safe-near-me'] = {
     {
       name: '副歌 1（最终）',
       nameEn: 'Final Chorus 1',
-      note: '网页完整歌词中的最终轮副歌；时间为结构估算，需最终校准',
+      note: '网页完整歌词中的最终轮副歌',
       lines: [
         {
           id: 'c1c-1',
           lang: 'th',
-          start: 153.1,
+          start: 163.98,
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
           cnRo: '戈坡哇 特 科 替 波拍 盖 禅',
@@ -613,7 +613,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-2',
           lang: 'th',
-          start: 156.27,
+          start: 167.46,
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
           cnRo: '他埋米 特 禅杂优 替奈',
@@ -628,7 +628,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-3',
           lang: 'th',
-          start: 160.22,
+          start: 170.8,
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
           cnRo: '特 科 Save zone',
@@ -642,7 +642,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-4',
           lang: 'th',
-          start: 161.63,
+          start: 172.51,
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
           cnRo: '埋啊呀 Alone',
@@ -655,7 +655,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-5',
           lang: 'th',
-          start: 163.64,
+          start: 173.83,
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
           cnRo: '绕卡普妈喷 棉登 呆还埋',
@@ -672,12 +672,12 @@ window.SONGS['safe-near-me'] = {
     {
       name: '副歌 2（最终）',
       nameEn: 'Final Chorus 2',
-      note: '网页完整歌词中的最终轮副歌；时间为结构估算，需最终校准',
+      note: '网页完整歌词中的最终轮副歌',
       lines: [
         {
           id: 'c2c-1',
           lang: 'th',
-          start: 167.14,
+          start: 177.42,
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
           cnRo: '坡哇 特 科 替环牙 盖禅',
@@ -693,7 +693,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-2',
           lang: 'th',
-          start: 170.46,
+          start: 180.78,
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
           cnRo: 'Location 替禅 帕木 猜凹歪',
@@ -708,7 +708,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-3',
           lang: 'th',
-          start: 174.67,
+          start: 185.08,
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
           cnRo: '散雅类 哇 扎妮拍',
@@ -722,7 +722,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-4',
           lang: 'th',
-          start: 177.96,
+          start: 188.64,
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
           cnRo: '杂优代 乃喷替 华猜 空特',
