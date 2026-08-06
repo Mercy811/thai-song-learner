@@ -130,16 +130,18 @@ body {
 .player-wrap {
   background: var(--bg); padding: 12px 18px 10px;
 }
+/* 不裁剪溢出：进度条的时间气泡要能浮到卡片外面。
+   画面的圆角改由 .video-box 自己收边。 */
 .player-card {
   max-width: 1020px; margin: 0 auto;
   background: var(--card); border: 1px solid var(--line);
   border-radius: var(--radius); box-shadow: var(--shadow);
-  overflow: hidden;
 }
 .video-box {
   position: relative; width: 100%;
   aspect-ratio: 16/9; max-height: 190px;
   background: #000; overflow: hidden;
+  border-radius: var(--radius) var(--radius) 0 0;
   transition: height .2s, max-height .2s;
 }
 .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -174,6 +176,78 @@ body {
   background: var(--accent-2-soft); border-color: var(--accent-2); color: var(--accent-2);
   font-weight: 600;
 }
+/* ── 整首歌进度条 ─────────────────────
+   点一下跳过去，按住拖着走。轨道上的竖线是每一句的起点，
+   段落第一句的竖线更高一点，方便一眼找到主歌/副歌。 */
+.seekrow {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 14px 3px;
+}
+.seek-time {
+  font-variant-numeric: tabular-nums; font-size: 12.5px; color: var(--text-2);
+  white-space: nowrap; flex: none; min-width: 34px;
+}
+.seek-time:last-child { text-align: right; }
+
+.seek {
+  position: relative; flex: 1; min-width: 0;
+  padding: 10px 0;                 /* 上下留出手指/鼠标的抓取范围 */
+  cursor: pointer; touch-action: none;
+  outline: none;
+}
+.seek.disabled { pointer-events: none; opacity: .5; }
+.seek-track {
+  position: relative; height: 7px; border-radius: 999px;
+  background: var(--line); overflow: hidden;
+}
+.seek-buffer {
+  position: absolute; inset: 0 auto 0 0; width: 0;
+  background: var(--line-soft); filter: brightness(.94);
+}
+:root[data-theme="dark"] .seek-buffer { background: #4a4454; filter: none; }
+/* 单句循环时，被循环的那一段在轨道上标出来 */
+.seek-loop {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 0;
+  background: var(--accent-2); opacity: .32;
+}
+.seek-fill {
+  position: absolute; inset: 0 auto 0 0; width: 0;
+  background: var(--accent); border-radius: 999px;
+}
+
+.seek-marks { position: absolute; inset: 10px 0; pointer-events: none; }
+.seek-mark {
+  position: absolute; top: 1px; width: 1.5px; height: 5px;
+  margin-left: -.75px; border-radius: 1px;
+  background: var(--text-3); opacity: .55;
+}
+.seek-mark.sec { top: -2px; height: 11px; opacity: .8; background: var(--text-2); }
+.seek-mark.on  { background: var(--text); opacity: 1; }
+
+.seek-thumb {
+  position: absolute; top: 50%; left: 0;
+  width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px;
+  border-radius: 50%; background: var(--accent);
+  border: 2px solid var(--card); box-shadow: var(--shadow);
+  pointer-events: none;
+  transition: transform .12s;
+}
+.seek:hover .seek-thumb, .seek:focus-visible .seek-thumb { transform: scale(1.18); }
+.seek.dragging .seek-thumb { transform: scale(1.35); }
+.seek:focus-visible .seek-track { box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* 悬停/拖动时跟着走的小气泡：时间 + 那个位置是第几句 */
+.seek-tip {
+  position: absolute; bottom: calc(100% - 8px); left: 0;
+  transform: translateX(-50%);
+  background: var(--text); color: var(--bg);
+  border-radius: 8px; padding: 5px 10px; font-size: 12px; line-height: 1.45;
+  white-space: nowrap; max-width: 280px; overflow: hidden; text-overflow: ellipsis;
+  pointer-events: none; z-index: 5; box-shadow: var(--shadow);
+}
+.seek-tip b { font-variant-numeric: tabular-nums; }
+.seek-tip span:not(:empty) { margin-left: 7px; opacity: .8; }
+
 .time-readout {
   font-variant-numeric: tabular-nums; font-size: 13px; color: var(--text-2);
   padding: 0 4px; white-space: nowrap;
@@ -550,8 +624,16 @@ body {
   .line-th { font-size: 24px; }
   .line-cnro { font-size: 17.5px; }
   .words { padding: 2px 14px 12px; }
-  .time-readout { order: 10; }
   .transport .ctl { font-size: 12px; }
+  /* 手机上手指粗，轨道和滑块都放大一点 */
+  .seekrow { padding: 8px 12px 2px; gap: 9px; }
+  .seek { padding: 12px 0; }
+  .seek-track { height: 8px; }
+  .seek-marks { inset: 12px 0; }
+  .seek-mark { height: 6px; }
+  .seek-mark.sec { top: -2px; height: 12px; }
+  .seek-thumb { width: 16px; height: 16px; margin: -8px 0 0 -8px; }
+  .seek-tip { max-width: 62vw; }
   .modal { padding: 0; align-items: flex-end; }
   .modal-card { max-width: none; border-radius: 18px 18px 0 0; max-height: 92vh; }
   .foot-tip { display: none; }

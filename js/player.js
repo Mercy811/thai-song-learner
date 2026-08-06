@@ -79,11 +79,16 @@ const Player = (() => {
   function play() { if (ready) yt.playVideo(); }
   function pause() { if (ready) yt.pauseVideo(); }
   function toggle() { isPlaying() ? pause() : play(); }
-  function seek(sec, andPlay = true) {
+  // allowSeekAhead=false：拖进度条的过程中只在已缓冲的范围里跳，
+  // 不去请求新的分片，松手时再用 true 真正定位。
+  function seek(sec, andPlay = true, allowSeekAhead = true) {
     if (!ready) return;
-    yt.seekTo(Math.max(0, sec), true);
+    yt.seekTo(Math.max(0, sec), allowSeekAhead);
     if (andPlay) yt.playVideo();
   }
+  // 已缓冲比例 0~1，用来在进度条上画出「已经加载到哪儿」
+  const getLoadedFraction = () =>
+    (ready && yt.getVideoLoadedFraction ? yt.getVideoLoadedFraction() : 0);
   function nudge(delta) { seek(getTime() + delta, false); }
   function setRate(r) { if (ready && yt.setPlaybackRate) yt.setPlaybackRate(r); }
   function getRate() { return ready && yt.getPlaybackRate ? yt.getPlaybackRate() : 1; }
@@ -102,6 +107,7 @@ const Player = (() => {
 
   return {
     load, on, isReady, getTime, getDuration, getState, isPlaying,
+    getLoadedFraction,
     play, pause, toggle, seek, nudge,
     setRate, getRate, availableRates,
     setLoop, clearLoop, getLoop,

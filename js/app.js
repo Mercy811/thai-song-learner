@@ -176,7 +176,15 @@
       }
     }
     renderKtv();
-    if (state.loopOn && idx >= 0) Player.setLoop(LINES[idx].start, lineEnd(idx));
+    highlightMark(idx);
+    // 拖进度条的过程中不要重设单句循环，否则会被循环区间拽回去
+    if (state.loopOn && idx >= 0 && !seek.dragging) Player.setLoop(LINES[idx].start, lineEnd(idx));
+  }
+
+  function scrollToActive() {
+    if (!state.follow || state.activeIdx < 0) return;
+    $(`.line[data-idx="${state.activeIdx}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   /* ════════ KTV 双行显示 ════════
@@ -238,6 +246,187 @@
     el.classList.toggle('idle', !isLive);
   }
 
+
+  /* ════════ 整首歌的进度条 ════════
+     点一下跳过去，按住拖着走。拖的过程中：
+       · 时间、KTV、歌词高亮跟着预览，能看到会落到哪一句
+       · 只在已缓冲范围内试听（seekTo 的 allowSeekAhead=false），松手才真正定位
+       · 先解掉单句循环，免得刚拖出去就被循环区间拽回来，松手后按新位置重设 */
+  const seek = {
+    dragging: false,
+    wasPlaying: false,
+    scaleReady: false,   // 拿到时长之前，刻度和拖动都还不能用
+    pendingTime: 0,
+    raf: 0,
+    markEls: [],
+    activeMark: null,
+  };
+
+  function initSeek() {
+    seek.el     = $('#seek');
+    seek.track  = $('#seekTrack');
+    seek.fill   = $('#seekFill');
+    seek.buffer = $('#seekBuffer');
+    seek.loopEl = $('#seekLoop');
+    seek.marks  = $('#seekMarks');
+    seek.thumb  = $('#seekThumb');
+    seek.tip    = $('#seekTip');
+    bindSeek();
+  }
+
+  // 时长要等 YouTube 播放器就绪才拿得到，拿到之后才画刻度、才让拖动生效
+  function setupSeekScale() {
+    const dur = Player.getDuration();
+    if (dur <= 0) return;
+    seek.scaleReady = true;
+    $('#durTime').textContent = fmt(dur);
+    seek.el.setAttribute('aria-valuemax', Math.round(dur));
+    seek.el.classList.remove('disabled');
+    renderSeekMarks();
+    paintSeek(Player.getTime());
+  }
+
+  // 每一句一根竖线；段落第一句的更高一点
+  function renderSeekMarks() {
+    const dur = Player.getDuration();
+    seek.marks.innerHTML = '';
+    seek.markEls = [];
+    seek.activeMark = null;
+    if (dur <= 0) return;
+    LINES.forEach((l, i) => {
+      const m = document.createElement('i');
+      const isSecHead = i === 0 || l.section !== LINES[i - 1].section;
+      m.className = 'seek-mark' + (isSecHead ? ' sec' : '');
+      m.style.left = Math.min(100, Math.max(0, (l.start / dur) * 100)) + '%';
+      seek.marks.appendChild(m);
+      seek.markEls.push(m);
+    });
+    highlightMark(state.activeIdx);
+  }
+
+  function highlightMark(idx) {
+    if (!seek.markEls.length) return;
+    if (seek.activeMark) seek.activeMark.classList.remove('on');
+    seek.activeMark = idx >= 0 ? seek.markEls[idx] : null;
+    if (seek.activeMark) seek.activeMark.classList.add('on');
+  }
+
+  function paintSeek(t) {
+    const dur = Player.getDuration();
+    const pct = dur > 0 ? Math.min(100, Math.max(0, (t / dur) * 100)) : 0;
+    seek.fill.style.width = pct + '%';
+    seek.thumb.style.left = pct + '%';
+    $('#curTime').textContent = fmt(t);
+    seek.el.setAttribute('aria-valuenow', Math.round(t));
+    seek.el.setAttribute('aria-valuetext', `${fmt(t)} / ${fmt(dur)}`);
+
+    seek.buffer.style.width = (Player.getLoadedFraction() * 100) + '%';
+
+    // 单句循环的区间
+    const lp = Player.getLoop();
+    seek.loopEl.classList.toggle('hidden', !lp || dur <= 0);
+    if (lp && dur > 0) {
+      seek.loopEl.style.left  = ((lp.start / dur) * 100) + '%';
+      seek.loopEl.style.width = (Math.max(0, lp.end - lp.start) / dur * 100) + '%';
+    }
+  }
+
+  function timeAtX(clientX) {
+    const r = seek.track.getBoundingClientRect();
+    if (r.width <= 0) return 0;
+    const ratio = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+    return ratio * Player.getDuration();
+  }
+
+  function showSeekTip(clientX) {
+    if (!seek.scaleReady) return;
+    const r = seek.track.getBoundingClientRect();
+    const t = timeAtX(clientX);
+    const i = indexAt(t);
+    const l = LINES[i];
+    $('#seekTipTime').textContent = fmt(t);
+    $('#seekTipText').textContent = l ? `第 ${i + 1} 句 · ${l.cn || l.th}` : '';
+    seek.tip.classList.remove('hidden');
+    // 贴着边缘时别让气泡飞出播放器
+    const x = Math.min(Math.max(clientX - r.left, 52), Math.max(52, r.width - 52));
+    seek.tip.style.left = x + 'px';
+  }
+  const hideSeekTip = () => seek.tip.classList.add('hidden');
+
+  // 拖动过程中的预览：画面跟手，音频在缓冲范围内试听
+  function previewSeek(clientX) {
+    const t = timeAtX(clientX);
+    paintSeek(t);
+    showSeekTip(clientX);
+    setActive(indexAt(t), { scroll: false });
+
+    seek.pendingTime = t;
+    if (!seek.raf) {
+      seek.raf = requestAnimationFrame(() => {
+        seek.raf = 0;
+        if (seek.dragging) Player.seek(seek.pendingTime, false, false);
+      });
+    }
+  }
+
+  // 真正落到某个时间点：定位 + 让歌词、KTV、循环区间都跟着对上
+  function applySeek(t, andPlay) {
+    Player.seek(t, andPlay, true);
+    const idx = indexAt(t);
+    setActive(idx, { scroll: false });
+    if (state.loopOn && idx >= 0) Player.setLoop(LINES[idx].start, lineEnd(idx));
+    paintSeek(t);          // 放在最后：循环区间变了，进度条要照新的画
+    scrollToActive();
+  }
+
+  function endSeek(clientX) {
+    if (!seek.dragging) return;
+    seek.dragging = false;
+    seek.el.classList.remove('dragging');
+    hideSeekTip();
+    // 松手前是在放就接着放，本来暂停着就还暂停着
+    applySeek(timeAtX(clientX), seek.wasPlaying);
+  }
+
+  function bindSeek() {
+    seek.el.addEventListener('pointerdown', (e) => {
+      if (!seek.scaleReady) return;
+      e.preventDefault();
+      seek.el.focus();
+      // 捕获指针，手指/鼠标滑出进度条也能继续拖
+      try { seek.el.setPointerCapture(e.pointerId); } catch { /* 个别浏览器不支持就算了 */ }
+      seek.dragging = true;
+      seek.wasPlaying = Player.isPlaying();
+      seek.el.classList.add('dragging');
+      Player.clearLoop();
+      previewSeek(e.clientX);
+    });
+
+    seek.el.addEventListener('pointermove', (e) => {
+      if (seek.dragging) previewSeek(e.clientX);
+      else showSeekTip(e.clientX);
+    });
+
+    seek.el.addEventListener('pointerup', (e) => endSeek(e.clientX));
+    seek.el.addEventListener('pointercancel', (e) => endSeek(e.clientX));
+    seek.el.addEventListener('pointerleave', () => { if (!seek.dragging) hideSeekTip(); });
+
+    // 进度条上按 ←/→ 是快退快进 5 秒，不走全局的「上一句/下一句」
+    seek.el.addEventListener('keydown', (e) => {
+      const dur = Player.getDuration();
+      if (!seek.scaleReady || dur <= 0) return;
+      const now = Player.getTime();
+      let t;
+      if (e.code === 'ArrowLeft' || e.code === 'ArrowDown')  t = now - 5;
+      else if (e.code === 'ArrowRight' || e.code === 'ArrowUp') t = now + 5;
+      else if (e.code === 'Home') t = 0;
+      else if (e.code === 'End')  t = Math.max(0, dur - 1);
+      else return;
+      e.preventDefault();
+      e.stopPropagation();
+      applySeek(Math.min(dur, Math.max(0, t)), Player.isPlaying());
+    });
+  }
 
   /* ════════ 发音 ════════ */
 
@@ -369,6 +558,7 @@
     saveTimes();
     closeCalib();
     $('#syncBanner').classList.add('hidden');
+    renderSeekMarks();          // 刻度按新时间轴重画
     state.activeIdx = -1;
     setActive(indexAt(Player.getTime()));
     toast(`已保存 ${applied} 句的时间轴 ✓`);
@@ -488,9 +678,7 @@
     $('#btnFollow').addEventListener('click', () => {
       state.follow = !state.follow;
       $('#btnFollow').classList.toggle('active', state.follow);
-      if (state.follow && state.activeIdx >= 0) {
-        $(`.line[data-idx="${state.activeIdx}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      scrollToActive();
     });
 
     // 视图开关
@@ -704,6 +892,7 @@
 
     loadTimes();
     render();
+    initSeek();
     bind();
     renderKtv();
     watchDeckHeight();
@@ -715,14 +904,16 @@
     setTimeout(refreshVoiceUI, 900);
 
     Player.load(SONG.youtubeId, 'ytplayer');
-    Player.on('ready', () => {
-      $('#durTime').textContent = fmt(Player.getDuration());
-    });
+    Player.on('ready', setupSeekScale);
     Player.on('state', (s) => {
       $('#btnPlay').textContent = s === 1 ? '⏸' : '▶';
+      // 有些情况下 onReady 时还拿不到时长，换视频状态后再补一次
+      if (!seek.scaleReady) setupSeekScale();
     });
     Player.on('tick', (t) => {
-      $('#curTime').textContent = fmt(t);
+      if (!seek.scaleReady) setupSeekScale();
+      if (seek.dragging) return;      // 拖动时以手指为准，别被播放器的旧时间盖回去
+      paintSeek(t);
       if (!state.calib.on) setActive(indexAt(t));
     });
   }

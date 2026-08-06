@@ -57,12 +57,30 @@
       <div id="ytplayer"></div>
     </div>
 
+    <!-- 整首歌的进度条：可以点、可以拖；竖线是每一句的起点 -->
+    <div class="seekrow">
+      <span class="seek-time" id="curTime">0:00</span>
+      <div class="seek disabled" id="seek" role="slider" tabindex="0"
+           aria-label="歌曲进度，左右方向键快退快进 5 秒"
+           aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0:00">
+        <div class="seek-track" id="seekTrack">
+          <div class="seek-buffer" id="seekBuffer"></div>
+          <div class="seek-loop hidden" id="seekLoop"></div>
+          <div class="seek-fill" id="seekFill"></div>
+        </div>
+        <div class="seek-marks" id="seekMarks"></div>
+        <div class="seek-thumb" id="seekThumb"></div>
+        <div class="seek-tip hidden" id="seekTip">
+          <b id="seekTipTime">0:00</b><span id="seekTipText"></span>
+        </div>
+      </div>
+      <span class="seek-time" id="durTime">0:00</span>
+    </div>
+
     <div class="transport">
       <button id="btnPrev" class="tbtn" title="上一句">⏮</button>
       <button id="btnPlay" class="tbtn primary" title="播放 / 暂停 (空格)">▶</button>
       <button id="btnNext" class="tbtn" title="下一句">⏭</button>
-
-      <div class="time-readout"><span id="curTime">0:00</span> / <span id="durTime">0:00</span></div>
 
       <div class="spacer"></div>
 
