@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Safe Near Me — 泰语逐句跟读</title>
+<meta name="description" content="跟着原曲逐句、逐词学泰语歌《ที่ปลอดภัยใกล้ฉัน / Safe Near Me》，可点击发音、单句循环、跟读录音。" />
+<meta name="theme-color" content="#f7f3ee" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ══ 顶部 ══ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <h1 id="songTitle">Safe Near Me</h1>
+      <p class="sub"><span id="songTitleTh">ที่ปลอดภัยใกล้ฉัน</span> · <span id="songArtist">Lena Lalina</span></p>
+    </div>
+    <div class="topbar-actions">
+      <button id="btnVoice" class="icon-btn" title="发音设置">
+        <span class="dot" id="voiceDot"></span> 发音
+      </button>
+      <button id="btnCalib" class="icon-btn" title="校准歌词时间轴">⏱ 校准</button>
+      <button id="btnTheme" class="icon-btn" title="切换深浅色">◐</button>
+    </div>
+  </div>
+</header>
+
+<!-- ══ 没有泰语语音时的提示条 ══ -->
+<div id="voiceBanner" class="banner hidden">
+  <div class="banner-body">
+    <strong>⚠️ 这台设备还没装泰语发音</strong>
+    <p id="voiceBannerText"></p>
+    <ol id="voiceBannerSteps"></ol>
+  </div>
+  <button class="banner-close" id="voiceBannerClose">✕</button>
+</div>
+
+<!-- ══ 时间轴未校准提示 ══ -->
+<div id="syncBanner" class="banner info hidden">
+  <div class="banner-body">
+    <strong>歌词时间轴还没校准</strong>
+    <p>现在的时间点是估算的，跟不准很正常。点右上角 <b>⏱ 校准</b>，跟着歌按一次空格标一句，30 秒就能对准，结果会自动保存。</p>
+  </div>
+  <button class="banner-close" id="syncBannerClose">✕</button>
+</div>
+
+<!-- ══ 播放器 ══ -->
+<section class="player-wrap">
+  <div class="player-card">
+    <div class="video-box" id="videoBox">
+      <div id="ytplayer"></div>
+    </div>
+
+    <div class="transport">
+      <button id="btnPrev" class="tbtn" title="上一句">⏮</button>
+      <button id="btnPlay" class="tbtn primary" title="播放 / 暂停 (空格)">▶</button>
+      <button id="btnNext" class="tbtn" title="下一句">⏭</button>
+
+      <div class="time-readout"><span id="curTime">0:00</span> / <span id="durTime">0:00</span></div>
+
+      <div class="spacer"></div>
+
+      <label class="ctl">
+        <span>原曲速度</span>
+        <select id="rateSel">
+          <option value="0.5">0.5×</option>
+          <option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option>
+          <option value="1.25">1.25×</option>
+        </select>
+      </label>
+
+      <button id="btnLoop" class="tbtn toggle" title="单句循环">🔁 单句循环</button>
+      <button id="btnFollow" class="tbtn toggle active" title="歌词自动跟随">📍 自动跟随</button>
+    </div>
+
+    <div class="now-line" id="nowLine">
+      <span class="placeholder">按播放，歌词会跟着走 →</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 视图控制 ══ -->
+<nav class="viewbar">
+  <div class="viewbar-inner">
+    <span class="viewbar-label">显示：</span>
+    <label class="chip"><input type="checkbox" id="showRo" checked><span>罗马音</span></label>
+    <label class="chip"><input type="checkbox" id="showCn" checked><span>中文谐音</span></label>
+    <label class="chip"><input type="checkbox" id="showMean" checked><span>中文意思</span></label>
+    <label class="chip"><input type="checkbox" id="showWords" checked><span>逐词卡片</span></label>
+    <div class="spacer"></div>
+    <label class="ctl">
+      <span>朗读语速 <b id="ttsRateVal">0.7</b>×</span>
+      <input type="range" id="ttsRate" min="0.3" max="1.2" step="0.05" value="0.7">
+    </label>
+  </div>
+</nav>
+
+<!-- ══ 歌词 ══ -->
+<main id="lyrics" class="lyrics"></main>
+
+<footer class="foot">
+  <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
+  <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句 · <kbd>R</kbd> 单句循环 · <kbd>S</kbd> 朗读当前句</p>
+</footer>
+
+<!-- ══ 发音设置面板 ══ -->
+<div class="modal hidden" id="voiceModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>发音设置</h2>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="voiceStatus" class="voice-status"></div>
+
+      <label class="field">
+        <span>泰语声音</span>
+        <select id="voiceSel"></select>
+      </label>
+
+      <div class="test-row">
+        <button id="btnTestVoice" class="btn">🔊 试听「สวัสดี」</button>
+        <button id="btnTestLine" class="btn ghost">🔊 试听第一句歌词</button>
+      </div>
+
+      <details class="help">
+        <summary>没有声音 / 发音不对怎么办？</summary>
+        <div id="voiceHelp"></div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 校准面板 ══ -->
+<div class="modal hidden" id="calibModal">
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <h2>⏱ 校准歌词时间轴</h2>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="calib-intro">
+        原曲会从头播放。<b>每一句唱到开头的那一瞬间，按一下空格（或点下面的大按钮）</b>，
+        就把这句的时间点记下来了。按错了可以「退一句」重来。全部标完点「保存」。
+      </p>
+
+      <div class="calib-stage">
+        <div class="calib-next-label">下一句要标的是</div>
+        <div class="calib-next" id="calibNext">—</div>
+        <div class="calib-progress"><span id="calibProgress">0 / 0</span></div>
+      </div>
+
+      <button id="calibTap" class="calib-tap">按这里 / 空格 &nbsp;→&nbsp; 标记这一句</button>
+
+      <div class="calib-actions">
+        <button id="calibBack" class="btn ghost">↩ 退一句</button>
+        <button id="calibRestart" class="btn ghost">重新开始</button>
+        <button id="calibSave" class="btn primary">✓ 保存时间轴</button>
+        <button id="calibExport" class="btn ghost">导出给别人用</button>
+      </div>
+
+      <div class="calib-list" id="calibList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 导出结果 ══ -->
+<div class="modal hidden" id="exportModal">
+  <div class="modal-card wide">
+    <div class="modal-head">
+      <h2>导出时间轴</h2>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <p>把下面这段复制，替换 <code>songs/safe-near-me.js</code> 里对应的 <code>start</code> 数字，
+         提交上去之后，所有打开这个网站的人就都是校准好的时间轴了。</p>
+      <textarea id="exportText" rows="14" readonly></textarea>
+      <button id="btnCopyExport" class="btn primary">复制</button>
+    </div>
+  </div>
+</div>
+
+<script src="songs/safe-near-me.js"></script>
+<script src="js/tts.js"></script>
+<script src="js/player.js"></script>
+<script src="js/recorder.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
