@@ -698,12 +698,17 @@ body.mode-ktv { overflow: hidden; }
 }
 .ktv-vline-cnro:empty { display: none; }
 
-.ktv-vline-cur .ktv-vline-th { font-size: 32px; line-height: 1.4; }
-.ktv-vline-cur .ktv-vline-cnro { font-size: 25px; margin-top: 5px; }
+/* 位置固定不跳：槽位由句子序号的单双决定，谁在唱只切亮暗/大小，
+   物理位置（上边槽 / 下边槽）从不改变，跟着 .live 类切换的是样式而不是位置 */
+.ktv-vline {
+  opacity: .55; transition: opacity .2s;
+}
+.ktv-vline .ktv-vline-th { font-size: 21px; line-height: 1.4; }
+.ktv-vline .ktv-vline-cnro { font-size: 17px; margin-top: 3px; }
 
-.ktv-vline-next { opacity: .55; }
-.ktv-vline-next .ktv-vline-th { font-size: 21px; line-height: 1.4; }
-.ktv-vline-next .ktv-vline-cnro { font-size: 17px; margin-top: 3px; }
+.ktv-vline.live { opacity: 1; }
+.ktv-vline.live .ktv-vline-th { font-size: 32px; line-height: 1.4; }
+.ktv-vline.live .ktv-vline-cnro { font-size: 25px; margin-top: 5px; }
 
 .ktv-vline.en-slot .ktv-vline-th { font-family: inherit; font-style: italic; }
 
@@ -711,10 +716,10 @@ body.mode-ktv { overflow: hidden; }
   .ktv-view-top { padding: max(12px, env(safe-area-inset-top)) 12px 0; }
   .ktv-pill { padding: 7px 13px; font-size: 12.5px; }
   .ktv-view-lines { padding: 18px 16px calc(22px + env(safe-area-inset-bottom)); gap: 9px; }
-  .ktv-vline-cur .ktv-vline-th { font-size: 25px; }
-  .ktv-vline-cur .ktv-vline-cnro { font-size: 20px; }
-  .ktv-vline-next .ktv-vline-th { font-size: 17px; }
-  .ktv-vline-next .ktv-vline-cnro { font-size: 14.5px; }
+  .ktv-vline .ktv-vline-th { font-size: 17px; }
+  .ktv-vline .ktv-vline-cnro { font-size: 14.5px; }
+  .ktv-vline.live .ktv-vline-th { font-size: 25px; }
+  .ktv-vline.live .ktv-vline-cnro { font-size: 20px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
