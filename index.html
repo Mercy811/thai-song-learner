@@ -165,12 +165,29 @@
 <div class="ktv-view hidden" id="ktvView">
   <div class="ktv-bg" id="ktvBg"></div>
 
+  <!-- 弹幕从这一层飞过，范围限制在歌词区上面，不会挡住底下两句 -->
+  <div class="ktv-danmaku-layer" id="ktvDanmakuLayer" aria-hidden="true"></div>
+  <!-- 鼓掌/献花/拖鞋/臭鸡蛋这些特效只在上半屏出现 -->
+  <div class="ktv-effects-layer" id="ktvEffectsLayer" aria-hidden="true"></div>
+
   <div class="ktv-view-top">
     <button id="ktvExit" class="ktv-pill" title="退出 KTV 模式">✕ 退出</button>
     <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
   </div>
 
+  <div class="ktv-toolbar" id="ktvToolbar">
+    <button class="ktv-tbtn" id="ktvBtnDanmaku" title="发弹幕">💬</button>
+    <button class="ktv-tbtn" data-effect="clap" title="鼓掌">👏</button>
+    <button class="ktv-tbtn" data-effect="flower" title="献花">💐</button>
+    <button class="ktv-tbtn" data-effect="slipper" title="扔拖鞋">🩴</button>
+    <button class="ktv-tbtn" data-effect="egg" title="扔臭鸡蛋">🥚</button>
+  </div>
+
   <div class="ktv-view-lines">
+    <form class="ktv-danmaku-compose hidden" id="ktvDanmakuForm">
+      <input type="text" id="ktvDanmakuInput" maxlength="40" placeholder="发一条弹幕…" autocomplete="off">
+      <button type="submit" class="ktv-pill">发送</button>
+    </form>
     <div class="ktv-vline ktv-vline-cur" id="ktvLineCur">
       <div class="ktv-vline-th"></div>
       <div class="ktv-vline-cnro"></div>

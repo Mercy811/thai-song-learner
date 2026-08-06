@@ -259,7 +259,12 @@
     $('#btnModePractice').classList.toggle('active', mode === 'practice');
     $('#btnModeKtv').classList.toggle('active', mode === 'ktv');
     localStorage.setItem(LS.mode, mode);
-    if (mode === 'ktv') renderKtvView();
+    if (mode === 'ktv') {
+      renderKtvView();
+    } else {
+      $('#ktvDanmakuForm').classList.add('hidden');
+      $('#ktvBtnDanmaku').classList.remove('on');
+    }
   }
 
   function fillKtvViewLine(el, line) {
@@ -276,6 +281,68 @@
     const curIdx = c < 0 ? 0 : c;
     fillKtvViewLine($('#ktvLineCur'), LINES[curIdx]);
     fillKtvViewLine($('#ktvLineNext'), LINES[curIdx + 1]);
+  }
+
+  /* ════════ KTV 弹幕 + 反应特效 ════════
+     没有账号系统，谁打开这个页面都能发。纯前端本地效果——
+     这是个静态网站没有后端，所以弹幕只在发的人自己屏幕上飞，
+     不会同步给同时在看的其他人。 */
+  function initKtvInteractions() {
+    const danmakuLayer = $('#ktvDanmakuLayer');
+    const LANES = 6;
+    let laneCursor = 0;
+
+    function sendDanmaku(text) {
+      text = text.trim();
+      if (!text) return;
+      const el = document.createElement('div');
+      el.className = 'ktv-danmaku-item';
+      el.textContent = text;
+      const laneH = danmakuLayer.clientHeight / LANES;
+      const lane = laneCursor % LANES;
+      laneCursor++;
+      el.style.top = Math.round(lane * laneH + laneH * 0.12) + 'px';
+      const dur = Math.max(6, Math.min(11, 5 + text.length * 0.25));
+      el.style.animationDuration = dur + 's';
+      danmakuLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    $('#ktvDanmakuForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = $('#ktvDanmakuInput');
+      sendDanmaku(input.value);
+      input.value = '';
+      input.focus();
+    });
+
+    $('#ktvBtnDanmaku').addEventListener('click', () => {
+      const form = $('#ktvDanmakuForm');
+      const willShow = form.classList.contains('hidden');
+      form.classList.toggle('hidden', !willShow);
+      $('#ktvBtnDanmaku').classList.toggle('on', willShow);
+      if (willShow) $('#ktvDanmakuInput').focus();
+    });
+
+    const EFFECT_EMOJI = { clap: '👏', flower: '💐', slipper: '🩴', egg: '🥚' };
+    const effectsLayer = $('#ktvEffectsLayer');
+
+    function spawnEffect(kind) {
+      const emoji = EFFECT_EMOJI[kind];
+      if (!emoji) return;
+      const el = document.createElement('div');
+      el.className = 'ktv-effect';
+      el.textContent = emoji;
+      el.style.setProperty('--x', (18 + Math.random() * 64) + '%');
+      el.style.setProperty('--y', (18 + Math.random() * 55) + '%');
+      el.style.setProperty('--r', (Math.random() * 30 - 15) + 'deg');
+      effectsLayer.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+
+    $$('.ktv-tbtn[data-effect]').forEach((b) => {
+      b.addEventListener('click', () => spawnEffect(b.dataset.effect));
+    });
   }
 
   /* ════════ 整首歌的进度条 ════════
@@ -937,6 +1004,7 @@
     bind();
     renderKtv();
     setMode(state.mode);
+    initKtvInteractions();
     watchDeckHeight();
 
     if (!isCalibrated()) $('#syncBanner').classList.remove('hidden');
