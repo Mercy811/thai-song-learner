@@ -90,7 +90,20 @@ body {
   margin: 2px 0 0; font-size: 13px; color: var(--text-2);
 }
 .brand .sub span:first-child { font-family: var(--thai-font); }
-.topbar-actions { margin-left: auto; display: flex; gap: 8px; }
+.topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* 练习 / KTV 模式切换 */
+.mode-toggle {
+  display: flex; gap: 2px; background: var(--card-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 3px; margin-right: 2px;
+}
+.mode-btn {
+  background: transparent; border: none; border-radius: 999px; cursor: pointer;
+  padding: 6px 13px; font-size: 12.5px; color: var(--text-2); font-family: inherit;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.mode-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
 
 .icon-btn {
   background: var(--card); border: 1px solid var(--line); color: var(--text);
@@ -637,6 +650,147 @@ body {
   .modal { padding: 0; align-items: flex-end; }
   .modal-card { max-width: none; border-radius: 18px 18px 0 0; max-height: 92vh; }
   .foot-tip { display: none; }
+}
+
+/* ── KTV 沉浸模式 ─────────────────────
+   全屏盖在练习模式上面，练习模式的 DOM 不做 display:none，
+   只是被这层盖住看不见 —— 这样 YouTube iframe 还在正常尺寸，音频不会被打断。
+   背景先随便给个渐变色占位，以后换成用户自己选的照片。 */
+.ktv-view {
+  position: fixed; inset: 0; z-index: 500;
+  overflow: hidden;
+}
+body.mode-ktv { overflow: hidden; }
+
+.ktv-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(120% 90% at 50% 15%, #3a3252 0%, #1c1826 55%, #100e16 100%);
+  background-size: cover; background-position: center;
+}
+
+/* 弹幕飞行区：只到歌词区上边缘为止，不飞到底下两句上面 */
+.ktv-danmaku-layer {
+  position: absolute; z-index: 1; left: 0; right: 0; top: 64px; bottom: 32%;
+  overflow: hidden; pointer-events: none;
+}
+/* 鼓掌/献花/拖鞋/臭鸡蛋：限制在上半屏 */
+.ktv-effects-layer {
+  position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 52%;
+  overflow: hidden; pointer-events: none;
+}
+
+.ktv-view-top {
+  position: absolute; z-index: 4; top: 0; left: 0; right: 0;
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  padding: max(14px, env(safe-area-inset-top)) 16px 0;
+}
+.ktv-pill {
+  background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.22); color: #fff;
+  border-radius: 999px; padding: 8px 16px; font-size: 13.5px; cursor: pointer;
+  backdrop-filter: blur(4px); font-family: inherit; transition: background .15s;
+}
+.ktv-pill:hover { background: rgba(0,0,0,.58); }
+
+/* 互动工具条：发弹幕 + 四个反应特效，靠右竖排，避开中间的背景和底部歌词 */
+.ktv-toolbar {
+  position: absolute; z-index: 4; right: 14px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ktv-tbtn {
+  width: 42px; height: 42px; padding: 0; border-radius: 50%;
+  background: rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.22); color: #fff;
+  font-size: 19px; line-height: 1; cursor: pointer; backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  font-family: inherit; transition: background .15s, transform .1s;
+}
+.ktv-tbtn:hover { background: rgba(0,0,0,.58); }
+.ktv-tbtn:active { transform: scale(.9); }
+.ktv-tbtn.on { background: var(--accent); border-color: var(--accent); }
+
+.ktv-view-lines {
+  position: absolute; z-index: 3; left: 0; right: 0; bottom: 0;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 26px 22px calc(30px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(0,0,0,.75) 0%, rgba(0,0,0,.55) 60%, transparent 100%);
+  text-align: center;
+}
+
+/* 弹幕输入条：藏在歌词区顶端，点💬才展开 */
+.ktv-danmaku-compose { display: flex; gap: 8px; }
+.ktv-danmaku-compose input {
+  flex: 1; min-width: 0;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.32); color: #fff;
+  border-radius: 999px; padding: 9px 15px; font-size: 14px; font-family: inherit;
+}
+.ktv-danmaku-compose input::placeholder { color: rgba(255,255,255,.55); }
+.ktv-danmaku-compose input:focus { outline: none; border-color: #fff; }
+.ktv-danmaku-compose .ktv-pill {
+  flex: none; background: var(--accent); border-color: var(--accent);
+}
+.ktv-danmaku-compose .ktv-pill:hover { filter: brightness(1.1); }
+
+/* 飞行弹幕 */
+.ktv-danmaku-item {
+  position: absolute; left: 100%; top: 0; white-space: nowrap; will-change: transform;
+  color: #fff; font-size: 19px; font-weight: 600;
+  text-shadow: 0 1px 5px rgba(0,0,0,.65);
+  animation-name: ktv-danmaku-fly; animation-timing-function: linear; animation-fill-mode: forwards;
+}
+@keyframes ktv-danmaku-fly {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-130vw); }
+}
+
+/* 鼓掌 / 献花 / 拖鞋 / 臭鸡蛋：放大再淡出的 zoom 特效 */
+.ktv-effect {
+  position: absolute; left: var(--x, 50%); top: var(--y, 30%);
+  font-size: 58px; line-height: 1; pointer-events: none;
+  animation: ktv-effect-pop 1.3s cubic-bezier(.22,.85,.32,1) forwards;
+}
+@keyframes ktv-effect-pop {
+  0%   { transform: translate(-50%,-50%) scale(.3) rotate(var(--r, 0deg)); opacity: 0; }
+  18%  { transform: translate(-50%,-50%) scale(1.2) rotate(var(--r, 0deg)); opacity: 1; }
+  35%  { transform: translate(-50%,-50%) scale(1) rotate(var(--r, 0deg)); opacity: 1; }
+  100% { transform: translate(-50%,-50%) scale(1.35) rotate(var(--r, 0deg)); opacity: 0; }
+}
+.ktv-vline-th {
+  font-family: var(--thai-font); color: #fff; font-weight: 700;
+  text-shadow: 0 2px 10px rgba(0,0,0,.55); word-break: break-word;
+}
+.ktv-vline-cnro {
+  color: #ffe9b8; font-weight: 600;
+  text-shadow: 0 2px 8px rgba(0,0,0,.55);
+}
+.ktv-vline-cnro:empty { display: none; }
+
+/* 位置固定不跳：槽位由句子序号的单双决定，谁在唱只切亮暗/大小，
+   物理位置（上边槽 / 下边槽）从不改变，跟着 .live 类切换的是样式而不是位置 */
+.ktv-vline {
+  opacity: .55; transition: opacity .2s;
+}
+.ktv-vline .ktv-vline-th { font-size: 21px; line-height: 1.4; }
+.ktv-vline .ktv-vline-cnro { font-size: 17px; margin-top: 3px; }
+
+.ktv-vline.live { opacity: 1; }
+.ktv-vline.live .ktv-vline-th { font-size: 32px; line-height: 1.4; }
+.ktv-vline.live .ktv-vline-cnro { font-size: 25px; margin-top: 5px; }
+
+.ktv-vline.en-slot .ktv-vline-th { font-family: inherit; font-style: italic; }
+
+@media (max-width: 720px) {
+  .ktv-view-top { padding: max(12px, env(safe-area-inset-top)) 12px 0; }
+  .ktv-pill { padding: 7px 13px; font-size: 12.5px; }
+  .ktv-view-lines { padding: 18px 16px calc(22px + env(safe-area-inset-bottom)); gap: 9px; }
+  .ktv-vline .ktv-vline-th { font-size: 17px; }
+  .ktv-vline .ktv-vline-cnro { font-size: 14.5px; }
+  .ktv-vline.live .ktv-vline-th { font-size: 25px; }
+  .ktv-vline.live .ktv-vline-cnro { font-size: 20px; }
+
+  .ktv-toolbar { right: 10px; gap: 8px; }
+  .ktv-tbtn { width: 38px; height: 38px; font-size: 17px; }
+  .ktv-danmaku-item { font-size: 16px; }
+  .ktv-effect { font-size: 46px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

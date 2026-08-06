@@ -19,6 +19,10 @@
       <p class="sub"><span id="songTitleTh">ที่ปลอดภัยใกล้ฉัน</span> · <span id="songArtist">Lena Lalina</span></p>
     </div>
     <div class="topbar-actions">
+      <div class="mode-toggle" role="group" aria-label="切换模式">
+        <button id="btnModePractice" class="mode-btn active" title="练习模式：逐句逐词、发音、录音">📖 练习</button>
+        <button id="btnModeKtv" class="mode-btn" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
+      </div>
       <button id="btnVoice" class="icon-btn" title="发音设置">
         <span class="dot" id="voiceDot"></span> 发音
       </button>
@@ -156,6 +160,46 @@
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
   <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句 · <kbd>R</kbd> 单句循环 · <kbd>S</kbd> 朗读当前句</p>
 </footer>
+
+<!-- ══ KTV 模式：沉浸式全屏，只留背景 + 当前句/下一句 ══ -->
+<div class="ktv-view hidden" id="ktvView">
+  <div class="ktv-bg" id="ktvBg"></div>
+
+  <!-- 弹幕从这一层飞过，范围限制在歌词区上面，不会挡住底下两句 -->
+  <div class="ktv-danmaku-layer" id="ktvDanmakuLayer" aria-hidden="true"></div>
+  <!-- 鼓掌/献花/拖鞋/臭鸡蛋这些特效只在上半屏出现 -->
+  <div class="ktv-effects-layer" id="ktvEffectsLayer" aria-hidden="true"></div>
+
+  <div class="ktv-view-top">
+    <button id="ktvExit" class="ktv-pill" title="退出 KTV 模式">✕ 退出</button>
+    <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
+  </div>
+
+  <div class="ktv-toolbar" id="ktvToolbar">
+    <button class="ktv-tbtn" id="ktvBtnDanmaku" title="发弹幕">💬</button>
+    <button class="ktv-tbtn" data-effect="clap" title="鼓掌">👏</button>
+    <button class="ktv-tbtn" data-effect="flower" title="献花">💐</button>
+    <button class="ktv-tbtn" data-effect="slipper" title="扔拖鞋">🩴</button>
+    <button class="ktv-tbtn" data-effect="egg" title="扔臭鸡蛋">🥚</button>
+  </div>
+
+  <div class="ktv-view-lines">
+    <form class="ktv-danmaku-compose hidden" id="ktvDanmakuForm">
+      <input type="text" id="ktvDanmakuInput" maxlength="40" placeholder="发一条弹幕…" autocomplete="off">
+      <button type="submit" class="ktv-pill">发送</button>
+    </form>
+    <!-- 位置固定：单数句永远在上边槽位，双数句永远在下边槽位，
+         哪句在唱只切亮暗，物理位置不会跳，跟唱时眼睛不用来回找 -->
+    <div class="ktv-vline" id="ktvSlot0">
+      <div class="ktv-vline-th"></div>
+      <div class="ktv-vline-cnro"></div>
+    </div>
+    <div class="ktv-vline" id="ktvSlot1">
+      <div class="ktv-vline-th"></div>
+      <div class="ktv-vline-cnro"></div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ 发音设置面板 ══ -->
 <div class="modal hidden" id="voiceModal">
