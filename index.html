@@ -50,7 +50,7 @@
 <!-- ══ 播放器 ══ -->
 <section class="player-wrap">
   <div class="player-card">
-    <div class="video-box" id="videoBox">
+    <div class="video-box" id="videoBox" data-size="off">
       <div id="ytplayer"></div>
     </div>
 
@@ -73,12 +73,37 @@
         </select>
       </label>
 
+      <label class="ctl">
+        <span>画面</span>
+        <select id="videoSize">
+          <option value="off" selected>只要声音</option>
+          <option value="small">小窗</option>
+          <option value="large">大窗</option>
+        </select>
+      </label>
+
       <button id="btnLoop" class="tbtn toggle" title="单句循环">🔁 单句循环</button>
       <button id="btnFollow" class="tbtn toggle active" title="歌词自动跟随">📍 自动跟随</button>
     </div>
+  </div>
+</section>
 
-    <div class="now-line" id="nowLine">
-      <span class="placeholder">按播放，歌词会跟着走 →</span>
+<!-- ══ KTV 双行显示：位置固定，唱完的那边才换下下句 ══ -->
+<section class="ktv-wrap">
+  <div class="ktv" id="ktv">
+    <div class="ktv-slot" id="slot0">
+      <div class="ktv-tag"><span class="ktv-no">—</span><span class="ktv-state">准备</span></div>
+      <div class="ktv-th">—</div>
+      <div class="ktv-ro"></div>
+      <div class="ktv-cn"></div>
+      <button class="ktv-speak" title="朗读这一句">🔊</button>
+    </div>
+    <div class="ktv-slot" id="slot1">
+      <div class="ktv-tag"><span class="ktv-no">—</span><span class="ktv-state">准备</span></div>
+      <div class="ktv-th">—</div>
+      <div class="ktv-ro"></div>
+      <div class="ktv-cn"></div>
+      <button class="ktv-speak" title="朗读这一句">🔊</button>
     </div>
   </div>
 </section>

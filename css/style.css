@@ -131,10 +131,19 @@ body {
 .video-box {
   position: relative; width: 100%;
   aspect-ratio: 16/9; max-height: 190px;
-  background: #000;
+  background: #000; overflow: hidden;
+  transition: height .2s, max-height .2s;
 }
-.video-box.collapsed { max-height: 0; }
 .video-box iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* 画面三档。「只要声音」把外框压到 0 并裁掉，但 iframe 仍保持真实尺寸，
+   否则 YouTube 会因为播放器不可见而拒绝播放。 */
+.video-box[data-size="off"] {
+  height: 0; max-height: 0; aspect-ratio: auto;
+}
+.video-box[data-size="off"] iframe { height: 200px; }
+.video-box[data-size="small"] { max-height: 104px; }
+.video-box[data-size="large"] { max-height: 260px; }
 
 .transport {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
@@ -168,16 +177,70 @@ body {
 }
 .ctl input[type=range] { width: 108px; accent-color: var(--accent); }
 
-.now-line {
-  padding: 12px 16px 14px; border-top: 1px solid var(--line-soft);
-  background: var(--card-2); min-height: 62px;
-  display: flex; flex-direction: column; justify-content: center; gap: 3px;
+/* ── KTV 双行显示 ─────────────────────
+   槽位固定：第 1/3/5… 句永远在左，第 2/4/6… 句永远在右。
+   正在唱的那句不动，另一边换成下下句。 */
+.ktv-wrap {
+  position: sticky; top: 57px; z-index: 25;
+  background: var(--bg); padding: 0 18px 12px;
 }
-.now-line .placeholder { color: var(--text-3); font-size: 14px; }
-.now-line .nl-th {
-  font-family: var(--thai-font); font-size: 24px; line-height: 1.5; font-weight: 600;
+.ktv {
+  max-width: 1020px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
 }
-.now-line .nl-sub { font-size: 13px; color: var(--text-2); }
+.ktv-slot {
+  position: relative; overflow: hidden;
+  background: var(--card); border: 2px solid var(--line);
+  border-radius: var(--radius); padding: 15px 16px 17px;
+  min-height: 132px; box-shadow: var(--shadow);
+  transition: border-color .25s, background .25s, opacity .25s, transform .25s;
+  display: flex; flex-direction: column; gap: 3px;
+}
+/* 待唱的那一边：压暗，避免抢走视线 */
+.ktv-slot.idle { opacity: .5; background: var(--card-2); }
+/* 正在唱的那一边 */
+.ktv-slot.live {
+  border-color: var(--accent); background: var(--hl);
+  box-shadow: 0 0 0 4px rgba(194,100,58,.13), var(--shadow);
+  transform: translateY(-1px);
+}
+/* 刚换上新句子时闪一下，提示这边内容变了 */
+.ktv-slot.swapped { animation: ktvswap .5s ease; }
+@keyframes ktvswap {
+  0%   { background: var(--accent-2-soft); }
+  100% { background: var(--card-2); }
+}
+
+.ktv-tag {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 11.5px; color: var(--text-3); margin-bottom: 2px;
+}
+.ktv-no {
+  background: var(--card-2); border: 1px solid var(--line-soft);
+  border-radius: 5px; padding: 1px 7px; font-variant-numeric: tabular-nums;
+}
+.ktv-slot.live .ktv-no { background: var(--accent); border-color: var(--accent); color: #fff; }
+.ktv-slot.live .ktv-state { color: var(--accent); font-weight: 700; }
+
+.ktv-th {
+  font-family: var(--thai-font); font-size: 30px; line-height: 1.5;
+  font-weight: 700; word-break: break-word;
+}
+.ktv-slot.en-slot .ktv-th { font-family: inherit; font-size: 25px; font-style: italic; }
+.ktv-ro { font-size: 14.5px; color: var(--accent-2); line-height: 1.5; }
+.ktv-cn { font-size: 14.5px; color: var(--text-2); line-height: 1.5; }
+.ktv-slot.live .ktv-cn { color: var(--text); }
+
+.ktv-speak {
+  position: absolute; top: 11px; right: 11px;
+  background: var(--card-2); border: 1px solid var(--line); color: var(--text-2);
+  border-radius: 8px; padding: 4px 9px; font-size: 13px; cursor: pointer;
+  font-family: inherit; transition: all .15s;
+}
+.ktv-speak:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.ktv-speak.speaking { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.ktv-slot.empty .ktv-th { color: var(--text-3); font-size: 17px; font-weight: 500; font-family: inherit; }
 
 /* ── 视图栏 ─────────────────────────── */
 .viewbar {
@@ -441,6 +504,15 @@ body {
   .topbar-actions { width: 100%; margin-left: 0; }
   .icon-btn { flex: 1; justify-content: center; padding: 7px 8px; }
   .player-wrap { position: static; padding: 12px 13px 8px; }
+  /* 手机上改成上下两格：上格永远是第 1/3/5… 句，下格永远是第 2/4/6… 句，
+     位置一样不会动，只是从左右变上下 */
+  .ktv-wrap { position: sticky; top: 0; padding: 0 13px 10px; }
+  .ktv { grid-template-columns: 1fr; gap: 9px; }
+  .ktv-slot { min-height: 0; padding: 12px 13px 14px; }
+  .ktv-th { font-size: 24px; }
+  .ktv-slot.en-slot .ktv-th { font-size: 21px; }
+  .ktv-ro, .ktv-cn { font-size: 13px; }
+  .ktv-slot.idle { opacity: .45; }
   .viewbar { position: static; }
   .viewbar-inner { padding: 9px 13px; }
   .video-box { max-height: 168px; }
