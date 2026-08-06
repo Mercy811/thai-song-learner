@@ -316,17 +316,36 @@
   function renderCalib() {
     const c = state.calib;
     const next = LINES[c.idx];
-    $('#calibNext').textContent = next ? next.th : '🎉 全部标完了，点「保存时间轴」';
-    $('#calibNext').style.fontFamily = next && next.lang === 'en' ? 'inherit' : 'var(--thai-font)';
+    const done = c.idx >= LINES.length;
+
+    // 当前要标的句子：泰文 + 罗马音 + 中文，三行都给
+    $('#calibNext').textContent = done ? '🎉 全部标完了，点「保存时间轴」' : next.th;
+    $('#calibNext').style.fontFamily = (done || next.lang === 'en') ? 'inherit' : 'var(--thai-font)';
+    $('#calibNextRo').textContent = done ? '' : (next.ro || '');
+    $('#calibNextCn').textContent = done ? '' : (next.cn || '');
+    $('#calibListen').classList.toggle('hidden', done);
+
+    // 预告再下一句，好提前准备
+    const after = LINES[c.idx + 1];
+    $('#calibUpcoming').innerHTML = (!done && after)
+      ? `<span class="u-label">接下来 →</span>
+         <span class="u-th"${after.lang === 'en' ? ' style="font-family:inherit;font-style:italic"' : ''}>${esc(after.th)}</span>
+         <span class="u-cn">（${esc(after.cn)}）</span>`
+      : '';
+
     $('#calibProgress').textContent = `${c.idx} / ${LINES.length}`;
-    $('#calibTap').disabled = c.idx >= LINES.length;
+    $('#calibTap').disabled = done;
 
     $('#calibList').innerHTML = LINES.map((l, i) => {
       const t = c.marks[i];
       const cls = i === c.idx ? 'next' : (typeof t === 'number' ? 'marked' : 'pending');
-      return `<div class="calib-row ${cls}">
+      const sub = [l.ro, l.cn].filter(Boolean).join(' · ');
+      return `<div class="calib-row ${cls}${l.lang === 'en' ? ' en-row' : ''}">
         <span class="t">${typeof t === 'number' ? fmt(t) : '—'}</span>
-        <span class="x">${esc(l.th)}</span>
+        <span class="body">
+          <span class="x">${esc(l.th)}</span>
+          <span class="y">${esc(sub)}</span>
+        </span>
       </div>`;
     }).join('');
     const nextRow = $('#calibList .calib-row.next');
@@ -430,6 +449,10 @@
 
     // 校准
     $('#calibTap').addEventListener('click', calibMark);
+    $('#calibListen').addEventListener('click', () => {
+      const l = LINES[state.calib.idx];
+      if (l) speakLine(l, $('#calibListen'));
+    });
     $('#calibBack').addEventListener('click', calibBack);
     $('#calibRestart').addEventListener('click', calibRestart);
     $('#calibSave').addEventListener('click', calibSave);
