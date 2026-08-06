@@ -267,19 +267,92 @@
     localStorage.setItem(LS.mode, mode);
     if (mode === 'ktv') {
       renderKtvView();
+      // 逐字着色要比 100ms 的 tick 细，所以单独跑一个 rAF，退出模式自己停
+      if (!ktvRaf) ktvRaf = requestAnimationFrame(ktvKaraokeLoop);
     } else {
       $('#ktvDanmakuForm').classList.add('hidden');
       $('#ktvBtnDanmaku').classList.remove('on');
     }
   }
 
+  /* ── 逐字着色 ──
+     没唱到的字是白的，唱过去的换成高亮色，一个字一个字往右推。
+     手上只有每句的开始时间，没有逐字时间轴，所以一句里的字按字数均分。 */
+
+  // 泰语的元音符号/声调符号是独立码点，得跟着辅音一起亮，所以按字素簇切
+  const GRAPHEMES = typeof Intl !== 'undefined' && Intl.Segmenter
+    ? new Intl.Segmenter('th', { granularity: 'grapheme' })
+    : null;
+  function graphemes(s) {
+    if (!s) return [];
+    if (GRAPHEMES) return Array.from(GRAPHEMES.segment(s), (g) => g.segment);
+    return Array.from(s);
+  }
+
+  // 一句唱多久：默认到下一句开始，但间奏那种十几秒的空档要封顶，
+  // 不然字会一直慢慢爬，跟人实际唱到哪儿差得越来越远。
+  const SEC_PER_CHAR = 0.34;
+  const singDur = [];
+  function lineSingDur(i) {
+    if (singDur[i] != null) return singDur[i];
+    const gap = lineEnd(i) - LINES[i].start;
+    const est = Math.max(1.2, graphemes(LINES[i].th).length * SEC_PER_CHAR);
+    const d = Math.max(0.6, Math.min(gap, est));
+    // 最后一句的 lineEnd 依赖视频时长，播放器还没就绪时别把错的值存下来
+    if (i < LINES.length - 1) singDur[i] = d;
+    return d;
+  }
+
+  // 一个字一个 span，这样换行照旧，也不用 background-clip:text
+  // （那样文字投影会盖在渐变上面，糊成一团）
+  function buildKaraokeRow(node, text) {
+    if (node._ktext === text) return;
+    node._ktext = text;
+    node.textContent = '';
+    node._kchars = graphemes(text).map((ch) => {
+      const sp = document.createElement('span');
+      sp.className = 'kchar';
+      sp.textContent = ch;
+      node.appendChild(sp);
+      return sp;
+    });
+    node._kn = 0;
+  }
+
+  // p = 这句唱到了百分之几；只动状态变了的那几个字，别每帧刷一整行
+  function paintKaraokeRow(node, p) {
+    const chars = node._kchars || [];
+    const n = Math.min(chars.length, Math.floor(p * chars.length));
+    if (node._kn === n) return;
+    if (n > node._kn) for (let k = node._kn; k < n; k++) chars[k].classList.add('sung');
+    else for (let k = n; k < node._kn; k++) chars[k].classList.remove('sung');
+    node._kn = n;
+  }
+
+  function paintKtvSlot(el, p) {
+    paintKaraokeRow(el.querySelector('.ktv-vline-th'), p);
+    paintKaraokeRow(el.querySelector('.ktv-vline-cnro'), p);
+  }
+
+  let ktvRaf = 0;
+  function ktvKaraokeLoop() {
+    if (state.mode !== 'ktv') { ktvRaf = 0; return; }
+    ktvRaf = requestAnimationFrame(ktvKaraokeLoop);
+    const i = state.activeIdx;
+    if (i < 0) return;
+    const el = $('#ktvSlot' + (i % 2));
+    if (!el.classList.contains('live')) return;
+    const p = (Player.getTime() - LINES[i].start) / lineSingDur(i);
+    paintKtvSlot(el, Math.max(0, Math.min(1, p)));
+  }
+
   function fillKtvViewSlot(el, line, isLive) {
-    const thEl = el.querySelector('.ktv-vline-th');
-    const cnroEl = el.querySelector('.ktv-vline-cnro');
-    thEl.textContent = line ? line.th : '🎉 这一轮唱完了';
-    cnroEl.textContent = line ? cnRoOf(line) : '';
+    buildKaraokeRow(el.querySelector('.ktv-vline-th'), line ? line.th : '🎉 这一轮唱完了');
+    buildKaraokeRow(el.querySelector('.ktv-vline-cnro'), line ? cnRoOf(line) : '');
     el.classList.toggle('en-slot', !!line && line.lang === 'en');
     el.classList.toggle('live', isLive);
+    // 待唱的那句从头白起；正在唱的那句交给 rAF 下一帧填
+    if (!isLive) paintKtvSlot(el, 0);
   }
 
   function renderKtvView() {

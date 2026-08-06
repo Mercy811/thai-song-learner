@@ -659,6 +659,7 @@ body {
 .ktv-view {
   position: fixed; inset: 0; z-index: 500;
   overflow: hidden;
+  --ktv-sung: #4dd8ff;   /* 已唱过的字的颜色 */
 }
 body.mode-ktv { overflow: hidden; }
 
@@ -761,11 +762,21 @@ body.mode-ktv { overflow: hidden; }
 .ktv-vline-th {
   font-family: var(--thai-font); color: #fff; font-weight: 700;
   text-shadow: 0 2px 10px rgba(0,0,0,.55); word-break: break-word;
+  overflow-wrap: anywhere;
 }
 .ktv-vline-cnro {
   color: #ffe9b8; font-weight: 600;
   text-shadow: 0 2px 8px rgba(0,0,0,.55);
+  overflow-wrap: anywhere;
 }
+
+/* 逐字着色：唱过去的字换成高亮色，没唱到的还是原色。
+   每个字素一个 span，唱到哪儿就给到哪儿加 .sung —— 换行照常，
+   也避开了 background-clip:text 那条路（文字投影会盖在渐变上面）。
+   overflow-wrap:anywhere 是配套的：拆成一堆 span 之后浏览器不一定
+   还能在泰语词间找到断行点，兜个底免得横着溢出去。 */
+.kchar { transition: color .12s linear; }
+.ktv-vline.live .kchar.sung { color: var(--ktv-sung); }
 .ktv-vline-cnro:empty { display: none; }
 
 /* 位置固定不跳：槽位由句子序号的单双决定，谁在唱只切亮暗/大小，
