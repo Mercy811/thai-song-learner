@@ -362,6 +362,46 @@ body {
   background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600;
 }
 
+/* ── 尤克里里和弦 ─────────────────────
+   默认关着，视图栏的 🎸 或 KTV 右上角的胶囊都能打开，两种模式共用一个开关。 */
+
+/* 和弦说明条：调性 + 怎么读那张按法图 */
+.uku-hint {
+  max-width: 1020px; margin: 0 auto; padding: 9px 18px 0;
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  font-size: 12.5px; color: var(--text-3);
+}
+.uku-hint b { font-size: 13px; color: var(--accent-2); }
+.uku-hint-note { color: var(--text-3); font-style: italic; }
+
+/* 一句歌词上方那一排和弦：名字在上，按法图在下 */
+.line-chords { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 8px; }
+.chord-chip {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 5px 8px 6px; border-radius: 9px;
+  background: var(--accent-2-soft); border: 1px solid var(--line-soft);
+  color: var(--accent-2);
+}
+.chord-name {
+  font-size: 13px; font-weight: 700; line-height: 1;
+  letter-spacing: .02em; font-variant-numeric: tabular-nums;
+}
+
+/* 按法图：四根弦 × 四品，○ 是空弦，● 是按在那一品。
+   线和点都用 currentColor，放到深色的 KTV 背景上也不用另配一套颜色。 */
+.chord-dia { display: block; width: 26px; height: 34px; overflow: visible; }
+.chord-dia line { stroke: currentColor; stroke-width: 1; opacity: .42; }
+.chord-dia .cd-fret.nut { stroke-width: 2.4; opacity: .8; }
+.chord-dia .cd-dot { fill: currentColor; }
+.chord-dia .cd-open { fill: none; stroke: currentColor; stroke-width: 1.1; opacity: .55; }
+.chord-dia .cd-base { font-size: 9px; fill: currentColor; opacity: .65; }
+
+/* 吸顶的 KTV 双行面板：只给和弦名，那块地方本来就窄 */
+.ktv-chords {
+  font-size: 13px; font-weight: 700; color: var(--accent-2);
+  letter-spacing: .08em; line-height: 1.5;
+}
+
 /* ── 歌词区 ─────────────────────────── */
 .lyrics { max-width: 1020px; margin: 0 auto; padding: 20px 18px 60px; }
 
@@ -628,7 +668,9 @@ body {
   .ktv-cnro { font-size: 18px; }
   .ktv-tag { margin-bottom: 0; }
   .ktv-slot.idle { opacity: .45; }
+  .ktv-chords { font-size: 12px; letter-spacing: .06em; }
   .viewbar-inner { padding: 9px 13px; }
+  .uku-hint { padding: 9px 13px 0; gap: 6px; font-size: 11.5px; }
   .video-box { max-height: 168px; }
   .lyrics { padding: 16px 13px 50px; }
   .line-head { flex-direction: column; gap: 9px; padding: 13px 14px 8px; }
@@ -705,6 +747,8 @@ body.mode-ktv.ktv-bg-video .video-box iframe {
   position: absolute; z-index: 1; left: 0; right: 0; top: 64px; bottom: 42%;
   overflow: hidden; pointer-events: none;
 }
+/* 开了和弦，两句歌词各多一行，歌词区更高，弹幕再往上让一截 */
+.ktv-view.chords-on .ktv-danmaku-layer { bottom: 52%; }
 /* 鼓掌/献花/拖鞋/臭鸡蛋：满屏冒泡，跟歌词区不冲突（z-index 比歌词层低） */
 .ktv-effects-layer {
   position: absolute; z-index: 2; inset: 0;
@@ -793,6 +837,15 @@ body.mode-ktv.ktv-bg-video .video-box iframe {
   80%  { opacity: 1; }
   100% { transform: translate(calc(-50% + var(--dx, 0px)), -108vh) scale(.85) rotate(var(--r, 0deg)); opacity: 0; }
 }
+/* 沉浸模式的和弦：压在歌词正上方，跟歌词区分开一个颜色。
+   这里不做逐字着色 —— 和弦是提前看的，跟着唱到哪儿变色反而晚了。 */
+.ktv-vline-chords {
+  color: #7ff0d8; font-weight: 700; letter-spacing: .1em;
+  text-shadow: 0 2px 8px rgba(0,0,0,.6);
+  font-size: 32px; line-height: 1.25; margin-bottom: 2px;
+}
+.ktv-vline-chords:empty { display: none; }
+
 .ktv-vline-th {
   font-family: var(--thai-font); color: #fff; font-weight: 700;
   text-shadow: 0 2px 10px rgba(0,0,0,.55); word-break: break-word;
@@ -833,6 +886,11 @@ body.mode-ktv.ktv-bg-video .video-box iframe {
   .ktv-view-lines { padding: 18px 14px calc(22px + env(safe-area-inset-bottom)); gap: 10px; }
   .ktv-vline .ktv-vline-th { font-size: 57px; }
   .ktv-vline .ktv-vline-cnro { font-size: 44px; }
+  .ktv-vline-chords { font-size: 22px; letter-spacing: .08em; }
+  /* 手机竖屏本来就快装不下两句了，再加两行和弦会顶到上面的按钮上。
+     开了和弦就把歌词收一号 —— 想要和弦就得让出这点地方。 */
+  .ktv-view.chords-on .ktv-vline .ktv-vline-th { font-size: 48px; }
+  .ktv-view.chords-on .ktv-vline .ktv-vline-cnro { font-size: 36px; }
 
   .ktv-toolbar { right: 10px; gap: 8px; }
   .ktv-tbtn { width: 38px; height: 38px; font-size: 17px; }

@@ -118,6 +118,7 @@
   <div class="ktv" id="ktv">
     <div class="ktv-slot" id="slot0">
       <div class="ktv-tag"><span class="ktv-no">—</span><span class="ktv-state">准备</span></div>
+      <div class="ktv-chords" data-f="uku"></div>
       <div class="ktv-th">—</div>
       <div class="ktv-ro" data-f="ro"></div>
       <div class="ktv-cnro" data-f="cn"></div>
@@ -126,6 +127,7 @@
     </div>
     <div class="ktv-slot" id="slot1">
       <div class="ktv-tag"><span class="ktv-no">—</span><span class="ktv-state">准备</span></div>
+      <div class="ktv-chords" data-f="uku"></div>
       <div class="ktv-th">—</div>
       <div class="ktv-ro" data-f="ro"></div>
       <div class="ktv-cnro" data-f="cn"></div>
@@ -145,6 +147,7 @@
     <label class="chip"><input type="checkbox" id="showCn" checked><span>中文谐音</span></label>
     <label class="chip"><input type="checkbox" id="showMean" checked><span>中文意思</span></label>
     <label class="chip"><input type="checkbox" id="showWords" checked><span>逐词卡片</span></label>
+    <label class="chip"><input type="checkbox" id="showUku"><span>🎸 尤克里里和弦</span></label>
     <div class="spacer"></div>
     <label class="ctl">
       <span>朗读语速 <b id="ttsRateVal">0.7</b>×</span>
@@ -152,6 +155,9 @@
     </label>
   </div>
 </nav>
+
+<!-- ══ 和弦说明：只在打开和弦时出现 ══ -->
+<div class="uku-hint hidden" data-f="uku" id="ukuHint"></div>
 
 <!-- ══ 歌词 ══ -->
 <main id="lyrics" class="lyrics"></main>
@@ -177,6 +183,7 @@
   <div class="ktv-view-top">
     <button id="ktvExit" class="ktv-pill" title="退出 KTV 模式">✕ 退出</button>
     <div class="ktv-view-top-right">
+      <button id="ktvChordToggle" class="ktv-pill" title="显示 / 隐藏尤克里里和弦">🎸 和弦</button>
       <button id="ktvBgToggle" class="ktv-pill" title="背景放 MV 画面 / 只要纯色背景">🎬 MV</button>
       <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
     </div>
@@ -198,10 +205,12 @@
     <!-- 位置固定：单数句永远在上边槽位，双数句永远在下边槽位，
          哪句在唱只切亮暗，物理位置不会跳，跟唱时眼睛不用来回找 -->
     <div class="ktv-vline" id="ktvSlot0">
+      <div class="ktv-vline-chords" data-f="uku"></div>
       <div class="ktv-vline-th"></div>
       <div class="ktv-vline-cnro"></div>
     </div>
     <div class="ktv-vline" id="ktvSlot1">
+      <div class="ktv-vline-chords" data-f="uku"></div>
       <div class="ktv-vline-th"></div>
       <div class="ktv-vline-cnro"></div>
     </div>
@@ -292,6 +301,7 @@
 </div>
 
 <script src="songs/safe-near-me.js"></script>
+<script src="js/chords.js"></script>
 <script src="js/tts.js"></script>
 <script src="js/player.js"></script>
 <script src="js/recorder.js"></script>

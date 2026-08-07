@@ -33,8 +33,9 @@
     follow: true,
     loopOn: false,
     ttsRate: parseFloat(localStorage.getItem(LS.ttsRate)) || 0.7,
+    // uku（尤克里里和弦）默认关着：不弹琴的人不需要多这一行
     view: Object.assign(
-      { ro: true, cn: true, mean: true, words: true },
+      { ro: true, cn: true, mean: true, words: true, uku: false },
       JSON.parse(localStorage.getItem(LS.view) || '{}')
     ),
     done: new Set(JSON.parse(localStorage.getItem(LS.done) || '[]')),
@@ -123,6 +124,7 @@
       <div class="line-head">
         <button class="line-no" title="跳到这一句">${i + 1}</button>
         <div class="line-main">
+          ${chordRowHtml(line)}
           <p class="line-th">${esc(line.th)}</p>
           ${line.ro ? `<p class="line-ro" data-f="ro">${esc(line.ro)}</p>` : ''}
           ${cnRoOf(line) ? `<p class="line-cnro" data-f="cn">${esc(cnRoOf(line))}</p>` : ''}
@@ -153,6 +155,30 @@
     return parts.length ? parts.join(' ') : '';
   }
 
+  /* ── 尤克里里和弦 ──
+     练习模式给「和弦名 + 按法图」，KTV 那两块地方只给和弦名：
+     字号本来就大，再塞指法图会把歌词挤没。 */
+  const chordText = (line) => (line && line.uku ? line.uku.join('  ') : '');
+
+  function chordRowHtml(line) {
+    if (!line.uku || !line.uku.length) return '';
+    const chips = line.uku.map((c) =>
+      `<span class="chord-chip"><b class="chord-name">${esc(c)}</b>${Chords.diagram(c)}</span>`
+    ).join('');
+    return `<div class="line-chords" data-f="uku">${chips}</div>`;
+  }
+
+  // 和弦说明条：调性、用到哪几个和弦、按法图是怎么读的
+  function renderUkuHint() {
+    const u = SONG.ukulele;
+    if (!u) return;
+    $('#ukuHint').innerHTML = `
+      <b>🎸 ${esc(u.key)} 调</b>
+      <span>${u.capo ? `夹 ${u.capo} 品 · ` : '不用变调夹 · '}${esc(u.tuning)} 标准调弦</span>
+      <span>图上从左到右是 ${esc(u.tuning.split('').join(' '))} 四根弦，○ = 空弦不按，● = 按在那一品</span>
+      <span class="uku-hint-note">和弦按每句的时长分到句子上，段落交界处准，句内换和弦的时机以听感为准</span>`;
+  }
+
   function wordHtml(w) {
     const isEn = w.lang === 'en';
     return `
@@ -165,11 +191,15 @@
   }
 
   function applyView() {
-    const map = { ro: '#showRo', cn: '#showCn', mean: '#showMean', words: '#showWords' };
+    const map = { ro: '#showRo', cn: '#showCn', mean: '#showMean', words: '#showWords', uku: '#showUku' };
     Object.entries(map).forEach(([k, sel]) => {
       $(sel).checked = state.view[k];
       $$(`[data-f="${k}"]`).forEach((n) => n.classList.toggle('hidden', !state.view[k]));
     });
+    // 和弦在 KTV 沉浸模式里也能开关，那边用的是右上角的胶囊按钮，状态跟这里同一份
+    $('#ktvChordToggle').classList.toggle('on', state.view.uku);
+    // 开了和弦歌词区更高，弹幕的飞行区跟着往上让一让，别糊在和弦上
+    $('#ktvView').classList.toggle('chords-on', state.view.uku);
     localStorage.setItem(LS.view, JSON.stringify(state.view));
   }
 
@@ -238,6 +268,7 @@
       slotShowing[slot] = lineIdx;
       el.querySelector('.ktv-no').textContent  = l ? lineIdx + 1 : '—';
       el.querySelector('.ktv-th').textContent  = l ? l.th : '🎉 这一轮唱完了';
+      setRow(el, '.ktv-chords', chordText(l));
       // 罗马音 / 中文谐音 / 中文意思：空的那行直接收起来，别留一道空白
       setRow(el, '.ktv-ro',   l ? (l.ro || '') : '');
       setRow(el, '.ktv-cnro', l ? cnRoOf(l) : '');
@@ -360,6 +391,7 @@
   }
 
   function fillKtvViewSlot(el, line, isLive) {
+    el.querySelector('.ktv-vline-chords').textContent = chordText(line);
     buildKaraokeRow(el.querySelector('.ktv-vline-th'), line ? line.th : '🎉 这一轮唱完了');
     buildKaraokeRow(el.querySelector('.ktv-vline-cnro'), line ? cnRoOf(line) : '');
     el.classList.toggle('en-slot', !!line && line.lang === 'en');
@@ -900,10 +932,18 @@
     });
 
     // 视图开关
-    [['#showRo', 'ro'], ['#showCn', 'cn'], ['#showMean', 'mean'], ['#showWords', 'words']]
+    [['#showRo', 'ro'], ['#showCn', 'cn'], ['#showMean', 'mean'], ['#showWords', 'words'], ['#showUku', 'uku']]
       .forEach(([sel, key]) => {
         $(sel).addEventListener('change', (e) => { state.view[key] = e.target.checked; applyView(); });
       });
+
+    // KTV 沉浸模式里的和弦开关：跟视图栏那个复选框共用 state.view.uku，
+    // 在哪边开都是两种模式一起生效
+    $('#ktvChordToggle').addEventListener('click', () => {
+      state.view.uku = !state.view.uku;
+      applyView();
+      toast(state.view.uku ? '🎸 和弦已打开' : '和弦已关掉');
+    });
 
     // 朗读语速
     const rate = $('#ttsRate');
@@ -1112,6 +1152,7 @@
     document.title = `${SONG.title} — 泰语逐句跟读`;
 
     loadTimes();
+    renderUkuHint();
     render();
     initSeek();
     bind();
