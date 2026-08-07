@@ -669,6 +669,36 @@ body.mode-ktv { overflow: hidden; }
   background-size: cover; background-position: center;
 }
 
+/* 开着 MV 画面时底色让位：这层透明了，后面那个撑满全屏的播放器才看得见 */
+.ktv-view.bg-video .ktv-bg { background: none; }
+
+/* 压暗一层，不然亮画面上的白歌词看不清；纯色背景时不需要 */
+.ktv-bg-scrim {
+  position: absolute; inset: 0;
+  opacity: 0; transition: opacity .5s ease;
+  background: linear-gradient(to bottom, rgba(0,0,0,.55) 0%, rgba(0,0,0,.32) 38%, rgba(0,0,0,.5) 100%);
+}
+.ktv-view.bg-video .ktv-bg-scrim { opacity: 1; }
+
+/* ── KTV 背景 = 原曲播放器本身 ──
+   不把 iframe 搬进 KTV 层：DOM 一挪 iframe 就会重载，声音会断。
+   改成原地把播放器定位成全屏。它在 .stickydeck（z-index:30）的层叠上下文里，
+   永远画在 .ktv-view（z-index:500）下面，正好当背景，点击也照旧被 KTV 层接走。 */
+body.mode-ktv.ktv-bg-video .video-box {
+  position: fixed; inset: 0; z-index: 1;
+  width: 100vw; height: 100vh; max-height: none; aspect-ratio: auto;
+  border-radius: 0; transition: none;
+}
+/* 铺满整屏（宽高比不够就往外裁，跟 object-fit:cover 一个意思），
+   再往外放大一点：YouTube 自己的标题条、控制条、片尾「More videos」都贴在
+   iframe 的上下边缘，放大之后就被挤出屏幕、被 overflow 裁掉了。 */
+body.mode-ktv.ktv-bg-video .video-box iframe {
+  inset: auto; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(1.34);
+  width: 100vw; height: 56.25vw;            /* 先按铺满宽算 */
+  min-width: 177.78vh; min-height: 100vh;   /* 屏幕更窄时改成铺满高 */
+}
+
 /* 弹幕飞行区：只到歌词区上边缘为止，不飞到底下两句上面。
    歌词字号放大之后歌词区更高了，这里跟着让出更多空间。 */
 .ktv-danmaku-layer {
@@ -692,6 +722,10 @@ body.mode-ktv { overflow: hidden; }
   backdrop-filter: blur(4px); font-family: inherit; transition: background .15s;
 }
 .ktv-pill:hover { background: rgba(0,0,0,.58); }
+.ktv-pill.on { background: var(--accent); border-color: var(--accent); }
+.ktv-pill.on:hover { filter: brightness(1.1); }
+.ktv-pill[disabled] { opacity: .4; cursor: default; }
+.ktv-view-top-right { display: flex; align-items: center; gap: 8px; }
 
 /* 互动工具条：发弹幕 + 四个反应特效，靠右竖排，避开中间的背景和底部歌词 */
 .ktv-toolbar {

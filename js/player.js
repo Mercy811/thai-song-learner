@@ -36,21 +36,35 @@ const Player = (() => {
         rel: 0,
         modestbranding: 1,
         playsinline: 1,
+        // KTV 模式这块画面会铺满全屏当背景，MV 自带的字幕和角标会挡住歌词
+        cc_load_policy: 0,
+        iv_load_policy: 3,
         origin: window.location.origin,
       },
       events: {
         onReady: () => {
           ready = true;
+          killCaptions();
           startTicking();
           emit('ready');
         },
         onStateChange: (e) => {
           emit('state', e.data);
-          if (e.data === YT.PlayerState.PLAYING) startTicking();
+          if (e.data === YT.PlayerState.PLAYING) { startTicking(); killCaptions(); }
         },
         onError: (e) => console.warn('[Player] YouTube error', e.data),
       },
     });
+  }
+
+  // KTV 模式这块画面会铺满全屏当背景，MV 上的字幕会跟歌词打架。
+  // cc_load_policy 只管默认值（浏览器里开过字幕的话照样自动开），字幕模块又常常
+  // 比 onReady 晚一步才加载，所以 onReady 和第一次真的开始播时各卸一次。
+  function killCaptions() {
+    try {
+      yt.unloadModule('captions');
+      yt.unloadModule('cc');
+    } catch { /* 老播放器没这模块，忽略 */ }
   }
 
   function startTicking() {

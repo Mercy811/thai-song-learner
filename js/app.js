@@ -7,13 +7,16 @@
 
   const SONG = window.SONGS['safe-near-me'];
   const LS = {
-    times:  'tsl.times.' + SONG.id,
+    // 时间轴是跟着音源走的：换了音源，浏览器里存的旧校准就不该再盖上来，
+    // 所以 key 带上视频 id（旧的那份还在，只是不再生效）
+    times:  'tsl.times.' + SONG.id + '.' + SONG.youtubeId,
     done:   'tsl.done.' + SONG.id,
     view:   'tsl.view',
     theme:  'tsl.theme',
     ttsRate:'tsl.ttsRate',
     videoSize:'tsl.videoSize',
     mode:   'tsl.mode',
+    ktvBg:  'tsl.ktvBg',
   };
 
   const $  = (s, r = document) => r.querySelector(s);
@@ -36,6 +39,8 @@
     ),
     done: new Set(JSON.parse(localStorage.getItem(LS.done) || '[]')),
     calib: { on: false, idx: 0, marks: [] },
+    // KTV 背景放不放 MV，默认放
+    ktvBg: localStorage.getItem(LS.ktvBg) !== '0',
   };
 
   /* ════════ 时间轴 ════════ */
@@ -273,6 +278,14 @@
       $('#ktvDanmakuForm').classList.add('hidden');
       $('#ktvBtnDanmaku').classList.remove('on');
     }
+  }
+
+  // KTV 背景要不要露出 MV 画面。音源就是这支 MV，所以背景不是另一路视频，
+  // 而是把练习模式那个播放器原地撑满全屏（样式的事，全在 CSS 里）。
+  function applyKtvBg() {
+    document.body.classList.toggle('ktv-bg-video', state.ktvBg);
+    $('#ktvView').classList.toggle('bg-video', state.ktvBg);
+    $('#ktvBgToggle').classList.toggle('on', state.ktvBg);
   }
 
   /* ── 逐字着色 ──
@@ -857,6 +870,13 @@
     $('#ktvPlayPause').addEventListener('click', () => Player.toggle());
     $('#ktvBg').addEventListener('click', () => Player.toggle());
 
+    // 背景画面开关
+    $('#ktvBgToggle').addEventListener('click', () => {
+      state.ktvBg = !state.ktvBg;
+      localStorage.setItem(LS.ktvBg, state.ktvBg ? '1' : '0');
+      applyKtvBg();
+    });
+
     // 画面大小：只要声音 / 小窗 / 大窗
     const vs = $('#videoSize');
     const savedSize = localStorage.getItem(LS.videoSize) || 'off';
@@ -1096,6 +1116,7 @@
     initSeek();
     bind();
     renderKtv();
+    applyKtvBg();
     setMode(state.mode);
     initKtvInteractions();
     watchDeckHeight();

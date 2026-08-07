@@ -163,7 +163,11 @@
 
 <!-- ══ KTV 模式：沉浸式全屏，只留背景 + 当前句/下一句 ══ -->
 <div class="ktv-view hidden" id="ktvView">
-  <div class="ktv-bg" id="ktvBg"></div>
+  <!-- 背景：开着 MV 画面时这层是透明的，露出后面被撑满全屏的播放器，
+       只留 .ktv-bg-scrim 压暗一层；关掉就是原来的渐变底色 -->
+  <div class="ktv-bg" id="ktvBg">
+    <div class="ktv-bg-scrim"></div>
+  </div>
 
   <!-- 弹幕从这一层飞过，范围限制在歌词区上面，不会挡住底下两句 -->
   <div class="ktv-danmaku-layer" id="ktvDanmakuLayer" aria-hidden="true"></div>
@@ -172,7 +176,10 @@
 
   <div class="ktv-view-top">
     <button id="ktvExit" class="ktv-pill" title="退出 KTV 模式">✕ 退出</button>
-    <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
+    <div class="ktv-view-top-right">
+      <button id="ktvBgToggle" class="ktv-pill" title="背景放 MV 画面 / 只要纯色背景">🎬 MV</button>
+      <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
+    </div>
   </div>
 
   <div class="ktv-toolbar" id="ktvToolbar">
