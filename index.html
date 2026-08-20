@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Safe Near Me — 泰语逐句跟读</title>
-<meta name="description" content="跟着原曲逐句、逐词学泰语歌《ที่ปลอดภัยใกล้ฉัน / Safe Near Me》，可点击发音、单句循环、跟读录音。" />
+<title>泰语歌逐句跟读</title>
+<meta name="description" content="逐句、逐词学泰语歌：泰文 + 罗马音 + 中文谐音 + 中文意思，每个词点一下就能听发音。" />
 <meta name="theme-color" content="#f7f3ee" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
 <link rel="stylesheet" href="css/style.css" />
@@ -16,17 +16,18 @@
   <div class="topbar-inner">
     <div class="brand">
       <h1 id="songTitle">Safe Near Me</h1>
-      <p class="sub"><span id="songTitleTh">ที่ปลอดภัยใกล้ฉัน</span> · <span id="songArtist">Lena Lalina</span></p>
+      <p class="sub"><span id="songTitleTh"></span><span id="songTitleSep"> · </span><span id="songArtist"></span></p>
     </div>
     <div class="topbar-actions">
-      <div class="mode-toggle" role="group" aria-label="切换模式">
+      <button id="btnSong" class="icon-btn" title="换一首歌">🎵 选歌</button>
+      <div class="mode-toggle" role="group" aria-label="切换模式" data-needs="timeline">
         <button id="btnModePractice" class="mode-btn active" title="练习模式：逐句逐词、发音、录音">📖 练习</button>
         <button id="btnModeKtv" class="mode-btn" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
       </div>
       <button id="btnVoice" class="icon-btn" title="发音设置">
         <span class="dot" id="voiceDot"></span> 发音
       </button>
-      <button id="btnCalib" class="icon-btn" title="校准歌词时间轴">⏱ 校准</button>
+      <button id="btnCalib" class="icon-btn" title="校准歌词时间轴" data-needs="timeline">⏱ 校准</button>
       <button id="btnTheme" class="icon-btn" title="切换深浅色">◐</button>
     </div>
   </div>
@@ -107,8 +108,8 @@
         </select>
       </label>
 
-      <button id="btnLoop" class="tbtn toggle" title="单句循环">🔁 单句循环</button>
-      <button id="btnFollow" class="tbtn toggle active" title="歌词自动跟随">📍 自动跟随</button>
+      <button id="btnLoop" class="tbtn toggle" title="单句循环" data-needs="timeline">🔁 单句循环</button>
+      <button id="btnFollow" class="tbtn toggle active" title="歌词自动跟随" data-needs="timeline">📍 自动跟随</button>
     </div>
   </div>
 </section>
@@ -140,7 +141,7 @@
 
 <footer class="foot">
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
-  <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句 · <kbd>R</kbd> 单句循环 · <kbd>S</kbd> 朗读当前句</p>
+  <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句<span data-needs="timeline"> · <kbd>R</kbd> 单句循环</span> · <kbd>S</kbd> 朗读当前句</p>
 </footer>
 
 <!-- ══ KTV 模式：沉浸式全屏，只留背景 + 当前句/下一句 ══ -->
@@ -189,6 +190,24 @@
       <div class="ktv-vline-chords" data-f="uku"></div>
       <div class="ktv-vline-th"></div>
       <div class="ktv-vline-cnro"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 选歌面板 ══ -->
+<div class="modal hidden" id="songModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>🎵 选一首歌</h2>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="song-list" id="songList"></div>
+      <p class="song-add-hint">
+        想加歌：照着 <code>songs/</code> 里现成的文件复制一份，填好逐句逐词的内容，
+        再在 <code>index.html</code> 底部加一行 <code>&lt;script&gt;</code> 引入，它就会出现在这个列表里。
+        只想练歌词、不想标时间轴的话，把 <code>timeline</code> 写成 <code>false</code> 就行。
+      </p>
     </div>
   </div>
 </div>
@@ -276,6 +295,7 @@
   </div>
 </div>
 
+<script src="songs/hua-jai-sang-hai-rak-thoe.js"></script>
 <script src="songs/safe-near-me.js"></script>
 <script src="js/chords.js"></script>
 <script src="js/tts.js"></script>

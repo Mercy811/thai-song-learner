@@ -5,7 +5,20 @@
 (() => {
   'use strict';
 
-  const SONG = window.SONGS['safe-near-me'];
+  /* ── 当前是哪首歌 ──
+     songs/ 下每个文件往 window.SONGS 里塞一首，index.html 里的引入顺序 = 选歌列表顺序。
+     选中的歌记在 localStorage，也可以用 ?song=歌曲id 直接打开某一首（分享链接用）。 */
+  const LS_SONG = 'tsl.song';
+  const SONG_IDS = Object.keys(window.SONGS || {});
+  const wantId = new URLSearchParams(location.search).get('song')
+              || localStorage.getItem(LS_SONG);
+  const SONG = window.SONGS[wantId] || window.SONGS[SONG_IDS[0]];
+  localStorage.setItem(LS_SONG, SONG.id);
+
+  // 有的歌只做练习模式（timeline: false）：没有逐句时间轴，
+  // 不自动跟随、不做 KTV、不做校准，歌词自己手动往下滑。
+  const HAS_TIMELINE = SONG.timeline !== false;
+
   const LS = {
     // 时间轴是跟着音源走的：换了音源，浏览器里存的旧校准就不该再盖上来，
     // 所以 key 带上视频 id（旧的那份还在，只是不再生效）
@@ -28,7 +41,7 @@
   );
 
   const state = {
-    mode: localStorage.getItem(LS.mode) === 'ktv' ? 'ktv' : 'practice',
+    mode: (HAS_TIMELINE && localStorage.getItem(LS.mode) === 'ktv') ? 'ktv' : 'practice',
     activeIdx: -1,
     follow: true,
     loopOn: false,
@@ -63,7 +76,7 @@
   // 补了新歌词之后，浏览器里存的旧时间轴只覆盖一部分句子；
   // 只有每一句都有时间才算校准过，否则仍然提示去校准。
   const isCalibrated = () => {
-    if (SONG.synced) return true;
+    if (!HAS_TIMELINE || SONG.synced) return true;
     const saved = JSON.parse(localStorage.getItem(LS.times) || 'null');
     return !!saved && LINES.every((l) => typeof saved[l.id] === 'number');
   };
@@ -132,8 +145,8 @@
         </div>
         <div class="line-tools">
           <button class="lbtn" data-act="speak" title="朗读整句">🔊 整句</button>
-          <button class="lbtn" data-act="jump" title="跳到原曲这一句">▶ 原曲</button>
-          <button class="lbtn" data-act="loop" title="单句循环这一句">🔁 循环</button>
+          ${HAS_TIMELINE ? `<button class="lbtn" data-act="jump" title="跳到原曲这一句">▶ 原曲</button>
+          <button class="lbtn" data-act="loop" title="单句循环这一句">🔁 循环</button>` : ''}
           ${Recorder.isSupported() ? `<button class="lbtn" data-act="rec" title="录下自己的跟读">🎙 跟读</button>` : ''}
           <button class="lbtn" data-act="done" title="标记已掌握">${state.done.has(line.id) ? '✓ 已掌握' : '○ 掌握'}</button>
         </div>
@@ -171,7 +184,9 @@
   // 和弦说明条：调性、用到哪几个和弦、按法图是怎么读的
   function renderUkuHint() {
     const u = SONG.ukulele;
-    if (!u) return;
+    // 没配和弦的歌，视图栏那个开关也一并收起来
+    $('#showUku').closest('.chip').classList.toggle('hidden', !u);
+    if (!u) { state.view.uku = false; return; }
     $('#ukuHint').innerHTML = `
       <b>🎸 ${esc(u.key)} 调</b>
       <span>${u.capo ? `夹 ${u.capo} 品 · ` : '不用变调夹 · '}${esc(u.tuning)} 标准调弦</span>
@@ -224,6 +239,10 @@
     if (state.loopOn && idx >= 0 && !seek.dragging) Player.setLoop(LINES[idx].start, lineEnd(idx));
   }
 
+  function scrollToLine(idx) {
+    $(`.line[data-idx="${idx}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
   function scrollToActive() {
     if (!state.follow || state.activeIdx < 0) return;
     $(`.line[data-idx="${state.activeIdx}"]`)
@@ -234,6 +253,7 @@
      跟顶部的双行槽位用的是同一套逻辑：单数句永远在槽 0，双数句永远在槽 1，
      位置从不跳动，换的只是哪个槽亮（正在唱）。 */
   function setMode(mode) {
+    if (!HAS_TIMELINE) mode = 'practice';   // 没时间轴就没法做 KTV 逐句跟唱
     state.mode = mode;
     document.body.classList.toggle('mode-ktv', mode === 'ktv');
     $('#ktvView').classList.toggle('hidden', mode !== 'ktv');
@@ -467,7 +487,7 @@
     seek.marks.innerHTML = '';
     seek.markEls = [];
     seek.activeMark = null;
-    if (dur <= 0) return;
+    if (dur <= 0 || !HAS_TIMELINE) return;
     LINES.forEach((l, i) => {
       const m = document.createElement('i');
       const isSecHead = i === 0 || l.section !== LINES[i - 1].section;
@@ -795,6 +815,42 @@
     $('#exportModal').classList.remove('hidden');
   }
 
+  /* ════════ 选歌 ════════
+     列表就是 window.SONGS 里的全部歌曲，顺序 = index.html 里 <script> 的引入顺序。
+     换歌走整页重载（?song=id）：播放器、歌词、时间轴、掌握进度都是按歌走的，
+     重载一次最省事也最不容易出错。 */
+
+  function songMeta(song) {
+    const n = song.sections.reduce((a, sec) => a + sec.lines.length, 0);
+    const done = new Set(JSON.parse(localStorage.getItem('tsl.done.' + song.id) || '[]'));
+    return { count: n, done: done.size };
+  }
+
+  function renderSongPicker() {
+    $('#songList').innerHTML = SONG_IDS.map((id) => {
+      const s2 = window.SONGS[id];
+      const m = songMeta(s2);
+      const by = [s2.artist, s2.album].filter(Boolean).join(' · ');
+      return `<button class="song-card${id === SONG.id ? ' on' : ''}" data-song="${esc(id)}">
+        <span class="song-card-th">${esc(s2.titleTh || s2.title)}</span>
+        <span class="song-card-cn">${esc(s2.titleCn || s2.title)}</span>
+        ${by ? `<span class="song-card-by">${esc(by)}</span>` : ''}
+        <span class="song-card-meta">
+          <span>${m.count} 句</span>
+          ${m.done ? `<span>已掌握 ${m.done}</span>` : ''}
+          <span>${s2.timeline === false ? '练习模式' : '练习 + KTV'}</span>
+        </span>
+        ${id === SONG.id ? '<span class="song-card-now">正在学</span>' : ''}
+      </button>`;
+    }).join('');
+  }
+
+  function switchSong(id) {
+    if (!window.SONGS[id]) return;
+    localStorage.setItem(LS_SONG, id);
+    location.href = location.pathname + '?song=' + encodeURIComponent(id);
+  }
+
   /* ════════ 事件 ════════ */
 
   function bind() {
@@ -883,6 +939,16 @@
       localStorage.setItem(LS.ttsRate, state.ttsRate);
     });
 
+    // 选歌
+    $('#btnSong').addEventListener('click', () => {
+      renderSongPicker();
+      $('#songModal').classList.remove('hidden');
+    });
+    $('#songList').addEventListener('click', (e) => {
+      const card = e.target.closest('.song-card');
+      if (card) switchSong(card.dataset.song);
+    });
+
     // 弹窗
     $('#btnVoice').addEventListener('click', () => { refreshVoiceUI(); $('#voiceModal').classList.remove('hidden'); });
     $('#btnCalib').addEventListener('click', openCalib);
@@ -966,6 +1032,13 @@
   }
 
   function jumpTo(idx) {
+    // 没有时间轴的歌，"跳到这一句" 只是把它选中（←→ 翻句、S 朗读都还能用），
+    // 不去动原曲的播放位置。滚动单独做，这样点已经选中的那句也会滚回视野中间。
+    if (!HAS_TIMELINE) {
+      setActive(idx, { scroll: false });
+      scrollToLine(idx);
+      return;
+    }
     setActive(idx, { scroll: false });
     Player.seek(LINES[idx].start, true);
     if (state.loopOn) Player.setLoop(LINES[idx].start, lineEnd(idx));
@@ -1074,10 +1147,18 @@
       || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
     // 标题
-    $('#songTitle').textContent = SONG.title;
-    $('#songTitleTh').textContent = SONG.titleTh;
-    $('#songArtist').textContent = `${SONG.artist} · ${SONG.album}`;
-    document.title = `${SONG.title} — 泰语逐句跟读`;
+    $('#songTitle').textContent = SONG.titleCn || SONG.title;
+    $('#songTitleTh').textContent = SONG.titleTh || '';
+    $('#songArtist').textContent = [SONG.artist, SONG.album].filter(Boolean).join(' · ');
+    // 没填歌手/专辑时，把中间那个分隔点也一起收掉，别在标题下面孤零零挂一个「·」
+    const hasBy = !!(SONG.artist || SONG.album);
+    $('#songArtist').classList.toggle('hidden', !hasBy);
+    $('#songTitleSep').classList.toggle('hidden', !hasBy);
+    document.title = `${SONG.titleCn || SONG.title} — 泰语逐句跟读`;
+
+    // 只做练习模式的歌：KTV / 校准 / 单句循环 / 自动跟随这些靠时间轴的东西全收起来
+    document.body.classList.toggle('no-timeline', !HAS_TIMELINE);
+    $('#btnSong').classList.toggle('hidden', SONG_IDS.length < 2);
 
     loadTimes();
     renderUkuHint();
@@ -1108,7 +1189,7 @@
       if (!seek.scaleReady) setupSeekScale();
       if (seek.dragging) return;      // 拖动时以手指为准，别被播放器的旧时间盖回去
       paintSeek(t);
-      if (!state.calib.on) setActive(indexAt(t));
+      if (!state.calib.on && HAS_TIMELINE) setActive(indexAt(t));
     });
   }
 

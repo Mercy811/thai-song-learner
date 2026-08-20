@@ -576,6 +576,56 @@ body {
 }
 
 /* ── 手机 ───────────────────────────── */
+/* ── 选歌面板 ───────────────────────── */
+.song-list { display: flex; flex-direction: column; gap: 10px; }
+
+.song-card {
+  display: block; width: 100%; text-align: left; cursor: pointer;
+  background: var(--card-2); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 12px 14px; color: var(--text);
+  font: inherit; position: relative;
+  transition: border-color .15s, background .15s, transform .1s;
+}
+.song-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+.song-card:active { transform: scale(.995); }
+.song-card.on { border-color: var(--accent); background: var(--accent-soft); }
+
+.song-card-th {
+  display: block; font-family: var(--thai-font);
+  font-size: 20px; line-height: 1.45; margin-bottom: 2px;
+}
+.song-card-cn { display: block; font-size: 14.5px; font-weight: 600; }
+.song-card-by { display: block; font-size: 12.5px; color: var(--text-2); margin-top: 2px; }
+
+.song-card-meta {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  font-size: 11.5px; color: var(--text-2);
+}
+.song-card-meta > span {
+  background: var(--card); border: 1px solid var(--line-soft);
+  border-radius: 999px; padding: 1px 8px;
+}
+
+.song-card-now {
+  position: absolute; top: 10px; right: 12px;
+  font-size: 11px; font-weight: 600; color: #fff;
+  background: var(--accent); border-radius: 999px; padding: 2px 9px;
+}
+
+.song-add-hint {
+  margin: 14px 0 0; font-size: 12.5px; line-height: 1.7; color: var(--text-2);
+  border-top: 1px solid var(--line-soft); padding-top: 12px;
+}
+.song-add-hint code {
+  background: var(--card-2); border: 1px solid var(--line-soft);
+  border-radius: 5px; padding: 0 5px; font-size: 12px;
+}
+
+/* ── 只做练习模式的歌（timeline: false）──
+   KTV、时间轴校准、单句循环、自动跟随这些都得靠逐句时间点，
+   这类歌没有时间轴，相关入口直接不出现，免得点了没反应。 */
+body.no-timeline [data-needs="timeline"] { display: none !important; }
+
 @media (max-width: 720px) {
   .topbar-inner { padding: 10px 13px; }
   .brand h1 { font-size: 17px; }
