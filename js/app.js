@@ -218,7 +218,6 @@
         cur.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-    renderKtv();
     renderKtvView();
     highlightMark(idx);
     // 拖进度条的过程中不要重设单句循环，否则会被循环区间拽回去
@@ -229,66 +228,6 @@
     if (!state.follow || state.activeIdx < 0) return;
     $(`.line[data-idx="${state.activeIdx}"]`)
       ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-
-  /* ════════ KTV 双行显示 ════════
-     槽位由句子序号决定：第 1/3/5… 句永远在槽 0（左），第 2/4/6… 句永远在槽 1（右）。
-     所以正在唱的那句位置从不移动；换的永远是另一边，提前铺好下下句。
-       唱第 1 句 → 左:1(亮)  右:2
-       唱第 2 句 → 左:3      右:2(亮)   ← 左边换成 3
-       唱第 3 句 → 左:3(亮)  右:4       ← 右边换成 4
-  */
-  const slotShowing = [null, null];
-
-  function renderKtv() {
-    const c = state.activeIdx;
-    const base = c < 0 ? 0 : c;          // 还没开唱时先摆好第 1、2 句
-    const activeSlot = base % 2;
-
-    const want = [];
-    want[activeSlot] = base;
-    want[1 - activeSlot] = base + 1;
-
-    want.forEach((lineIdx, slot) => fillSlot(slot, lineIdx, c >= 0 && lineIdx === c));
-  }
-
-  // 视图开关用的是 .hidden 类，这里只动 display，两边互不干扰
-  function setRow(root, sel, text) {
-    const n = root.querySelector(sel);
-    n.textContent = text;
-    n.style.display = text ? '' : 'none';
-  }
-
-  function fillSlot(slot, lineIdx, isLive) {
-    const el = $('#slot' + slot);
-    const l = LINES[lineIdx];
-    const changed = slotShowing[slot] !== lineIdx;
-
-    if (changed) {
-      slotShowing[slot] = lineIdx;
-      el.querySelector('.ktv-no').textContent  = l ? lineIdx + 1 : '—';
-      el.querySelector('.ktv-th').textContent  = l ? l.th : '🎉 这一轮唱完了';
-      setRow(el, '.ktv-chords', chordText(l));
-      // 罗马音 / 中文谐音 / 中文意思：空的那行直接收起来，别留一道空白
-      setRow(el, '.ktv-ro',   l ? (l.ro || '') : '');
-      setRow(el, '.ktv-cnro', l ? cnRoOf(l) : '');
-      setRow(el, '.ktv-cn',   l ? (l.cn || '') : '');
-      el.classList.toggle('empty', !l);
-      el.classList.toggle('en-slot', !!l && l.lang === 'en');
-      el.dataset.idx = l ? lineIdx : '';
-
-      // 待唱那边换了新句子就闪一下提示；正在唱的那边不闪，免得干扰
-      if (!isLive && l) {
-        el.classList.remove('swapped');
-        void el.offsetWidth;            // 强制重排，让动画能重播
-        el.classList.add('swapped');
-      }
-    }
-
-    el.querySelector('.ktv-state').textContent =
-      isLive ? '正在唱' : (l ? (lineIdx === state.activeIdx + 1 ? '下一句' : '准备') : '');
-    el.classList.toggle('live', isLive);
-    el.classList.toggle('idle', !isLive);
   }
 
   /* ════════ KTV 沉浸模式：全屏，只留背景 + 当前句/下一句 ════════
@@ -884,17 +823,6 @@
       else if (act === 'rec') toggleRec(line, lineNode, btn);
     });
 
-    // KTV 面板：点喇叭读这句，点面板跳到这句
-    $$('.ktv-speak').forEach((b) => b.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx = +b.closest('.ktv-slot').dataset.idx;
-      if (LINES[idx]) speakLine(LINES[idx], b);
-    }));
-    $$('.ktv-slot').forEach((s) => s.addEventListener('click', () => {
-      const idx = +s.dataset.idx;
-      if (LINES[idx]) jumpTo(idx);
-    }));
-
     // 练习 / KTV 模式切换
     $('#btnModePractice').addEventListener('click', () => setMode('practice'));
     $('#btnModeKtv').addEventListener('click', () => setMode('ktv'));
@@ -1156,7 +1084,6 @@
     render();
     initSeek();
     bind();
-    renderKtv();
     applyKtvBg();
     setMode(state.mode);
     initKtvInteractions();

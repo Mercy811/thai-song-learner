@@ -272,75 +272,6 @@ body {
 }
 .ctl input[type=range] { width: 108px; accent-color: var(--accent); }
 
-/* ── KTV 双行显示 ─────────────────────
-   槽位固定：第 1/3/5… 句永远在左，第 2/4/6… 句永远在右。
-   正在唱的那句不动，另一边换成下下句。 */
-.ktv-wrap {
-  background: var(--bg); padding: 0 18px 12px;
-}
-.ktv {
-  max-width: 1020px; margin: 0 auto;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-}
-.ktv-slot {
-  position: relative; overflow: hidden;
-  background: var(--card); border: 2px solid var(--line);
-  border-radius: var(--radius); padding: 15px 16px 17px;
-  min-height: 132px; box-shadow: var(--shadow);
-  transition: border-color .25s, background .25s, opacity .25s, transform .25s;
-  display: flex; flex-direction: column; gap: 3px;
-}
-/* 待唱的那一边：压暗，避免抢走视线 */
-.ktv-slot.idle { opacity: .5; background: var(--card-2); }
-/* 正在唱的那一边 */
-.ktv-slot.live {
-  border-color: var(--accent); background: var(--hl);
-  box-shadow: 0 0 0 4px rgba(194,100,58,.13), var(--shadow);
-  transform: translateY(-1px);
-}
-/* 刚换上新句子时闪一下，提示这边内容变了 */
-.ktv-slot.swapped { animation: ktvswap .5s ease; }
-@keyframes ktvswap {
-  0%   { background: var(--accent-2-soft); }
-  100% { background: var(--card-2); }
-}
-
-.ktv-tag {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 11.5px; color: var(--text-3); margin-bottom: 2px;
-}
-.ktv-no {
-  background: var(--card-2); border: 1px solid var(--line-soft);
-  border-radius: 5px; padding: 1px 7px; font-variant-numeric: tabular-nums;
-}
-.ktv-slot.live .ktv-no { background: var(--accent); border-color: var(--accent); color: #fff; }
-.ktv-slot.live .ktv-state { color: var(--accent); font-weight: 700; }
-
-.ktv-th {
-  font-family: var(--thai-font); font-size: 30px; line-height: 1.5;
-  font-weight: 700; word-break: break-word;
-}
-.ktv-slot.en-slot .ktv-th { font-family: inherit; font-size: 25px; font-style: italic; }
-.ktv-ro { font-size: 14.5px; color: var(--accent-2); line-height: 1.5; }
-/* 中文谐音：跟着唱主要看这行，所以给到仅次于泰文的字号 */
-.ktv-cnro {
-  font-size: 21px; font-weight: 600; line-height: 1.45;
-  color: var(--text); letter-spacing: .02em; margin-top: 1px;
-}
-.ktv-cn { font-size: 14.5px; color: var(--text-2); line-height: 1.5; }
-.ktv-slot.live .ktv-cn { color: var(--text); }
-
-.ktv-speak {
-  position: absolute; top: 11px; right: 11px;
-  background: var(--card-2); border: 1px solid var(--line); color: var(--text-2);
-  border-radius: 8px; padding: 4px 9px; font-size: 13px; cursor: pointer;
-  font-family: inherit; transition: all .15s;
-}
-.ktv-speak:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.ktv-speak.speaking { background: var(--accent); border-color: var(--accent); color: #fff; }
-
-.ktv-slot.empty .ktv-th { color: var(--text-3); font-size: 17px; font-weight: 500; font-family: inherit; }
-
 /* ── 视图栏 ─────────────────────────── */
 .viewbar {
   background: var(--bg-soft); border-top: 1px solid var(--line);
@@ -395,12 +326,6 @@ body {
 .chord-dia .cd-dot { fill: currentColor; }
 .chord-dia .cd-open { fill: none; stroke: currentColor; stroke-width: 1.1; opacity: .55; }
 .chord-dia .cd-base { font-size: 9px; fill: currentColor; opacity: .65; }
-
-/* 吸顶的 KTV 双行面板：只给和弦名，那块地方本来就窄 */
-.ktv-chords {
-  font-size: 13px; font-weight: 700; color: var(--accent-2);
-  letter-spacing: .08em; line-height: 1.5;
-}
 
 /* ── 歌词区 ─────────────────────────── */
 .lyrics { max-width: 1020px; margin: 0 auto; padding: 20px 18px 60px; }
@@ -657,18 +582,6 @@ body {
   .topbar-actions { width: 100%; margin-left: 0; }
   .icon-btn { flex: 1; justify-content: center; padding: 7px 8px; }
   .player-wrap { padding: 10px 13px 8px; }
-  /* 手机上改成上下两格：上格永远是第 1/3/5… 句，下格永远是第 2/4/6… 句，
-     位置一样不会动，只是从左右变上下 */
-  .ktv-wrap { padding: 0 13px 10px; }
-  .ktv { grid-template-columns: 1fr; gap: 8px; }
-  .ktv-slot { min-height: 0; padding: 10px 12px 12px; }
-  .ktv-th { font-size: 22px; }
-  .ktv-slot.en-slot .ktv-th { font-size: 19px; }
-  .ktv-ro, .ktv-cn { font-size: 12.5px; }
-  .ktv-cnro { font-size: 18px; }
-  .ktv-tag { margin-bottom: 0; }
-  .ktv-slot.idle { opacity: .45; }
-  .ktv-chords { font-size: 12px; letter-spacing: .06em; }
   .viewbar-inner { padding: 9px 13px; }
   .uku-hint { padding: 9px 13px 0; gap: 6px; font-size: 11.5px; }
   .video-box { max-height: 168px; }
