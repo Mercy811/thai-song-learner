@@ -1,9 +1,10 @@
 /**
  * Study —— 单词模式：单词表 + 四选一测验
  *
- * 两个页面来回切：
+ * 三个页面来回切：
  *   单词表  这首歌所有词（从歌词自动摊出来的），每个词一条，右边是掌握程度
  *   测验    一次一张词卡（泰语 + 罗马音），下面四个中文意思，选对选错都记进掌握程度
+ *   对战    两个人用同一台电脑轮流答同一套题，那一整块界面归 battle.js 管
  *
  * 数据和算法都在 Vocab 里，这个文件只管画界面和收事件。
  */
@@ -19,7 +20,7 @@ window.Study = (() => {
 
   const state = {
     on: false,
-    page: 'list',                   // list | quiz
+    page: 'list',                   // list 单词表 | quiz 一个人测验 | battle 双人对战
     sort: 'song',                   // song 歌词顺序 | weak 最不熟 | freq 出现最多
     filter: 'all',                  // all | todo | done | wrong | new
     mask: false,                    // 遮住意思，自己先想
@@ -329,14 +330,30 @@ window.Study = (() => {
 
   function applyPage() {
     const quiz = state.page === 'quiz';
+    const battle = state.page === 'battle';
+    const solo = !quiz && !battle;
     // 做题时把上面那块总览收起来：屏幕全留给词卡和四个选项，不用往下滚
-    $('#studyHead').classList.toggle('hidden', quiz);
-    $('#studyList').classList.toggle('hidden', quiz);
+    $('#studyHead').classList.toggle('hidden', !solo);
+    $('#studyList').classList.toggle('hidden', !solo);
     $('#studyQuiz').classList.toggle('hidden', !quiz);
+    $('#studyBattle').classList.toggle('hidden', !battle);
     $('#studyHint').innerHTML = quiz
       ? '快捷键：<kbd>1</kbd>–<kbd>4</kbd> 选答案 · <kbd>Enter</kbd> 下一个 · <kbd>Esc</kbd> 回单词表'
-      : '这份单词表是从歌词里的逐词卡片自动摊出来去重的 · 点泰语听发音 · 🎵 跳到歌里那一句';
-    if (!quiz) renderList();
+      : battle
+        ? '两个人轮流答同一套题 · 答题过程中不判对错，全部答完一起揭晓'
+        : '这份单词表是从歌词里的逐词卡片自动摊出来去重的 · 点泰语听发音 · 🎵 跳到歌里那一句';
+    // 对战自己管自己那一块界面，这里只负责把它叫起来 / 收干净
+    if (battle) Battle.open(); else Battle.close();
+    if (solo) renderList();
+  }
+
+  /** 单词表 →「⚔️ 双人对战」 */
+  function startBattle() {
+    stopLinePlay(true);
+    TTS.stop();
+    state.quiz = null;
+    state.page = 'battle';
+    applyPage();
   }
 
   /** 进 / 出单词模式，由 app.js 的模式切换调用 */
@@ -350,6 +367,7 @@ window.Study = (() => {
     } else {
       TTS.stop();
       stopLinePlay(true);     // 走的时候别把原句留在那儿响
+      Battle.close();         // 打到一半切走就算了，别留在后台
     }
   }
 
@@ -386,6 +404,7 @@ window.Study = (() => {
     $('#studyMask').addEventListener('change', (e) => { state.mask = e.target.checked; saveOpts(); renderList(); });
 
     $('#studyStart').addEventListener('click', () => { stopLinePlay(true); startRound(); });
+    $('#studyBattle2p').addEventListener('click', startBattle);
     $('#quizBack').addEventListener('click', () => { stopLinePlay(true); state.page = 'list'; state.quiz = null; applyPage(); });
 
     // 复制成制表符分隔，贴进 Excel / Notion / Anki 都能用
@@ -445,6 +464,7 @@ window.Study = (() => {
       if (!state.on) return;
       if (/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
       if (!$('#studyExport').classList.contains('hidden')) return;
+      if (state.page === 'battle') return;      // 对战的快捷键在 battle.js 里
 
       if (state.page !== 'quiz') {
         if (e.code === 'Enter') { e.preventDefault(); startRound(); }
@@ -487,6 +507,7 @@ window.Study = (() => {
 
   function init(song) {
     Vocab.init(song);
+    Battle.init(song, { exit: () => { state.page = 'list'; state.quiz = null; applyPage(); } });
     hasTimeline = song.timeline !== false;
     lineStarts = song.sections.flatMap((sec) => sec.lines.map((l) => l.start));
     loadOpts();

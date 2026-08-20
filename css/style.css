@@ -575,6 +575,187 @@ body {
   color: var(--text-2); margin: 0 1px;
 }
 
+/* ── 双人对战 ───────────────────────── */
+/* 两个人各自一个颜色：先答的人用主色，后答的人用第二色，
+   从摆阵势一直到揭晓，谁是谁一眼认得出来。
+   只染 <b>（文字里嵌的名字），别的地方各自写各自的，免得把白字圆牌之类也一起染了 */
+.battle { max-width: 680px; margin: 0 auto; }
+.battle b.p1 { color: var(--accent); }
+.battle b.p2 { color: var(--accent-2); }
+
+/* ① 摆阵势 */
+.battle-setup {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 24px 22px 20px;
+}
+.bs-h { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.bs-lead { margin: 8px 0 0; font-size: 13.5px; line-height: 1.75; color: var(--text-2); }
+.bs-lead b { color: var(--text); }
+
+.bs-vs { display: flex; align-items: flex-end; gap: 12px; margin: 20px 0 4px; }
+.bs-name { flex: 1; min-width: 0; display: block; }
+.bs-name > span { display: block; font-size: 11.5px; margin-bottom: 5px; letter-spacing: .04em; }
+.bs-name.p1 > span { color: var(--accent); }
+.bs-name.p2 > span { color: var(--accent-2); }
+.bs-name input {
+  width: 100%; background: var(--card-2); color: var(--text);
+  border: 1.5px solid var(--line); border-radius: 11px;
+  padding: 10px 12px; font-size: 16px; font-family: inherit;
+}
+.bs-name.p1 input:focus { outline: none; border-color: var(--accent); background: var(--accent-soft); }
+.bs-name.p2 input:focus { outline: none; border-color: var(--accent-2); background: var(--accent-2-soft); }
+.bs-vs-sep {
+  flex: none; padding-bottom: 11px; font-size: 13px; font-weight: 700;
+  color: var(--text-3); letter-spacing: .08em;
+}
+
+.bs-opts {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft);
+}
+.bs-pool { font-size: 12px; color: var(--text-3); margin-left: auto; }
+
+.bs-rules { margin: 14px 0 0; padding: 0 0 0 18px; }
+.bs-rules li { font-size: 12.5px; line-height: 1.9; color: var(--text-3); }
+.bs-rules li b { color: var(--text-2); }
+.bs-actions { margin-top: 18px; display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
+
+/* ② 交接屏：上一个人的答案这时已经从 DOM 里清掉了，这一屏什么也漏不出来 */
+.battle-ready .br-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 46px 22px 40px; text-align: center;
+}
+.battle .brd-badge {
+  width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 20px; font-weight: 700; color: #fff;
+  background: var(--accent); box-shadow: var(--shadow);
+}
+.battle .brd-badge.p2 { background: var(--accent-2); }
+.brd-title { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
+.brd-sub { margin-top: 10px; font-size: 14px; line-height: 1.7; color: var(--text-2); }
+.brd-meta { margin-top: 6px; font-size: 12px; color: var(--text-3); }
+.battle-ready .btn { margin-top: 22px; }
+.brd-hint { margin-top: 12px; font-size: 11.5px; color: var(--text-3); }
+.brd-hint kbd, .bp-foot kbd {
+  background: var(--card-2); border: 1px solid var(--line); border-bottom-width: 2px;
+  border-radius: 5px; padding: 1px 6px; font-size: 11px; font-family: inherit;
+  color: var(--text-2); margin: 0 1px;
+}
+
+/* ③ 答题：只有题目和选项，没有分数也没有对错 */
+.bp-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.bp-who { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; }
+.bp-who i { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
+.bp-who i.p2 { background: var(--accent-2); }
+.bp-step { font-size: 13px; color: var(--text-2); }
+.bp-step b { font-size: 15px; color: var(--text); }
+.bp-dots { margin-left: auto; display: flex; gap: 4px; }
+.bp-dots i {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--line);
+  transition: background .2s, transform .2s;
+}
+.bp-dots i.done { background: var(--accent); }
+.bp-dots i.done.p2 { background: var(--accent-2); }
+.bp-dots i.cur { background: var(--text-2); transform: scale(1.5); }
+/* 选中的那个先亮一下再翻页，只表示「收到了」，不代表对错 */
+.qopt.picked { background: var(--hl); border-color: var(--hl-edge); }
+.qopt.picked b { background: var(--hl-edge); color: #fff; }
+.bp-foot { text-align: center; font-size: 12px; color: var(--text-3); margin: 14px 0 0; }
+
+/* ④ 揭晓 */
+.brs-head { text-align: center; font-size: 13px; color: var(--text-3); letter-spacing: .1em; }
+.brs {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+  margin-top: 10px; padding: 20px 16px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.brs-side { text-align: center; border-radius: 12px; padding: 10px 6px; }
+.brs-side.win { background: var(--accent-soft); }
+.brs-side.p2.win { background: var(--accent-2-soft); }
+.brs-name { font-size: 14px; font-weight: 600; word-break: break-word; }
+.brs-side.p1 .brs-name { color: var(--accent); }
+.brs-side.p2 .brs-name { color: var(--accent-2); }
+.brs-name em { display: block; font-style: normal; font-size: 10.5px; color: var(--text-3); font-weight: 400; }
+.brs-num { font-size: 46px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.brs-side.p1 .brs-num { color: var(--accent); }
+.brs-side.p2 .brs-num { color: var(--accent-2); }
+.brs-time { font-size: 11.5px; color: var(--text-3); }
+.brs-mid { text-align: center; }
+.brs-vs { font-size: 13px; font-weight: 700; color: var(--text-3); letter-spacing: .08em; }
+.brs-of { font-size: 11px; color: var(--text-3); margin-top: 2px; }
+
+.brs-verdict { text-align: center; font-size: 16px; margin-top: 14px; }
+.brs-tally {
+  text-align: center; font-size: 12.5px; color: var(--text-3); margin-top: 6px;
+}
+.brs-tally b { font-size: 15px; }
+.brs-tally span { color: var(--text-3); }
+
+.brs-listh {
+  margin: 22px 0 8px; font-size: 12.5px; color: var(--text-2); font-weight: 600;
+}
+.brs-listh span { font-weight: 400; color: var(--text-3); font-size: 11.5px; }
+.brs-list {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+}
+.brq { padding: 11px 14px; border-bottom: 1px solid var(--line-soft); }
+.brq:last-child { border-bottom: none; }
+.brq.same-ok  { box-shadow: inset 3px 0 0 var(--lv5); }
+.brq.same-bad { box-shadow: inset 3px 0 0 var(--danger); }
+.brq-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.brq-no { font-size: 11px; color: var(--text-3); min-width: 14px; }
+.brq-th {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--thai-font); font-size: 19px; font-weight: 600; color: var(--text);
+}
+.brq-th:hover, .brq-th.speaking { color: var(--accent); }
+.brq-th.en { font-family: inherit; font-size: 16px; font-style: italic; }
+.brq-ro { font-size: 11.5px; color: var(--accent-2); }
+.brq-ans { margin-left: auto; font-size: 14px; color: var(--text); }
+.brq-ans::before { content: '答案 '; font-size: 11px; color: var(--text-3); }
+
+.brq-picks { display: flex; gap: 8px; flex-wrap: wrap; margin: 7px 0 0 22px; }
+.brq-pick {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 11px 3px 8px; font-size: 12.5px; color: var(--text-2);
+}
+.brq-pick em { font-style: normal; font-size: 11px; color: var(--text-3); }
+.brq-pick.p1 em { color: var(--accent); }
+.brq-pick.p2 em { color: var(--accent-2); }
+.brq-pick i { font-style: normal; font-weight: 700; }
+.brq-pick.ok  { border-color: var(--lv5); color: var(--text); }
+.brq-pick.ok i { color: var(--lv5); }
+.brq-pick.bad { border-color: var(--danger); }
+.brq-pick.bad i { color: var(--danger); }
+.brq-pick.miss { opacity: .5; }
+
+.brq-line { margin: 7px 0 0 22px; font-size: 12px; color: var(--text-3); }
+.brq-line b { font-family: var(--thai-font); font-size: 13.5px; font-weight: 500; color: var(--text-2); margin: 0 6px; }
+.brq-lineno { color: var(--text-3); }
+
+.brs-actions { margin-top: 20px; display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+
+@media (max-width: 720px) {
+  .battle-setup { padding: 18px 15px 16px; }
+  .bs-vs { flex-wrap: wrap; gap: 8px; }
+  .bs-vs-sep { width: 100%; padding: 0; text-align: center; }
+  .bs-pool { margin-left: 0; width: 100%; }
+  .bs-actions .btn { flex: 1; text-align: center; white-space: nowrap; }
+  .battle-ready .br-card { padding: 34px 16px 30px; }
+  .brd-title { font-size: 20px; }
+  .brs { padding: 16px 10px; gap: 4px; }
+  .brs-num { font-size: 34px; }
+  .brs-actions .btn { flex: 1 1 45%; text-align: center; white-space: nowrap; }
+  .brs-actions .btn.big { flex-basis: 100%; }
+  .brq-picks, .brq-line { margin-left: 0; }
+  .brq-ans { margin-left: 22px; }
+}
+
 /* ── 手机 ───────────────────────────── */
 /* ── 选歌面板 ───────────────────────── */
 .song-list { display: flex; flex-direction: column; gap: 10px; }
@@ -1217,7 +1398,7 @@ body.mode-study .foot { display: none; }
 @media print {
   .topbar, .banner, .stickydeck, .viewbar, .uku-hint, .foot,
   .study-actions, .study-toolbar, .study-hint, .study-export,
-  .wrow-tools, .ktv-view, #lyrics, #studyQuiz { display: none !important; }
+  .wrow-tools, .ktv-view, #lyrics, #studyQuiz, #studyBattle { display: none !important; }
   .study { max-width: none; padding: 0; }
   .study-head, .wordlist { border: none; box-shadow: none; }
   .wrow { break-inside: avoid; border-bottom: 1px solid #ddd; box-shadow: none; }
