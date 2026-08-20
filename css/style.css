@@ -959,7 +959,12 @@ body.mode-study .foot { display: none; }
   padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
 }
 .wrow:last-child { border-bottom: none; }
+/* 整张卡片都能点（点空白处 = 念这个词），所以给整行手型 */
+.wrow { cursor: pointer; }
 .wrow:hover { background: var(--card-2); }
+/* 正在放原句的那一行：左边色条换成主色 + 轻微底色，放完自己撤掉 */
+.wrow.playing { background: var(--accent-soft); }
+.wrow.playing { box-shadow: inset 3px 0 0 var(--accent) !important; }
 /* 左边一道竖色条，一眼看出这个词学到哪一级了 */
 .wrow { box-shadow: inset 3px 0 0 var(--lv0); }
 .wrow[data-lv="1"] { box-shadow: inset 3px 0 0 var(--lv1); }

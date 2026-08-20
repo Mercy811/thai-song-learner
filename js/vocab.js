@@ -52,7 +52,8 @@ window.Vocab = (() => {
           }
           // 同一个词在同一句里出现两次就不重复记了
           if (!e.lines.some((r) => r.idx === i)) {
-            e.lines.push({ idx: i, id: line.id, th: line.th, cn: line.cn });
+            // start 是给单词表「播放原句」用的，没时间轴的歌这里就是 undefined
+            e.lines.push({ idx: i, id: line.id, th: line.th, cn: line.cn, start: line.start });
           }
         });
       });

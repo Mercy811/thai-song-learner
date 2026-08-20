@@ -31,6 +31,20 @@ window.Study = (() => {
 
   const ttsRate = () => parseFloat(localStorage.getItem('tsl.ttsRate')) || 0.7;
 
+  /* ── 播放原句要用的东西 ──
+     SONG 里每句的 start 摊平存一份，用来算「这句唱到哪儿结束」（= 下一句的开头）。
+     没时间轴的歌（timeline: false）这份是空的，🎵 会退回朗读整句。 */
+  let hasTimeline = true;
+  let lineStarts = [];
+
+  function lineEndOf(idx) {
+    const next = lineStarts[idx + 1];
+    if (typeof next === 'number') return next;
+    const d = Player.getDuration();
+    const start = lineStarts[idx] || 0;
+    return d > 0 ? Math.min(start + 8, d) : start + 8;
+  }
+
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) =>
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -60,6 +74,44 @@ window.Study = (() => {
       rate: Math.max(0.4, ttsRate() - 0.05),
       onend: () => el && el.classList.remove('speaking'),
       onerror: () => el && el.classList.remove('speaking'),
+    });
+  }
+
+  /* ── 播放原句 ──
+     跟练习模式的「▶ 原曲」一样直接放原曲，只是放到这句结束就停下 ——
+     单词表这边没有歌词跟着滚，让它一路放下去只会吵。
+     Player 只有 on 没有 off，所以固定挂一个 tick，靠 playUntil 决定要不要收。 */
+  let playUntil = null;
+  let playingRow = null;
+
+  function stopLinePlay(alsoPause) {
+    playUntil = null;
+    if (alsoPause) Player.pause();
+    if (playingRow) { playingRow.classList.remove('playing'); playingRow = null; }
+  }
+
+  function playLine(w, btn) {
+    const line = w.lines[0];
+    // 三种情况放不出原句，都退回朗读整句（就是练习模式那个「🔊 整句」）：
+    //   没时间轴的歌 / 这句没标 start / YouTube 还没加载好（网差或被挡）
+    // 最后这条尤其要挡：不挡的话点了没声音，那一行还一直亮着停不下来。
+    if (!hasTimeline || typeof line.start !== 'number' || !Player.isReady()) {
+      speak(line.th, w.lang, btn);
+      return;
+    }
+    stopLinePlay(false);
+    TTS.stop();                       // 别跟正在念的词撞车
+    playingRow = btn && btn.closest('.wrow');
+    if (playingRow) playingRow.classList.add('playing');
+    playUntil = lineEndOf(line.idx);
+    Player.seek(line.start, true);
+  }
+
+  function watchLineEnd() {
+    Player.on('tick', (t) => {
+      if (playUntil === null) return;
+      if (t >= playUntil) stopLinePlay(true);          // 唱完这句，收
+      else if (t < playUntil - 30) stopLinePlay(false); // 被别处拖走了，别再管
     });
   }
 
@@ -131,7 +183,8 @@ window.Study = (() => {
           <span class="lvstat">${tried ? `✓${st.r} ✗${st.w}` : `第 ${first.idx + 1} 句${w.count > 1 ? ` · ${w.count} 次` : ''}`}</span>
         </div>
         <div class="wrow-tools">
-          <button class="wbtn" data-act="goto" title="到歌词里看这个词在哪句">🎵</button>
+          <button class="wbtn" data-act="goto" title="放这个词所在的原句（唱完这句自动停）">🎵</button>
+          <button class="wbtn" data-act="jump" title="到歌词里看这个词在哪句">📖</button>
           <button class="wbtn" data-act="known" title="我已经会了，直接标满">✓</button>
           <button class="wbtn" data-act="relearn" title="清掉这个词的进度，重新学">↺</button>
         </div>
@@ -242,9 +295,7 @@ window.Study = (() => {
         <span class="fb-cn">${esc(line.cn)}</span>
       </div>`;
     $('#quizNext').classList.remove('hidden');
-
-    // 答对了就自己往下走，答错停一下，让人看清正确答案和原句
-    if (ok) setTimeout(() => { if (state.quiz && state.quiz.answered) nextQuestion(); }, 1100);
+    $('#quizNext').focus();     // 对错都停在这儿等人点「下一题」，顺手能直接敲回车
   }
 
   function finishRound() {
@@ -298,6 +349,7 @@ window.Study = (() => {
       window.scrollTo({ top: 0, behavior: 'auto' });
     } else {
       TTS.stop();
+      stopLinePlay(true);     // 走的时候别把原句留在那儿响
     }
   }
 
@@ -315,19 +367,26 @@ window.Study = (() => {
       if (act === 'speak') { speak(w.th, w.lang, e.target.closest('[data-act]')); return; }
       if (act === 'reveal') { row.querySelector('.wrow-mean').classList.remove('masked'); return; }
       if (act === 'goto') {
+        playLine(w, e.target.closest('[data-act]'));
+        return;
+      }
+      if (act === 'jump') {
         document.dispatchEvent(new CustomEvent('study:goto', { detail: { idx: w.lines[0].idx, th: w.th } }));
         return;
       }
       if (act === 'known')   { Vocab.setLevel(th, Vocab.MAX_LV); renderList(); return; }
       if (act === 'relearn') { Vocab.setLevel(th, 0); renderList(); return; }
+
+      // 没点到具体按钮 = 点在卡片空白处：跟练习模式点词一样，念这个词
+      speak(w.th, w.lang, row.querySelector('.wrow-th'));
     });
 
     $('#studySort').addEventListener('change', (e) => { state.sort = e.target.value; saveOpts(); renderList(); });
     $('#studyFilter').addEventListener('change', (e) => { state.filter = e.target.value; saveOpts(); renderList(); });
     $('#studyMask').addEventListener('change', (e) => { state.mask = e.target.checked; saveOpts(); renderList(); });
 
-    $('#studyStart').addEventListener('click', startRound);
-    $('#quizBack').addEventListener('click', () => { state.page = 'list'; state.quiz = null; applyPage(); });
+    $('#studyStart').addEventListener('click', () => { stopLinePlay(true); startRound(); });
+    $('#quizBack').addEventListener('click', () => { stopLinePlay(true); state.page = 'list'; state.quiz = null; applyPage(); });
 
     // 复制成制表符分隔，贴进 Excel / Notion / Anki 都能用
     $('#studyCopy').addEventListener('click', async () => {
@@ -428,8 +487,11 @@ window.Study = (() => {
 
   function init(song) {
     Vocab.init(song);
+    hasTimeline = song.timeline !== false;
+    lineStarts = song.sections.flatMap((sec) => sec.lines.map((l) => l.start));
     loadOpts();
     bind();
+    watchLineEnd();
     renderList();
   }
 
