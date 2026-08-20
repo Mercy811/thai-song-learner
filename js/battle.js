@@ -1,15 +1,17 @@
 /**
- * Battle —— 双人对战测验：两个人用同一台电脑，轮流答同一套题
+ * Battle —— 双人对战测验：两个人用同一台电脑，**每道题**轮流答
  *
- * 流程：摆阵势（填名字、选题数）→ 玩家 1 一口气答完 → 交接屏 → 玩家 2 答同一套 → 一起揭晓。
+ * 流程：摆阵势（填名字、选题数）→ 第 1 题 A 答完交给 B 答同一题 → 第 2 题换 B 先答 → …… → 一起揭晓。
+ * 不是「A 一口气答完再轮到 B」：每答完一道题就换一次手，两个人一直都在局里。
  *
- * 「第二个人看不到第一个人的答案」是这个模式的地基，靠三件事保证：
+ * 「谁也看不到对方选了什么」是这个模式的地基，靠三件事保证：
  *   1. 答题时**不判对错**，也不显示分数 —— 屏幕上根本没有「答案」这个东西可看；
- *   2. 换人之间插一块交接屏，上一个人的题目和选项全部从 DOM 里清掉，翻不出来；
+ *   2. **每一次换人**中间都插一块交接屏，上一个人的题目、选项、刚点亮的那一下全部从 DOM 里清掉，翻不出来；
  *   3. 全程只在内存里记，不写 localStorage，谁也没法翻历史。
  *
- * 公平也一样要保证：两个人拿到的是**同一批题、同样的选项顺序**（题目在开局时一次性生成好），
- * 答对数打平就比总用时。
+ * 公平靠两件事：两个人拿到的是**同一批题、同样的选项顺序**（题目在开局时一次性生成好）；
+ * 同一道题里后答的人白听一遍发音、白多想几秒，所以**每道题换一次先手** ——
+ * 单数题先手先答，双数题后手先答，这点便宜两个人轮流占。答对数打平就比总用时。
  *
  * 出题借单词表那套（级别越低越容易被抽中），但对战**不写掌握程度** ——
  * 朋友在你电脑上玩一局，不该把你的学习进度搅乱。
@@ -36,9 +38,9 @@ window.Battle = (() => {
     count: 10,
     autoSpeak: true,
     qs: [],                          // 两个人共用的同一套题
-    turn: 0,                         // 0 = 先答的人，1 = 后答的人
-    step: 0,
-    answers: [[], []],               // 每人 [{ mean, ok, ms }]
+    qi: 0,                           // 现在是第几题（0 起）
+    slot: 0,                         // 这道题里的第几个人：0 = 先答，1 = 后答
+    answers: [[], []],               // 每人 answers[p][qi] = { mean, ok, ms }，没答就是 null
     locked: false,                   // 选完到翻页之间，挡住手快点第二下
     qStart: 0,
     result: null,
@@ -73,6 +75,11 @@ window.Battle = (() => {
   }
 
   const nameOf = (i) => B.names[i] || DEFAULT_NAMES[i];
+
+  /** 第 qi 题的答题顺序：单数题（qi 从 0 起算的偶数）先手先答，双数题反过来 */
+  const orderOf = (qi) => (qi % 2 === 0 ? [0, 1] : [1, 0]);
+  /** 此刻该谁答 */
+  const who = () => orderOf(B.qi)[B.slot];
 
   /* ════════ 偏好（只有名字和题数，不含任何答案） ════════ */
 
@@ -154,16 +161,17 @@ window.Battle = (() => {
     startRound();
   }
 
-  /** 开新一轮：重新出题，先答的人从头开始 */
+  /** 开新一轮：重新出题，从第 1 题、先手那一边重新开始 */
   function startRound(swapOrder) {
     if (swapOrder) {                       // 比分是跟着人走的，换位子要一起搬
       B.names = [B.names[1], B.names[0]];
       B.wins  = [B.wins[1], B.wins[0]];
     }
     B.qs = buildQuestions(B.count);
-    B.answers = [[], []];
+    B.answers = [B.qs.map(() => null), B.qs.map(() => null)];
     B.result = null;
-    B.turn = 0;
+    B.qi = 0;
+    B.slot = 0;
     if (!B.qs.length) {                                  // 理论上不会发生，兜一下
       renderSetup();
       window.Study && Study.note('这首歌还没有可以出题的词');
@@ -172,21 +180,45 @@ window.Battle = (() => {
     renderReady();
   }
 
-  /* ── ② 交接屏 ── */
+  /* ── ② 交接屏 ──
+     每换一次人都要过这一屏：同一道题里换人过一次，进下一题再过一次。
+     上一个人的题目和选项这时已经从 DOM 里清干净了，这一屏什么也漏不出来。 */
 
   function renderReady() {
-    const me = nameOf(B.turn);
-    const other = nameOf(1 - B.turn);
-    const first = B.turn === 0;
+    const p = who();
+    const me = nameOf(p);
+    const other = nameOf(1 - p);
+    const opening = B.qi === 0 && B.slot === 0;   // 一轮的头一屏
+    const second  = B.slot === 1;                 // 同一道题的后答
+
+    const title = opening
+      ? `轮到 <b class="p${p + 1}">${esc(me)}</b> 了`
+      : `第 ${B.qi + 1} 题 · 轮到 <b class="p${p + 1}">${esc(me)}</b>`;
+
+    const sub = opening
+      ? `${esc(other)} 先别看屏幕 —— 这一局<b>每道题两个人轮流答</b>，${esc(me)} 先答第 1 题`
+      : second
+        ? `请把电脑交给 ${esc(me)} —— <b>还是这道题</b>，${esc(other)} 刚选的已经收起来了，谁也翻不到`
+        : `换新一题，这次轮到 ${esc(me)} 先答 —— ${esc(other)} 先别看屏幕`;
+
+    const meta = opening
+      ? `共 ${B.qs.length} 题 · 每题两个人各答一次 · 全程不显示对错`
+      : `第 ${B.qi + 1} / ${B.qs.length} 题 · 这道题你${second ? '后' : '先'}答`;
+
+    const btn = opening
+      ? `我是 ${esc(me)}，开始第 1 题`
+      : second
+        ? `我是 ${esc(me)}，我来答这题`
+        : `我是 ${esc(me)}，答第 ${B.qi + 1} 题`;
+
     $('#battleReady').innerHTML = `
       <div class="br-card">
-        <div class="brd-badge p${B.turn + 1}">${esc([...me].slice(0, 2).join(''))}</div>
-        <div class="brd-title">轮到 <b class="p${B.turn + 1}">${esc(me)}</b> 了</div>
-        <div class="brd-sub">${first
-          ? `${esc(other)} 先别看屏幕，${esc(me)} 一口气答完 ${B.qs.length} 题`
-          : `请把电脑交给 ${esc(me)} —— ${esc(other)} 的答案已经收起来了，谁也翻不到`}</div>
-        <div class="brd-meta">共 ${B.qs.length} 题 · 答完自动交回 · 全程不显示对错</div>
-        <button class="btn primary big" id="battleGo">我是 ${esc(me)}，开始答题</button>
+        <div class="brd-step">第 ${B.qi + 1} / ${B.qs.length} 题</div>
+        <div class="brd-badge p${p + 1}">${esc([...me].slice(0, 2).join(''))}</div>
+        <div class="brd-title">${title}</div>
+        <div class="brd-sub">${sub}</div>
+        <div class="brd-meta">${meta}</div>
+        <button class="btn primary big" id="battleGo">${btn}</button>
         <div class="brd-hint">键盘敲 <kbd>Enter</kbd> 也行</div>
       </div>`;
     show('ready');
@@ -195,25 +227,29 @@ window.Battle = (() => {
 
   /* ── ③ 答题 ── */
 
+  /** 交接屏点了「开始」：把这道题摆给当前这个人 */
   function beginTurn() {
-    B.step = 0;
     show('play');
-    nextQuestion();
+    renderQuestion();
   }
 
-  function nextQuestion() {
+  function renderQuestion() {
     if (!B.on) return;                     // 中途退出了：路上的定时器直接作废
-    if (B.step >= B.qs.length) return finishTurn();
-    const q = B.qs[B.step];
-    B.step++;
+    const q = B.qs[B.qi];
+    if (!q) return;
+    const p = who();
     B.locked = false;
 
     const w = q.word;
-    $('#battleWho').innerHTML = `<i class="p${B.turn + 1}"></i>${esc(nameOf(B.turn))} 答题中`;
-    $('#battleStep').textContent = B.step;
+    $('#battleWho').innerHTML = `<i class="p${p + 1}"></i>${esc(nameOf(p))} 答题中`;
+    $('#battleStep').textContent = B.qi + 1;
     $('#battleTotal').textContent = B.qs.length;
+    $('#battleSlot').textContent = B.slot === 0 ? '先答' : '后答';
+    $('#battleSlot').title = B.slot === 0
+      ? `这道题 ${nameOf(p)} 先答，答完交给 ${nameOf(1 - p)}`
+      : `同一道题，${nameOf(1 - p)} 已经答过了`;
     $('#battleDots').innerHTML = B.qs.map((_, i) =>
-      `<i class="${i < B.step - 1 ? 'done' : i === B.step - 1 ? 'cur' : ''} p${B.turn + 1}"></i>`).join('');
+      `<i class="${i < B.qi ? 'done' : i === B.qi ? 'cur' : ''} p${p + 1}"></i>`).join('');
 
     $('#battleTh').textContent = w.th;
     $('#battleTh').classList.toggle('en', w.lang === 'en');
@@ -223,41 +259,54 @@ window.Battle = (() => {
       `<button class="qopt" data-mean="${esc(m)}"><b>${i + 1}</b><span>${esc(m)}</span></button>`).join('');
 
     B.qStart = performance.now();
-    if (B.autoSpeak) setTimeout(() => speak(w.th, w.lang, $('#battleSpeak')), 220);
+    if (B.autoSpeak) {
+      const at = `${B.qi}/${B.slot}`;                       // 手快的人可能 220ms 内就答完了，
+      setTimeout(() => {                                    // 那这一声不该落到交接屏上去读
+        if (B.on && B.phase === 'play' && `${B.qi}/${B.slot}` === at) speak(w.th, w.lang, $('#battleSpeak'));
+      }, 220);
+    }
   }
 
   function answer(mean, btn) {
     if (B.locked || B.phase !== 'play') return;
     B.locked = true;
-    const q = B.qs[B.step - 1];
+    const q = B.qs[B.qi];
     // 记下来就完了：对不对留到最后一起揭晓，屏幕上不给任何暗示
-    B.answers[B.turn].push({
+    B.answers[who()][B.qi] = {
       mean,
       ok: mean === q.answer,
       ms: Math.min(MAX_MS, performance.now() - B.qStart),
-    });
+    };
     $$('#battleOpts .qopt').forEach((b) => { b.disabled = true; });
     if (btn) btn.classList.add('picked');
     TTS.stop();
-    setTimeout(nextQuestion, PICK_DELAY);
+    setTimeout(advance, PICK_DELAY);
   }
 
-  function finishTurn() {
-    if (!B.on) return;
-    // 这个人的题目和选项立刻从 DOM 里清掉，交接的时候翻不出任何痕迹
+  /** 题目、选项、刚点亮的那一下立刻从页面上清掉，交接时翻不出任何痕迹 */
+  function clearBoard() {
     $('#battleOpts').innerHTML = '';
     $('#battleTh').textContent = '';
     $('#battleRo').textContent = '';
     TTS.stop();
-    if (B.turn === 0) { B.turn = 1; renderReady(); }
-    else renderResult();
+  }
+
+  /** 一个人答完了：先收干净屏幕，再决定是把同一题交给另一个人，还是进下一题 */
+  function advance() {
+    if (!B.on || B.phase !== 'play') return;   // 这 260ms 里按 Esc 中断了：别再把人弹回交接屏
+    clearBoard();
+    if (B.slot === 0) { B.slot = 1; return renderReady(); }   // 同一道题，换人接着答
+    B.slot = 0;
+    B.qi++;
+    if (B.qi >= B.qs.length) return renderResult();           // 全答完了，一起揭晓
+    renderReady();                                            // 下一题，先手换人
   }
 
   /* ── ④ 揭晓 ── */
 
   function judge() {
-    const right = [0, 1].map((i) => B.answers[i].filter((a) => a.ok).length);
-    const time  = [0, 1].map((i) => B.answers[i].reduce((s, a) => s + a.ms, 0));
+    const right = [0, 1].map((i) => B.answers[i].filter((a) => a && a.ok).length);
+    const time  = [0, 1].map((i) => B.answers[i].reduce((s, a) => s + (a ? a.ms : 0), 0));
     let win = -1, by = 'tie';
     if (right[0] !== right[1]) { win = right[0] > right[1] ? 0 : 1; by = 'score'; }
     else if (Math.round(time[0]) !== Math.round(time[1])) { win = time[0] < time[1] ? 0 : 1; by = 'time'; }
@@ -280,11 +329,13 @@ window.Battle = (() => {
   function qRowHtml(q, i) {
     const w = q.word;
     const line = w.lines[0];
+    const lead = orderOf(i)[0];            // 这道题是谁先答的
     const pick = (p) => {
       const a = B.answers[p][i];
-      if (!a) return `<span class="brq-pick p${p + 1} miss">${esc(nameOf(p))} 没答</span>`;
+      const first = p === lead ? '<u title="这道题是这个人先答的">先</u>' : '';
+      if (!a) return `<span class="brq-pick p${p + 1} miss">${first}<em>${esc(nameOf(p))}</em>没答</span>`;
       return `<span class="brq-pick p${p + 1} ${a.ok ? 'ok' : 'bad'}">
-        <i>${a.ok ? '✓' : '✗'}</i><em>${esc(nameOf(p))}</em>${esc(a.mean)}</span>`;
+        <i>${a.ok ? '✓' : '✗'}</i>${first}<em>${esc(nameOf(p))}</em>${esc(a.mean)}</span>`;
     };
     const both = B.answers[0][i] && B.answers[1][i] && B.answers[0][i].ok === B.answers[1][i].ok;
     return `
@@ -307,9 +358,10 @@ window.Battle = (() => {
       if (B.result.win >= 0) B.wins[B.result.win]++;
     }
     const r = B.result;
+    const leads = [0, 1].map((p) => B.qs.filter((_, i) => orderOf(i)[0] === p).length);
     const side = (i) => `
       <div class="brs-side p${i + 1}${r.win === i ? ' win' : ''}">
-        <div class="brs-name">${esc(nameOf(i))}${i === 0 ? '<em>先答</em>' : '<em>后答</em>'}</div>
+        <div class="brs-name" title="${leads[i]} 道题先答，${B.qs.length - leads[i]} 道题后答">${esc(nameOf(i))}<em>${i === 0 ? '先手' : '后手'} · 先答 ${leads[i]} 题</em></div>
         <div class="brs-num">${r.right[i]}</div>
         <div class="brs-time">用时 ${fmtMs(r.time[i])}</div>
       </div>`;
@@ -321,11 +373,11 @@ window.Battle = (() => {
       ${B.rounds > 1 ? `<div class="brs-tally">打了 ${B.rounds} 轮　总比分
         <b class="p1">${B.wins[0]}</b> : <b class="p2">${B.wins[1]}</b>
         <span>（${esc(nameOf(0))} : ${esc(nameOf(1))}）</span></div>` : ''}
-      <div class="brs-listh">逐题对照　<span>点泰语听发音</span></div>
+      <div class="brs-listh">逐题对照　<span>点泰语听发音 ·「先」= 这道题先答的人</span></div>
       <div class="brs-list">${B.qs.map(qRowHtml).join('')}</div>
       <div class="brs-actions">
         <button class="btn primary big" id="battleAgain">⚔️ 再来一轮</button>
-        <button class="btn ghost" id="battleSwap" title="这次换 ${esc(nameOf(1))} 先答">🔄 换先手再来</button>
+        <button class="btn ghost" id="battleSwap" title="这次换 ${esc(nameOf(1))} 从第 1 题先答">🔄 换先手再来</button>
         <button class="btn ghost" id="battleToSetup">⚙️ 改名字 / 题数</button>
         <button class="btn ghost" id="battleDone">← 单词表</button>
       </div>`;
@@ -348,7 +400,7 @@ window.Battle = (() => {
       if (b && !b.disabled) answer(b.dataset.mean, b);
     });
     $('#battleSpeak').addEventListener('click', () => {
-      const q = B.qs[B.step - 1];
+      const q = B.qs[B.qi];
       if (B.phase === 'play' && q) speak(q.word.th, q.word.lang, $('#battleSpeak'));
     });
 
@@ -407,6 +459,8 @@ window.Battle = (() => {
     B.result = null;
     B.answers = [[], []];
     B.qs = [];
+    B.qi = 0;
+    B.slot = 0;
     pool = Vocab.list().filter((w) => w.mean).length;
     renderSetup();
   }
@@ -421,6 +475,8 @@ window.Battle = (() => {
     B.qs = [];
     B.answers = [[], []];
     B.result = null;
+    B.qi = 0;
+    B.slot = 0;
     $('#battleOpts').innerHTML = '';
     $('#battleReady').innerHTML = '';
     $('#battleResultView').innerHTML = '';

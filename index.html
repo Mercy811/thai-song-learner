@@ -155,7 +155,7 @@
       </div>
       <div class="study-actions">
         <button class="btn primary big" id="studyStart">🎯 开始测验</button>
-        <button class="btn big" id="studyBattle2p" title="两个人用同一台电脑轮流答同一套题，比谁答对得多">⚔️ 双人对战</button>
+        <button class="btn big" id="studyBattle2p" title="两个人用同一台电脑，每道题轮流答同一套题，比谁答对得多">⚔️ 双人对战</button>
         <button class="btn ghost" id="studyCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制单词表</button>
         <button class="btn ghost" id="studyReset" title="所有词的掌握程度清零">↺ 重置进度</button>
       </div>
@@ -221,27 +221,28 @@
     <div class="quiz-done hidden" id="quizDone"></div>
   </section>
 
-  <!-- ══ 双人对战：两个人用同一台电脑，轮流答同一套题 ══
-       答题过程中不判对错、不显示分数，换人之间上一个人的题目从 DOM 里整个清掉，
-       所以后答的人在屏幕上找不到任何前一个人的答案 -->
+  <!-- ══ 双人对战：两个人用同一台电脑，每道题轮流答同一套题 ══
+       一道题两个人各答一次（不是一个人先答完整套），每换一次人都过一块交接屏；
+       答题过程中不判对错、不显示分数，上一个人的题目和选项从 DOM 里整个清掉，
+       所以接手的人在屏幕上找不到任何前一个人的答案 -->
   <section id="studyBattle" class="battle hidden">
 
     <!-- ① 摆阵势：填名字、选题数 -->
     <div class="battle-setup" id="battleSetup">
       <h2 class="bs-h">⚔️ 双人对战</h2>
       <p class="bs-lead">
-        两个人用同一台电脑，<b>轮流答同一套题</b>：先答的人一口气答完，把电脑交给另一个人再答一遍，
-        最后比谁答对得多。
+        两个人用同一台电脑，<b>每道题轮流答</b>：一个人答完这道题就把电脑交给另一个人答同一道，
+        下一题再换过来先答。全部答完一起揭晓，比谁答对得多。
       </p>
 
       <div class="bs-vs">
         <label class="bs-name p1">
-          <span>先答的人</span>
+          <span>先手 · 单数题先答</span>
           <input type="text" id="battleName1" maxlength="12" placeholder="玩家 1" autocomplete="off" spellcheck="false">
         </label>
         <div class="bs-vs-sep">VS</div>
         <label class="bs-name p2">
-          <span>后答的人</span>
+          <span>后手 · 双数题先答</span>
           <input type="text" id="battleName2" maxlength="12" placeholder="玩家 2" autocomplete="off" spellcheck="false">
         </label>
       </div>
@@ -253,7 +254,10 @@
       </div>
 
       <ul class="bs-rules">
-        <li><b>答题时不判对错</b>，全部答完才一起揭晓 —— 中途瞟到对方屏幕也偷不到答案</li>
+        <li>一道题<b>两个人各答一次</b>：答完这题换人答同一题，答完再一起进下一题</li>
+        <li><b>每道题换一次先手</b> —— 后答的人白听一遍发音，这点便宜两个人轮流占</li>
+        <li><b>答题时不判对错</b>，全部答完才一起揭晓；每次换人都插一块交接屏，
+            上一个人选了什么当场从页面上清掉，接手的人翻不到</li>
         <li>两个人拿到的题目和选项顺序<b>完全一样</b>，谁也不吃亏</li>
         <li>答对数打平就比总用时，快的那个险胜（每题最多计 60 秒）</li>
         <li>对战<b>不改动</b>单词表里的掌握程度，朋友来玩不会搅乱你的进度</li>
@@ -265,14 +269,15 @@
       </div>
     </div>
 
-    <!-- ② 交接屏：轮到谁了。上一个人的答案这时已经从界面上收干净了 -->
+    <!-- ② 交接屏：轮到谁了。每换一次人都过这一屏，上一个人的答案这时已经从界面上收干净了 -->
     <div class="battle-ready hidden" id="battleReady"></div>
 
-    <!-- ③ 答题：只有题目和四个选项，没有分数、没有对错 -->
+    <!-- ③ 答题：只有题目和四个选项，没有分数、没有对错。答完这一题就交给对方答同一题 -->
     <div class="battle-play hidden" id="battlePlay">
       <div class="bp-top">
         <span class="bp-who" id="battleWho"></span>
         <span class="bp-step">第 <b id="battleStep">1</b> / <span id="battleTotal">10</span> 题</span>
+        <span class="bp-slot" id="battleSlot"></span>
         <span class="bp-dots" id="battleDots"></span>
       </div>
       <div class="quiz-card">
@@ -284,7 +289,7 @@
         <div class="quiz-ask">它是什么意思？</div>
         <div class="quiz-opts" id="battleOpts"></div>
       </div>
-      <p class="bp-foot"><kbd>1</kbd>–<kbd>4</kbd> 选答案 · 选完直接进下一题，不显示对错 · <kbd>S</kbd> 再听一遍</p>
+      <p class="bp-foot"><kbd>1</kbd>–<kbd>4</kbd> 选答案 · 选完直接交给对方，不显示对错 · <kbd>S</kbd> 再听一遍</p>
     </div>
 
     <!-- ④ 揭晓 -->
