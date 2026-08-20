@@ -23,6 +23,9 @@
     // 时间轴是跟着音源走的：换了音源，浏览器里存的旧校准就不该再盖上来，
     // 所以 key 带上视频 id（旧的那份还在，只是不再生效）
     times:  'tsl.times.' + SONG.id + '.' + SONG.youtubeId,
+    // 上面存的是每句的秒数（没标到的句子沿用文件里的估算值），
+    // 这里单独记「哪些句子是真的跟着歌标过的」，好知道还剩多少没标
+    marked: 'tsl.marked.' + SONG.id + '.' + SONG.youtubeId,
     done:   'tsl.done.' + SONG.id,
     view:   'tsl.view',
     theme:  'tsl.theme',
@@ -65,26 +68,35 @@
 
   /* ════════ 时间轴 ════════ */
 
-  // 本地校准过的时间优先于文件里的估算值
+  // 本地校准过的时间优先于文件里的估算值。
+  // LINES 是 SONG 摊平出来的副本，两边都要写：单词模式的「🎵 放原句」和校准面板的
+  // 「导出」读的是 SONG，只写 LINES 的话，刷新之后那两处又会退回文件里的估算值。
   function loadTimes() {
     const saved = JSON.parse(localStorage.getItem(LS.times) || 'null');
-    if (saved) {
-      LINES.forEach((l) => { if (typeof saved[l.id] === 'number') l.start = saved[l.id]; });
-      return true;
-    }
-    return false;
+    if (!saved) return false;
+    const apply = (l) => { if (typeof saved[l.id] === 'number') l.start = saved[l.id]; };
+    LINES.forEach(apply);
+    SONG.sections.forEach((sec) => sec.lines.forEach(apply));
+    return true;
   }
   function saveTimes() {
     const map = {};
-    LINES.forEach((l) => { map[l.id] = +l.start.toFixed(2); });
+    // 没时间的句子（歌词文件里漏了 start、又还没标到）先跳过，别写个 null 进去
+    LINES.forEach((l) => { if (typeof l.start === 'number') map[l.id] = +l.start.toFixed(2); });
     localStorage.setItem(LS.times, JSON.stringify(map));
   }
-  // 补了新歌词之后，浏览器里存的旧时间轴只覆盖一部分句子；
-  // 只有每一句都有时间才算校准过，否则仍然提示去校准。
+  // 标过的句子（校准面板里按过一次的那些），中途保存也不会丢
+  const loadMarked = () => new Set(JSON.parse(localStorage.getItem(LS.marked) || '[]'));
+
+  // 只有每一句都真的标过才算校准完，标了一半仍然提示接着标。
+  // 补了新歌词之后，浏览器里存的旧时间轴只覆盖一部分句子，同理。
   const isCalibrated = () => {
     if (!HAS_TIMELINE || SONG.synced) return true;
     const saved = JSON.parse(localStorage.getItem(LS.times) || 'null');
-    return !!saved && LINES.every((l) => typeof saved[l.id] === 'number');
+    if (!saved || !LINES.every((l) => typeof saved[l.id] === 'number')) return false;
+    // 没有 marked 记录 = 加这个记录之前就校准过的老数据，按已校准算，别让人白标一遍
+    const marked = JSON.parse(localStorage.getItem(LS.marked) || 'null');
+    return !marked || LINES.every((l) => marked.includes(l.id));
   };
 
   // 一句的结束时间 = 下一句的开始
@@ -725,11 +737,19 @@
   /* ════════ 校准 ════════ */
 
   function openCalib() {
-    state.calib = { on: true, idx: 0, marks: [] };
+    // 之前标过的先填回来，从第一句还没标的接着标；一句没标过就是从头开始。
+    // 48 句一口气标完挺累的，分几次标不用重来。
+    const marked = loadMarked();
+    const marks = LINES.map((l) => (marked.has(l.id) ? l.start : undefined));
+    let idx = 0;
+    while (idx < LINES.length && typeof marks[idx] === 'number') idx++;
+    state.calib = { on: true, idx, marks };
     $('#calibModal').classList.remove('hidden');
     renderCalib();
     Player.clearLoop();
-    Player.seek(0, true);
+    // 接着标的时候从上一句（已经标准了的那句）的开头起播，听着好接上
+    Player.seek(idx > 0 ? Math.max(0, LINES[idx - 1].start || 0) : 0, true);
+    if (idx > 0) toast(`接着上次标：从第 ${idx + 1} 句开始`);
   }
   function closeCalib() {
     state.calib.on = false;
@@ -755,21 +775,29 @@
   }
   function calibSave() {
     const c = state.calib;
+    // 标过的句子累加：这次没标到的，之前标过的照样算数，可以分几次标完
+    const marked = loadMarked();
     let applied = 0;
     c.marks.forEach((t, i) => {
-      if (typeof t === 'number') { LINES[i].start = t; applied++; }
+      if (typeof t === 'number') { LINES[i].start = t; marked.add(LINES[i].id); applied++; }
     });
     if (!applied) { alert('还没有标记任何一句。'); return; }
-    // 同步回原始 SONG 对象，导出时用得上
+    // 同步回原始 SONG 对象，导出和单词模式的「🎵 放原句」用得上
     let k = 0;
     SONG.sections.forEach((s) => s.lines.forEach((l) => { l.start = LINES[k++].start; }));
+    singDur.length = 0;         // 时间变了，KTV 逐字变色缓存的每句时长要重算
     saveTimes();
+    localStorage.setItem(LS.marked, JSON.stringify([...marked]));
     closeCalib();
-    $('#syncBanner').classList.add('hidden');
+    // 全部标完了才把提示条收掉；标了一半就留着，提醒还得接着标
+    const left = LINES.length - LINES.filter((l) => marked.has(l.id)).length;
+    $('#syncBanner').classList.toggle('hidden', isCalibrated());
     renderSeekMarks();          // 刻度按新时间轴重画
     state.activeIdx = -1;
     setActive(indexAt(Player.getTime()));
-    toast(`已保存 ${applied} 句的时间轴 ✓`);
+    toast(left
+      ? `已保存 ${applied} 句 ✓ 还有 ${left} 句是估算的，下次接着标`
+      : `已保存 ${applied} 句的时间轴 ✓ 全曲标完了`);
   }
 
   function renderCalib() {
@@ -812,19 +840,34 @@
     if (nextRow) nextRow.scrollIntoView({ block: 'nearest' });
   }
 
+  // 导出成能直接贴回歌词文件的样子。歌词文件有两种写法，按 SONG.timesStyle 走：
+  //   不写（默认）= 每句的 start 写在句子里（safe-near-me 那种），导出「id + start」逐句列表；
+  //   'grouped'   = 时间集中放在文件顶部的 TIMES 里（副歌复用同一份歌词的歌只能这么写），
+  //                 导出「段落前缀: [秒, 秒…]」，整块贴回 TIMES 就行。
   function exportTimes() {
-    const lines = [];
+    const grouped = SONG.timesStyle === 'grouped';
+    const at = (i) => (typeof LINES[i].start === 'number' ? LINES[i].start : 0);
+    const out = [];
     let k = 0;
     SONG.sections.forEach((sec) => {
-      lines.push(`// ${sec.name}`);
-      sec.lines.forEach((l) => {
-        lines.push(`  ${l.id.padEnd(8)} start: ${LINES[k].start.toFixed(2)},`);
-        k++;
-      });
+      if (grouped) {
+        // 段落前缀 = 句子 id 去掉末尾的「-第几句」
+        const first = sec.lines[0];
+        const prefix = (first.id.match(/^(.*)-\d+$/) || [, first.id])[1];
+        const ts = sec.lines.map(() => at(k++).toFixed(2));
+        out.push(`    ${prefix}: [${ts.join(', ')}],   // ${sec.name}`);
+      } else {
+        out.push(`// ${sec.name}`);
+        sec.lines.forEach((l) => {
+          out.push(`  ${l.id.padEnd(8)} start: ${at(k++).toFixed(2)},`);
+        });
+      }
     });
     $('#exportText').value =
-      `// 把这些 start 值填回 songs/safe-near-me.js 对应的句子里\n` +
-      `// 并把顶部的 synced 改成 true\n\n` + lines.join('\n');
+      (grouped
+        ? `// 把这一整块贴回 songs/${SONG.id}.js 里的 TIMES\n`
+        : `// 把这些 start 值填回 songs/${SONG.id}.js 对应的句子里\n`) +
+      `// 并把顶部的 synced 改成 true\n\n` + out.join('\n');
     $('#exportModal').classList.remove('hidden');
   }
 

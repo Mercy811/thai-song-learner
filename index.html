@@ -50,7 +50,7 @@
 <div id="syncBanner" class="banner info hidden">
   <div class="banner-body">
     <strong>歌词时间轴还没校准</strong>
-    <p>现在的时间点是估算的，跟不准很正常。点右上角 <b>⏱ 校准</b>，跟着歌按一次空格标一句，30 秒就能对准，结果会自动保存。</p>
+    <p>现在的时间点是估算的，跟不准很正常。点右上角 <b>⏱ 校准</b>，跟着歌一句按一次空格，放一遍歌就对准了；标累了中途保存，下次从没标的那句接着标。结果存在这台设备上，自动生效。</p>
   </div>
   <button class="banner-close" id="syncBannerClose">✕</button>
 </div>
@@ -469,7 +469,8 @@
     <div class="modal-body">
       <p class="calib-intro">
         原曲会从头播放。<b>每一句唱到开头的那一瞬间，按一下空格（或点下面的大按钮）</b>，
-        就把这句的时间点记下来了。按错了可以「退一句」重来。全部标完点「保存」。
+        就把这句的时间点记下来了。按错了可以「退一句」重来。标完点「保存时间轴」。
+        <br>标累了可以中途保存，下次再点「⏱ 校准」会从没标的那一句接着标，不用从头来。
       </p>
 
       <div class="calib-stage">
@@ -506,7 +507,7 @@
       <button class="modal-close" data-close>✕</button>
     </div>
     <div class="modal-body">
-      <p>把下面这段复制，替换 <code>songs/safe-near-me.js</code> 里对应的 <code>start</code> 数字，
+      <p>把下面这段复制，按开头那行注释说的贴回 <code>songs/</code> 里这首歌的文件，
          提交上去之后，所有打开这个网站的人就都是校准好的时间轴了。</p>
       <textarea id="exportText" rows="14" readonly></textarea>
       <button id="btnCopyExport" class="btn primary">复制</button>
