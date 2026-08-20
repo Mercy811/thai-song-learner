@@ -485,6 +485,7 @@ body {
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:hover { filter: brightness(1.06); }
 .btn.ghost { background: transparent; }
+.btn.small { padding: 5px 11px; font-size: 12px; }
 
 .help { margin-top: 6px; font-size: 13px; }
 .help summary { cursor: pointer; color: var(--accent); padding: 6px 0; }
@@ -576,10 +577,10 @@ body {
 }
 
 /* ── 双人对战 ───────────────────────── */
-/* 两个人各自一个颜色：先手用主色，后手用第二色，
-   从摆阵势一直到揭晓，谁是谁一眼认得出来。
+/* 两个人各自一个颜色：玩家 1 用主色、玩家 2 用第二色，
+   从摆阵势一直挂到揭晓，谁是谁一眼认得出来。
    只染 <b>（文字里嵌的名字），别的地方各自写各自的，免得把白字圆牌之类也一起染了 */
-.battle { max-width: 680px; margin: 0 auto; }
+.battle { max-width: 720px; margin: 0 auto; }
 .battle b.p1 { color: var(--accent); }
 .battle b.p2 { color: var(--accent-2); }
 
@@ -599,15 +600,15 @@ body {
 .bs-name.p1 > span { color: var(--accent); }
 .bs-name.p2 > span { color: var(--accent-2); }
 .bs-name input {
-  width: 100%; background: var(--card-2); color: var(--text);
-  border: 1.5px solid var(--line); border-radius: 11px;
-  padding: 10px 12px; font-size: 16px; font-family: inherit;
+  width: 100%; font: inherit; font-size: 15px; padding: 9px 11px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card-2); color: var(--text);
 }
 .bs-name.p1 input:focus { outline: none; border-color: var(--accent); background: var(--accent-soft); }
 .bs-name.p2 input:focus { outline: none; border-color: var(--accent-2); background: var(--accent-2-soft); }
 .bs-vs-sep {
-  flex: none; padding-bottom: 11px; font-size: 13px; font-weight: 700;
-  color: var(--text-3); letter-spacing: .08em;
+  font-size: 13px; font-weight: 700; color: var(--text-3);
+  letter-spacing: .08em; padding-bottom: 11px;
 }
 
 .bs-opts {
@@ -616,80 +617,254 @@ body {
 }
 .bs-pool { font-size: 12px; color: var(--text-3); margin-left: auto; }
 
+/* 摄像头那一块：开了就能比手势，不开也不挡着打 */
+.bs-cam {
+  margin-top: 14px; padding: 12px 13px;
+  background: var(--card-2); border: 1px solid var(--line); border-radius: 12px;
+}
+.bs-cam.live { border-color: var(--accent-2); }
+.bs-cam-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.bs-cam-head b { font-size: 13.5px; }
+.bs-cam-state { font-size: 11.5px; color: var(--text-3); }
+.bs-cam-state.ok  { color: var(--accent-2); }
+.bs-cam-state.bad { color: var(--danger); }
+.bs-cam-head .btn { margin-left: auto; }
+.bs-cam-note { margin: 7px 0 0; font-size: 12px; line-height: 1.7; color: var(--text-3); }
+.bs-cam-note b { color: var(--text-2); }
+
+/* 画面一律镜像显示：屏幕左边就是坐在左边的那个人，不用在脑子里翻一道 */
+/* 画面按摄像头本来的比例整个显示，不裁边 ——
+   拍照切的就是这里看见的左右两半，看到什么拍下来就是什么 */
+.cam-view {
+  position: relative; overflow: hidden; border-radius: 10px; background: #000;
+}
+.cam-view video { width: 100%; height: auto; display: block; transform: scaleX(-1); }
+.cam-split {
+  position: absolute; left: 50%; top: 0; bottom: 0; width: 0;
+  border-left: 2px dashed rgba(255,255,255,.55);
+}
+.cam-tag {
+  position: absolute; top: 7px; font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px; color: #fff;
+  max-width: 42%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cam-tag.p1 { left: 7px;  background: var(--accent); }
+.cam-tag.p2 { right: 7px; background: var(--accent-2); }
+.cam-chip {
+  position: absolute; bottom: 7px; font-size: 11.5px; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px; color: #fff;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(3px);
+}
+.cam-chip.p1 { left: 7px;  box-shadow: inset 0 0 0 1.5px var(--accent); }
+.cam-chip.p2 { right: 7px; box-shadow: inset 0 0 0 1.5px var(--accent-2); }
+.cam-chip.off { opacity: .55; box-shadow: none; font-weight: 400; }
+
+.bs-cam-prev { margin-top: 10px; }
+
 .bs-rules { margin: 14px 0 0; padding: 0 0 0 18px; }
 .bs-rules li { font-size: 12.5px; line-height: 1.9; color: var(--text-3); }
 .bs-rules li b { color: var(--text-2); }
-.bs-actions { margin-top: 18px; display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
-
-/* ② 交接屏：每换一次人都要过一遍（同题换人一次、进下一题再一次），
-      所以比整套一次的时候收紧一点，别让人点得烦。
-      上一个人的答案这时已经从 DOM 里清掉了，这一屏什么也漏不出来 */
-.battle-ready .br-card {
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 34px 22px 30px; text-align: center;
-}
-.brd-step {
-  font-size: 12px; color: var(--text-3); letter-spacing: .06em; margin-bottom: 14px;
-  font-variant-numeric: tabular-nums;
-}
-.battle .brd-badge {
-  width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%;
-  display: grid; place-items: center; font-size: 20px; font-weight: 700; color: #fff;
-  background: var(--accent); box-shadow: var(--shadow);
-}
-.battle .brd-badge.p2 { background: var(--accent-2); }
-.brd-title { font-size: 24px; font-weight: 700; letter-spacing: -.01em; }
-.brd-sub { margin-top: 10px; font-size: 14px; line-height: 1.7; color: var(--text-2); }
-.brd-meta { margin-top: 6px; font-size: 12px; color: var(--text-3); }
-.battle-ready .btn { margin-top: 20px; }
-.brd-hint { margin-top: 12px; font-size: 11.5px; color: var(--text-3); }
-.brd-hint kbd, .bp-foot kbd {
-  background: var(--card-2); border: 1px solid var(--line); border-bottom-width: 2px;
+.bs-rules kbd, .bs-cam-note kbd, .bph-hint kbd, .bp-foot kbd, .brv-next kbd {
+  background: var(--card); border: 1px solid var(--line); border-bottom-width: 2px;
   border-radius: 5px; padding: 1px 6px; font-size: 11px; font-family: inherit;
   color: var(--text-2); margin: 0 1px;
 }
+.bs-actions { margin-top: 18px; display: flex; gap: 9px; align-items: center; flex-wrap: wrap; }
 
-/* ③ 答题：只有题目和选项，没有分数也没有对错 */
-.bp-top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-.bp-who { display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; }
-.bp-who i { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); }
-.bp-who i.p2 { background: var(--accent-2); }
-.bp-step { font-size: 13px; color: var(--text-2); }
-.bp-step b { font-size: 15px; color: var(--text); }
-/* 这道题当前这个人是先答还是后答 —— 只说顺序，不带任何对错的味道 */
-.bp-slot {
-  font-size: 11.5px; color: var(--text-3); white-space: nowrap;
-  border: 1px solid var(--line); border-radius: 999px; padding: 1.5px 8px;
-}
-.bp-dots { margin-left: auto; display: flex; gap: 4px; }
-.bp-dots i {
-  width: 7px; height: 7px; border-radius: 50%; background: var(--line);
-  transition: background .2s, transform .2s;
-}
-.bp-dots i.done { background: var(--accent); }
-.bp-dots i.done.p2 { background: var(--accent-2); }
-.bp-dots i.cur { background: var(--text-2); transform: scale(1.5); }
-/* 选中的那个先亮一下再翻页，只表示「收到了」，不代表对错 */
-.qopt.picked { background: var(--hl); border-color: var(--hl-edge); }
-.qopt.picked b { background: var(--hl-edge); color: #fff; }
-.bp-foot { text-align: center; font-size: 12px; color: var(--text-3); margin: 14px 0 0; }
-
-/* ④ 揭晓 */
-.brs-head { text-align: center; font-size: 13px; color: var(--text-3); letter-spacing: .1em; }
-.brs {
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
-  margin-top: 10px; padding: 20px 16px;
+/* ② 开场照 */
+.battle-photo {
   background: var(--card); border: 1px solid var(--line);
   border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 22px 20px 20px; text-align: center;
+}
+.bph-head { font-size: 20px; font-weight: 700; }
+.bph-sub { margin: 8px 0 16px; font-size: 13px; line-height: 1.7; color: var(--text-2); }
+.bph-stage { border-radius: 12px; }
+.bph-count {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 92px; font-weight: 700; color: #fff;
+  text-shadow: 0 4px 24px rgba(0,0,0,.6); background: rgba(0,0,0,.25);
+  animation: bphPop .35s ease-out;
+}
+@keyframes bphPop { from { transform: scale(1.4); opacity: .2; } to { transform: scale(1); opacity: 1; } }
+
+.bph-shots { display: flex; gap: 14px; justify-content: center; margin-top: 16px; }
+.bph-shot-img {
+  width: 108px; height: 108px; border-radius: 14px; overflow: hidden;
+  background: var(--card-2); display: flex; align-items: center; justify-content: center;
+  border: 3px solid var(--line); font-size: 30px; font-weight: 700; color: var(--text-3);
+}
+.bph-shot.p1 .bph-shot-img { border-color: var(--accent); }
+.bph-shot.p2 .bph-shot-img { border-color: var(--accent-2); }
+.bph-shot-img img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
+.bph-shot-name { margin-top: 6px; font-size: 13px; font-weight: 600; }
+.bph-shot.p1 .bph-shot-name { color: var(--accent); }
+.bph-shot.p2 .bph-shot-name { color: var(--accent-2); }
+
+.bph-actions { margin-top: 16px; display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+.bph-hint { flex-basis: 100%; font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+/* ③ 抢答 —— 记分牌整局挂在最上面，谁领先抬头就看得见 */
+.bhud {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: stretch; gap: 8px;
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 10px 12px; margin-bottom: 14px;
+}
+.bhud-p {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
+  padding: 6px 8px; border-radius: 12px;
+  transition: background .18s, opacity .18s;
+}
+.bhud-p.p2 { flex-direction: row-reverse; text-align: right; }
+.bhud-p.lead.p1 { background: var(--accent-soft); }
+.bhud-p.lead.p2 { background: var(--accent-2-soft); }
+.bhud-p.out { opacity: .42; }                       /* 这题抢错了，剩下的时间没他的份 */
+.bhud-p.hit { animation: bhudHit .5s ease-out; }
+@keyframes bhudHit {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.bhud-face {
+  width: 54px; height: 54px; flex: none; border-radius: 13px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--card-2); border: 2.5px solid var(--line);
+  font-size: 17px; font-weight: 700; color: #fff;
+}
+.bhud-face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; }
+.bhud-p.p1 .bhud-face { border-color: var(--accent); }
+.bhud-p.p2 .bhud-face { border-color: var(--accent-2); }
+.bhud-p.p1 .bhud-face.nophoto { background: var(--accent); }
+.bhud-p.p2 .bhud-face.nophoto { background: var(--accent-2); }
+
+.bhud-id { min-width: 0; flex: 1; }
+.bhud-name {
+  font-size: 14px; font-weight: 600; line-height: 1.3;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bhud-p.p1 .bhud-name { color: var(--accent); }
+.bhud-p.p2 .bhud-name { color: var(--accent-2); }
+.bhud-cue {
+  font-size: 11.5px; color: var(--text-2); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bhud-cue.off { color: var(--text-3); }
+.bhud-score {
+  flex: none; font-size: 34px; font-weight: 700; line-height: 1;
+  font-variant-numeric: tabular-nums; min-width: 34px; text-align: center;
+}
+.bhud-p.p1 .bhud-score { color: var(--accent); }
+.bhud-p.p2 .bhud-score { color: var(--accent-2); }
+
+/* 中间那一格：开了摄像头才占地方，没开就只留一个「VS」，位置全让给两个人 */
+.bhud-mid { flex: none; width: auto; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.bhud.cam .bhud-mid { width: 132px; }
+.bhud-cam { border-radius: 9px; }
+.bhud-cam .cam-split { border-left-width: 1.5px; }
+.bhud-vs {
+  text-align: center; font-size: 11px; font-weight: 700;
+  color: var(--text-3); letter-spacing: .06em;
+}
+
+/* 准备：两个人同时看见题面，先看到的那个不该占便宜 */
+.bready { text-align: center; padding: 46px 16px; }
+.bready-no { font-size: 12px; color: var(--text-3); letter-spacing: .08em; }
+.bready-go {
+  font-size: 44px; font-weight: 700; letter-spacing: .08em; margin: 6px 0 4px;
+  animation: breadyIn .45s ease-out;
+}
+.bready-sub { font-size: 13px; color: var(--text-2); }
+@keyframes breadyIn { from { transform: scale(.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* 20 秒进度条：宽度过渡交给 CSS，比每帧用 JS 画省事也顺滑 */
+.brace { position: relative; }
+.brace-bar {
+  height: 4px; border-radius: 4px; background: var(--line-soft);
+  overflow: hidden; margin: -4px 0 14px;
+}
+.brace-bar i { display: block; height: 100%; width: 100%; background: var(--accent); }
+
+/* 抢答阶段的选项中间留一道浅缝：点左半边算玩家 1、右半边算玩家 2 */
+.brace .qopt:not(:disabled) { position: relative; }
+.brace .qopt:not(:disabled)::after {
+  content: ''; position: absolute; left: 50%; top: 22%; bottom: 22%;
+  border-left: 1px dashed var(--line); pointer-events: none;
+}
+
+/* 抢答按错的那个选项染成抢错那个人的颜色 —— 谁抢的一眼看得出 */
+.qopt.picked.p1 { border-color: var(--accent); }
+.qopt.picked.p2 { border-color: var(--accent-2); }
+.qopt.picked.wrong { text-decoration: line-through; opacity: .75; }
+.qopt.picked.wrong b { background: var(--danger); color: #fff; }
+.qopt.right { border-color: var(--lv5); background: var(--accent-2-soft); }
+.qopt.picked.right b { background: var(--lv5); color: #fff; }
+
+/* 揭晓这一题 */
+.breveal {
+  margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line-soft);
+  text-align: center; animation: breadyIn .25s ease-out;
+}
+.brv-head { font-size: 17px; }
+.brv-head .plus {
+  font-style: normal; font-weight: 700; font-size: 19px; margin-left: 2px;
+  display: inline-block; animation: bhudHit .5s ease-out;
+}
+.brv-head .plus.p1 { color: var(--accent); }
+.brv-head .plus.p2 { color: var(--accent-2); }
+.brv-sub { margin-top: 5px; font-size: 12.5px; color: var(--text-3); }
+.brv-sub b { color: var(--text); font-size: 14px; }
+.brv-line { margin-top: 9px; font-size: 12px; color: var(--text-3); }
+.brv-line b {
+  font-family: var(--thai-font); font-size: 14px; font-weight: 500;
+  color: var(--text-2); margin-right: 7px;
+}
+.brv-next {
+  margin-top: 13px; font-size: 13px; color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  justify-content: center; padding: 7px 13px; border-radius: 20px;
+  background: var(--card-2); border: 1px solid var(--line);
+  transition: border-color .15s, background .15s;
+}
+.brv-next.armed { border-color: var(--lv5); background: var(--accent-2-soft); }   /* 两个拳头都举着了 */
+.brv-next i { font-style: normal; font-size: 11.5px; color: var(--text-3); }
+.brv-taps { display: inline-flex; gap: 4px; }
+.brv-taps i {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--line); border: 1px solid var(--line);
+}
+.brv-taps i.on { background: var(--accent); border-color: var(--accent); }
+
+.bp-foot { text-align: center; font-size: 12px; color: var(--text-3); margin: 14px 0 0; }
+
+/* ④ 揭晓一整轮 */
+.brs-head { text-align: center; font-size: 13px; color: var(--text-3); letter-spacing: .1em; }
+.brs {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center;
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 18px 14px; margin-top: 8px;
 }
 .brs-side { text-align: center; border-radius: 12px; padding: 10px 6px; }
 .brs-side.win { background: var(--accent-soft); }
 .brs-side.p2.win { background: var(--accent-2-soft); }
+.brs-face {
+  position: relative; width: 76px; height: 76px; margin: 0 auto 8px;
+  border-radius: 16px; overflow: visible;
+  border: 3px solid var(--line); background: var(--card-2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; font-weight: 700; color: #fff;
+}
+.brs-face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; border-radius: 13px; }
+.brs-side.p1 .brs-face { border-color: var(--accent); }
+.brs-side.p2 .brs-face { border-color: var(--accent-2); }
+.brs-side.p1 .brs-face.nophoto { background: var(--accent); }
+.brs-side.p2 .brs-face.nophoto { background: var(--accent-2); }
+.brs-crown { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 22px; }
 .brs-name { font-size: 14px; font-weight: 600; word-break: break-word; }
 .brs-side.p1 .brs-name { color: var(--accent); }
 .brs-side.p2 .brs-name { color: var(--accent-2); }
-.brs-name em { display: block; font-style: normal; font-size: 10.5px; color: var(--text-3); font-weight: 400; line-height: 1.5; }
 .brs-num { font-size: 46px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .brs-side.p1 .brs-num { color: var(--accent); }
 .brs-side.p2 .brs-num { color: var(--accent-2); }
@@ -699,14 +874,15 @@ body {
 .brs-of { font-size: 11px; color: var(--text-3); margin-top: 2px; }
 
 .brs-verdict { text-align: center; font-size: 16px; margin-top: 14px; }
+.brs-missed { text-align: center; font-size: 12px; color: var(--text-3); margin-top: 5px; }
 .brs-tally {
-  text-align: center; font-size: 12.5px; color: var(--text-3); margin-top: 6px;
+  text-align: center; font-size: 13px; color: var(--text-2); margin-top: 10px;
 }
 .brs-tally b { font-size: 15px; }
 .brs-tally span { color: var(--text-3); }
 
 .brs-listh {
-  margin: 22px 0 8px; font-size: 12.5px; color: var(--text-2); font-weight: 600;
+  margin: 22px 0 8px; font-size: 13px; font-weight: 600; color: var(--text-2);
 }
 .brs-listh span { font-weight: 400; color: var(--text-3); font-size: 11.5px; }
 .brs-list {
@@ -715,13 +891,14 @@ body {
 }
 .brq { padding: 11px 14px; border-bottom: 1px solid var(--line-soft); }
 .brq:last-child { border-bottom: none; }
-.brq.same-ok  { box-shadow: inset 3px 0 0 var(--lv5); }
-.brq.same-bad { box-shadow: inset 3px 0 0 var(--danger); }
+.brq.won.p1  { box-shadow: inset 3px 0 0 var(--accent); }
+.brq.won.p2  { box-shadow: inset 3px 0 0 var(--accent-2); }
+.brq.nobody  { box-shadow: inset 3px 0 0 var(--danger); }
 .brq-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .brq-no { font-size: 11px; color: var(--text-3); min-width: 14px; }
 .brq-th {
-  background: none; border: none; padding: 0; cursor: pointer;
-  font-family: var(--thai-font); font-size: 19px; font-weight: 600; color: var(--text);
+  background: none; border: none; padding: 0; cursor: pointer; color: var(--text);
+  font-family: var(--thai-font); font-size: 19px; line-height: 1.5;
 }
 .brq-th:hover, .brq-th.speaking { color: var(--accent); }
 .brq-th.en { font-family: inherit; font-size: 16px; font-style: italic; }
@@ -729,26 +906,23 @@ body {
 .brq-ans { margin-left: auto; font-size: 14px; color: var(--text); }
 .brq-ans::before { content: '答案 '; font-size: 11px; color: var(--text-3); }
 
-.brq-picks { display: flex; gap: 8px; flex-wrap: wrap; margin: 7px 0 0 22px; }
+.brq-picks { display: flex; gap: 8px; flex-wrap: wrap; margin: 7px 0 0 22px; align-items: center; }
 .brq-pick {
-  display: inline-flex; align-items: center; gap: 5px;
-  border: 1px solid var(--line); border-radius: 999px;
-  padding: 3px 11px 3px 8px; font-size: 12.5px; color: var(--text-2);
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px;
+  padding: 3px 9px; border-radius: 20px;
+  border: 1px solid var(--line); background: var(--card-2);
 }
 .brq-pick em { font-style: normal; font-size: 11px; color: var(--text-3); }
 .brq-pick.p1 em { color: var(--accent); }
 .brq-pick.p2 em { color: var(--accent-2); }
 .brq-pick i { font-style: normal; font-weight: 700; }
+.brq-pick u { text-decoration: none; font-size: 10.5px; color: var(--text-3); }
 .brq-pick.ok  { border-color: var(--lv5); color: var(--text); }
 .brq-pick.ok i { color: var(--lv5); }
 .brq-pick.bad { border-color: var(--danger); }
 .brq-pick.bad i { color: var(--danger); }
 .brq-pick.miss { opacity: .5; }
-/* 每道题换先手，逐题对照里标一下这题是谁先答的 */
-.brq-pick u {
-  text-decoration: none; font-size: 9.5px; line-height: 1.4; color: var(--text-3);
-  border: 1px solid var(--line); border-radius: 4px; padding: 0 3px;
-}
+.brq-none { font-size: 11.5px; color: var(--danger); }
 
 .brq-line { margin: 7px 0 0 22px; font-size: 12px; color: var(--text-3); }
 .brq-line b { font-family: var(--thai-font); font-size: 13.5px; font-weight: 500; color: var(--text-2); margin: 0 6px; }
@@ -762,9 +936,21 @@ body {
   .bs-vs-sep { width: 100%; padding: 0; text-align: center; }
   .bs-pool { margin-left: 0; width: 100%; }
   .bs-actions .btn { flex: 1; text-align: center; white-space: nowrap; }
-  .battle-ready .br-card { padding: 26px 16px 24px; }
-  .brd-title { font-size: 20px; }
+  /* 手机上记分牌横着排不下：两个人一行，中间那块摄像头缩到一角 */
+  .bhud { flex-wrap: wrap; padding: 8px 9px; gap: 6px; }
+  .bhud-p { flex: 1 1 40%; gap: 7px; padding: 4px; }
+  .bhud-face { width: 42px; height: 42px; border-radius: 11px; font-size: 14px; }
+  .bhud-score { font-size: 26px; min-width: 26px; }
+  .bhud-cue { font-size: 10.5px; }
+  .bhud-mid { order: 3; flex-basis: 100%; width: auto; flex-direction: row; align-items: center; gap: 8px; }
+  .bhud-cam { width: 96px; flex: none; }
+  .bhud-vs { flex: 1; text-align: left; }
+  .bready { padding: 34px 12px; }
+  .bready-go { font-size: 34px; }
+  .bph-count { font-size: 66px; }
+  .bph-shot-img { width: 88px; height: 88px; }
   .brs { padding: 16px 10px; gap: 4px; }
+  .brs-face { width: 60px; height: 60px; }
   .brs-num { font-size: 34px; }
   .brs-actions .btn { flex: 1 1 45%; text-align: center; white-space: nowrap; }
   .brs-actions .btn.big { flex-basis: 100%; }

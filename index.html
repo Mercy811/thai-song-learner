@@ -155,7 +155,7 @@
       </div>
       <div class="study-actions">
         <button class="btn primary big" id="studyStart">🎯 开始测验</button>
-        <button class="btn big" id="studyBattle2p" title="两个人用同一台电脑，每道题轮流答同一套题，比谁答对得多">⚔️ 双人对战</button>
+        <button class="btn big" id="studyBattle2p" title="一道题出来两个人同时抢答：比手势或者按键盘，先答对的加一分">⚔️ 双人对战</button>
         <button class="btn ghost" id="studyCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制单词表</button>
         <button class="btn ghost" id="studyReset" title="所有词的掌握程度清零">↺ 重置进度</button>
       </div>
@@ -221,28 +221,29 @@
     <div class="quiz-done hidden" id="quizDone"></div>
   </section>
 
-  <!-- ══ 双人对战：两个人用同一台电脑，每道题轮流答同一套题 ══
-       一道题两个人各答一次（不是一个人先答完整套），每换一次人都过一块交接屏；
-       答题过程中不判对错、不显示分数，上一个人的题目和选项从 DOM 里整个清掉，
-       所以接手的人在屏幕上找不到任何前一个人的答案 -->
+  <!-- ══ 双人对战：一道题出来，两个人同时抢答 ══
+       开局各拍一张照片，整局挂在记分牌上，谁领先一眼看得见。
+       抢答两种输入：开了摄像头就比手指（左半边算玩家 1、右半边算玩家 2，比几根手指 = 第几个选项），
+       没开就用键盘（玩家 1 按 1234、玩家 2 按 7890）—— 键盘那套哪种情况下都在。
+       答对当场加一分，抢错的人这道题就没份了。答完一题两个人一起比拳头（或按两下空格）进下一题 -->
   <section id="studyBattle" class="battle hidden">
 
-    <!-- ① 摆阵势：填名字、选题数 -->
+    <!-- ① 摆阵势：填名字、选题数、开摄像头 -->
     <div class="battle-setup" id="battleSetup">
-      <h2 class="bs-h">⚔️ 双人对战</h2>
+      <h2 class="bs-h">⚔️ 双人对战 · 抢答</h2>
       <p class="bs-lead">
-        两个人用同一台电脑，<b>每道题轮流答</b>：一个人答完这道题就把电脑交给另一个人答同一道，
-        下一题再换过来先答。全部答完一起揭晓，比谁答对得多。
+        一道题出来，<b>两个人同时抢</b> —— 谁先答对当场加一分，抢错的这道题就没份了。
+        开局各拍一张照片挂在记分牌上，比分一直在屏幕最上面。
       </p>
 
       <div class="bs-vs">
         <label class="bs-name p1">
-          <span>先手 · 单数题先答</span>
+          <span>玩家 1 · 坐左边</span>
           <input type="text" id="battleName1" maxlength="12" placeholder="玩家 1" autocomplete="off" spellcheck="false">
         </label>
         <div class="bs-vs-sep">VS</div>
         <label class="bs-name p2">
-          <span>后手 · 双数题先答</span>
+          <span>玩家 2 · 坐右边</span>
           <input type="text" id="battleName2" maxlength="12" placeholder="玩家 2" autocomplete="off" spellcheck="false">
         </label>
       </div>
@@ -253,13 +254,33 @@
         <span class="bs-pool" id="battlePoolNote"></span>
       </div>
 
+      <!-- 摄像头：开了就能比手势抢答 + 拍开场照；不开就纯键盘，照样能打 -->
+      <div class="bs-cam" id="battleCamBox">
+        <div class="bs-cam-head">
+          <b>📷 用手势抢答</b>
+          <span class="bs-cam-state" id="battleCamState">没开</span>
+          <button class="btn ghost small" id="battleCamBtn">开摄像头</button>
+        </div>
+        <p class="bs-cam-note" id="battleCamNote"></p>
+        <div class="cam-view bs-cam-prev hidden" id="battleCamPrev">
+          <video id="battleSetupCam" playsinline muted></video>
+          <i class="cam-split"></i>
+          <span class="cam-tag p1" id="battleCamTag1">玩家 1</span>
+          <span class="cam-tag p2" id="battleCamTag2">玩家 2</span>
+          <span class="cam-chip p1" id="battleCamChip1">—</span>
+          <span class="cam-chip p2" id="battleCamChip2">—</span>
+        </div>
+      </div>
+
       <ul class="bs-rules">
-        <li>一道题<b>两个人各答一次</b>：答完这题换人答同一题，答完再一起进下一题</li>
-        <li><b>每道题换一次先手</b> —— 后答的人白听一遍发音，这点便宜两个人轮流占</li>
-        <li><b>答题时不判对错</b>，全部答完才一起揭晓；每次换人都插一块交接屏，
-            上一个人选了什么当场从页面上清掉，接手的人翻不到</li>
-        <li>两个人拿到的题目和选项顺序<b>完全一样</b>，谁也不吃亏</li>
-        <li>答对数打平就比总用时，快的那个险胜（每题最多计 60 秒）</li>
+        <li>一道题<b>两个人同时抢</b>，先答对的当场 <b>+1</b> 分</li>
+        <li><b>抢错就出局</b>：这道题剩下的时间只剩另一个人能答 —— 手快之前先想清楚</li>
+        <li>手势：<b>比几根手指就是第几个选项</b>（食指到小指，拇指不算）。
+            左半边画面算玩家 1、右半边算玩家 2</li>
+        <li>键盘随时能用：玩家 1 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>，玩家 2 <kbd>7</kbd><kbd>8</kbd><kbd>9</kbd><kbd>0</kbd></li>
+        <li>答完一题，两个人<b>一起比 ✊</b>（或者按两下 <kbd>空格</kbd>）进下一题</li>
+        <li>每题 20 秒，都没抢对就没人得分，直接公布答案</li>
+        <li>照片和画面只在这台电脑的内存里，<b>不上传也不存盘</b>，退出就没了</li>
         <li>对战<b>不改动</b>单词表里的掌握程度，朋友来玩不会搅乱你的进度</li>
       </ul>
 
@@ -269,27 +290,58 @@
       </div>
     </div>
 
-    <!-- ② 交接屏：轮到谁了。每换一次人都过这一屏，上一个人的答案这时已经从界面上收干净了 -->
-    <div class="battle-ready hidden" id="battleReady"></div>
+    <!-- ② 开场照：一张画面切两半，左边给玩家 1、右边给玩家 2 -->
+    <div class="battle-photo hidden" id="battlePhoto">
+      <div class="bph-head">📸 先各拍一张</div>
+      <p class="bph-sub" id="battlePhotoSub">
+        两个人一起坐进画面 —— <b class="p1">左边</b>的是玩家 1，<b class="p2">右边</b>的是玩家 2。
+        拍下来的这张整局都挂在记分牌上。
+      </p>
+      <div class="cam-view bph-stage">
+        <video id="battlePhotoCam" playsinline muted></video>
+        <i class="cam-split"></i>
+        <span class="cam-tag p1" id="battlePhotoTag1">玩家 1</span>
+        <span class="cam-tag p2" id="battlePhotoTag2">玩家 2</span>
+        <div class="bph-count hidden" id="battlePhotoCount">3</div>
+      </div>
+      <div class="bph-shots hidden" id="battlePhotoShots"></div>
+      <div class="bph-actions" id="battlePhotoActions"></div>
+    </div>
 
-    <!-- ③ 答题：只有题目和四个选项，没有分数、没有对错。答完这一题就交给对方答同一题 -->
+    <!-- ③ 抢答：记分牌整局挂在上面，下面换题 -->
     <div class="battle-play hidden" id="battlePlay">
-      <div class="bp-top">
-        <span class="bp-who" id="battleWho"></span>
-        <span class="bp-step">第 <b id="battleStep">1</b> / <span id="battleTotal">10</span> 题</span>
-        <span class="bp-slot" id="battleSlot"></span>
-        <span class="bp-dots" id="battleDots"></span>
-      </div>
-      <div class="quiz-card">
-        <div class="quiz-word">
-          <div class="quiz-th" id="battleTh"></div>
-          <div class="quiz-ro" id="battleRo"></div>
-          <button class="quiz-speak" id="battleSpeak" title="再听一遍">🔊 听发音</button>
+
+      <!-- 记分牌：两张脸、两个名字、两个分数，从第一题挂到最后一题 -->
+      <div class="bhud" id="battleHud">
+        <div class="bhud-p p1" id="battleHudP1">
+          <div class="bhud-face" id="battleFace1"></div>
+          <div class="bhud-id">
+            <div class="bhud-name" id="battleHudName1">玩家 1</div>
+            <div class="bhud-cue" id="battleCue1"></div>
+          </div>
+          <div class="bhud-score" id="battleScore1">0</div>
         </div>
-        <div class="quiz-ask">它是什么意思？</div>
-        <div class="quiz-opts" id="battleOpts"></div>
+
+        <div class="bhud-mid">
+          <div class="cam-view bhud-cam hidden" id="battleCamWrap">
+            <video id="battleHudCam" playsinline muted></video>
+            <i class="cam-split"></i>
+          </div>
+          <div class="bhud-vs" id="battleHudNote">VS</div>
+        </div>
+
+        <div class="bhud-p p2" id="battleHudP2">
+          <div class="bhud-face" id="battleFace2"></div>
+          <div class="bhud-id">
+            <div class="bhud-name" id="battleHudName2">玩家 2</div>
+            <div class="bhud-cue" id="battleCue2"></div>
+          </div>
+          <div class="bhud-score" id="battleScore2">0</div>
+        </div>
       </div>
-      <p class="bp-foot"><kbd>1</kbd>–<kbd>4</kbd> 选答案 · 选完直接交给对方，不显示对错 · <kbd>S</kbd> 再听一遍</p>
+
+      <div class="bstage" id="battleStage"></div>
+      <p class="bp-foot" id="battleFoot"></p>
     </div>
 
     <!-- ④ 揭晓 -->
@@ -467,6 +519,7 @@
 <script src="js/chords.js"></script>
 <script src="js/distractors.js"></script>
 <script src="js/vocab.js"></script>
+<script src="js/gesture.js"></script>
 <script src="js/battle.js"></script>
 <script src="js/study.js"></script>
 <script src="js/tts.js"></script>
