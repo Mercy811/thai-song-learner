@@ -864,3 +864,357 @@ body.mode-ktv.ktv-bg-video .video-box iframe {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* ══════════════════════════════════════════
+   单词模式：单词表 + 四选一测验
+   ══════════════════════════════════════════ */
+
+/* 掌握程度 0–5 级的颜色，从「生疏」的灰过到「已掌握」的绿 */
+:root {
+  --lv0: #cfc5b8;
+  --lv1: #dda06a;
+  --lv2: #d9b93f;
+  --lv3: #9dbf5c;
+  --lv4: #5fae7a;
+  --lv5: #3ba55d;
+}
+:root[data-theme="dark"] {
+  --lv0: #4a444f;
+  --lv1: #b8794a;
+  --lv2: #b39430;
+  --lv3: #7d9b45;
+  --lv4: #4c9268;
+  --lv5: #43ac66;
+}
+
+/* 单词模式下把跟唱那一套收起来，屏幕全留给单词 */
+body.mode-study .stickydeck,
+body.mode-study .viewbar,
+body.mode-study .uku-hint,
+body.mode-study #lyrics,
+body.mode-study .foot { display: none; }
+
+.study { max-width: 1020px; margin: 0 auto; padding: 20px 18px 70px; }
+
+/* ── 总览 ───────────────────────────── */
+.study-head {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 18px 20px 16px; margin-bottom: 18px;
+}
+.study-head-row {
+  display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.study-stat-big { font-size: 30px; font-weight: 700; line-height: 1.15; letter-spacing: -.01em; }
+.study-stat-big b { color: var(--accent); }
+.study-stat-label { font-size: 13.5px; color: var(--text-2); margin-top: 2px; }
+.study-stat-label b { color: var(--text); }
+.study-stat-sub { font-size: 12.5px; color: var(--text-3); margin-top: 4px; }
+.study-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn.big { padding: 11px 20px; font-size: 14.5px; font-weight: 600; }
+
+/* 六段进度条：每段的宽度就是这个级别有多少个词 */
+.study-bar {
+  display: flex; gap: 2px; height: 12px; border-radius: 999px;
+  overflow: hidden; background: var(--card-2);
+}
+.study-bar i { display: block; transition: flex .4s ease; }
+.study-bar i[data-lv="0"] { background: var(--lv0); }
+.study-bar i[data-lv="1"] { background: var(--lv1); }
+.study-bar i[data-lv="2"] { background: var(--lv2); }
+.study-bar i[data-lv="3"] { background: var(--lv3); }
+.study-bar i[data-lv="4"] { background: var(--lv4); }
+.study-bar i[data-lv="5"] { background: var(--lv5); }
+
+.study-legend {
+  display: flex; gap: 13px; flex-wrap: wrap; margin-top: 9px;
+  font-size: 11.5px; color: var(--text-3);
+}
+.study-legend .lg { display: inline-flex; align-items: center; gap: 5px; }
+.study-legend .lg.off { opacity: .38; }
+.study-legend i { width: 9px; height: 9px; border-radius: 3px; flex: none; }
+.study-legend i[data-lv="0"] { background: var(--lv0); }
+.study-legend i[data-lv="1"] { background: var(--lv1); }
+.study-legend i[data-lv="2"] { background: var(--lv2); }
+.study-legend i[data-lv="3"] { background: var(--lv3); }
+.study-legend i[data-lv="4"] { background: var(--lv4); }
+.study-legend i[data-lv="5"] { background: var(--lv5); }
+
+/* ── 单词表 ─────────────────────────── */
+.study-toolbar {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  margin-bottom: 11px;
+}
+.study-count { font-size: 12.5px; color: var(--text-3); }
+
+.wordlist {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+}
+.wrow {
+  display: grid;
+  grid-template-columns: 34px minmax(150px, 1.15fr) minmax(96px, .85fr) 168px auto;
+  align-items: center; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+}
+.wrow:last-child { border-bottom: none; }
+.wrow:hover { background: var(--card-2); }
+/* 左边一道竖色条，一眼看出这个词学到哪一级了 */
+.wrow { box-shadow: inset 3px 0 0 var(--lv0); }
+.wrow[data-lv="1"] { box-shadow: inset 3px 0 0 var(--lv1); }
+.wrow[data-lv="2"] { box-shadow: inset 3px 0 0 var(--lv2); }
+.wrow[data-lv="3"] { box-shadow: inset 3px 0 0 var(--lv3); }
+.wrow[data-lv="4"] { box-shadow: inset 3px 0 0 var(--lv4); }
+.wrow[data-lv="5"] { box-shadow: inset 3px 0 0 var(--lv5); }
+
+.wrow-no { font-size: 11.5px; color: var(--text-3); text-align: right; }
+.wrow-word { min-width: 0; }
+.wrow-th {
+  background: none; border: none; padding: 0; cursor: pointer; text-align: left;
+  font-family: var(--thai-font); font-size: 21px; font-weight: 600;
+  color: var(--text); line-height: 1.35; border-radius: 6px;
+  transition: color .15s;
+}
+.wrow-th:hover { color: var(--accent); }
+.wrow-th.speaking { color: var(--accent); text-shadow: 0 0 18px var(--accent-soft); }
+.wrow-th.en { font-family: inherit; font-size: 17px; font-style: italic; }
+.wrow-ro { display: block; font-size: 11.5px; color: var(--accent-2); }
+.wrow-cn { display: block; font-size: 14px; font-weight: 600; color: var(--text-2); }
+
+.wrow-mean { font-size: 14.5px; color: var(--text); }
+.wrow-mean.masked { cursor: pointer; }
+.wrow-mean.masked span {
+  background: var(--line); color: transparent; border-radius: 6px;
+  user-select: none; padding: 0 6px;
+}
+.wrow-mean.masked:hover span { background: var(--line-soft); }
+
+.wrow-lv { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.lvdots { display: inline-flex; gap: 3px; }
+.lvdots i {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--line); transition: background .2s;
+}
+.lvdots[data-lv="1"] i.on { background: var(--lv1); }
+.lvdots[data-lv="2"] i.on { background: var(--lv2); }
+.lvdots[data-lv="3"] i.on { background: var(--lv3); }
+.lvdots[data-lv="4"] i.on { background: var(--lv4); }
+.lvdots[data-lv="5"] i.on { background: var(--lv5); }
+.lvname { font-size: 12px; color: var(--text-2); }
+.lvstat { font-size: 11px; color: var(--text-3); }
+
+.wrow-tools { display: flex; gap: 4px; justify-content: flex-end; }
+.wbtn {
+  background: transparent; border: 1px solid transparent; color: var(--text-3);
+  border-radius: 8px; padding: 4px 7px; font-size: 12.5px; cursor: pointer;
+  font-family: inherit; line-height: 1.3; transition: all .15s;
+}
+.wbtn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+.study-empty { padding: 40px 16px; text-align: center; color: var(--text-3); font-size: 13.5px; }
+.study-hint { text-align: center; font-size: 12px; color: var(--text-3); margin: 16px 0 0; }
+.study-hint kbd {
+  background: var(--card); border: 1px solid var(--line); border-bottom-width: 2px;
+  border-radius: 5px; padding: 1px 6px; font-size: 11px; font-family: inherit;
+  color: var(--text-2); margin: 0 1px;
+}
+
+/* 从单词表跳回歌词时，让那个词闪一下，好在句子里一眼找到 */
+.word.flash {
+  animation: word-flash 1.8s ease;
+  border-color: var(--accent);
+}
+@keyframes word-flash {
+  0%, 100% { background: var(--card-2); }
+  15%, 55% { background: var(--accent-soft); transform: translateY(-2px); }
+}
+
+/* ── 测验 ───────────────────────────── */
+.quiz { max-width: 640px; margin: 0 auto; }
+.quiz-top {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.quiz-progress { font-size: 13px; color: var(--text-2); }
+.quiz-progress b { font-size: 15px; color: var(--text); }
+.quiz-score { margin-left: auto; font-size: 12.5px; color: var(--text-3); }
+.quiz-score b { color: var(--text-2); font-size: 13.5px; }
+
+.quiz-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 26px 22px 16px;
+}
+.quiz-word { text-align: center; }
+.quiz-th {
+  font-family: var(--thai-font); font-size: 46px; font-weight: 700;
+  line-height: 1.35; letter-spacing: .01em; word-break: break-word;
+}
+.quiz-th.en { font-family: inherit; font-size: 38px; font-style: italic; }
+.quiz-ro { font-size: 16px; color: var(--accent-2); margin-top: 4px; }
+.quiz-cn { font-size: 18px; font-weight: 600; color: var(--text-2); margin-top: 2px; }
+.quiz-speak {
+  margin-top: 12px; background: var(--card-2); border: 1px solid var(--line);
+  color: var(--text-2); border-radius: 999px; padding: 7px 16px; font-size: 13px;
+  cursor: pointer; font-family: inherit; transition: all .15s;
+}
+.quiz-speak:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+.quiz-speak.speaking { background: var(--accent); border-color: var(--accent); color: #fff; }
+.quiz-lv {
+  margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-size: 11.5px; color: var(--text-3);
+}
+
+.quiz-ask {
+  text-align: center; font-size: 12.5px; color: var(--text-3);
+  margin: 20px 0 12px; letter-spacing: .04em;
+}
+
+.quiz-opts { display: grid; gap: 9px; }
+.qopt {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  background: var(--card-2); border: 1.5px solid var(--line);
+  border-radius: 12px; padding: 13px 15px; cursor: pointer;
+  font-family: inherit; font-size: 16px; color: var(--text); text-align: left;
+  transition: all .14s;
+}
+.qopt:hover:not(:disabled) {
+  background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px);
+}
+.qopt:disabled { cursor: default; }
+.qopt b {
+  flex: none; width: 22px; height: 22px; border-radius: 6px;
+  background: var(--line); color: var(--text-2);
+  font-size: 11.5px; font-weight: 600;
+  display: grid; place-items: center;
+}
+.qopt.right {
+  background: rgba(59,165,93,.14); border-color: var(--lv5); color: var(--text);
+}
+.qopt.right b { background: var(--lv5); color: #fff; }
+.qopt.wrong {
+  background: rgba(194,69,58,.13); border-color: var(--danger);
+}
+.qopt.wrong b { background: var(--danger); color: #fff; }
+/* 答完之后没选中的那两个淡下去，视线留给对错 */
+.qopt:disabled:not(.right):not(.wrong) { opacity: .45; }
+
+.quiz-feedback {
+  margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--card-2);
+}
+.quiz-feedback.ok  { border-color: var(--lv5); background: rgba(59,165,93,.08); }
+.quiz-feedback.bad { border-color: var(--danger); background: rgba(194,69,58,.07); }
+.fb-head { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.fb-lv { font-size: 11.5px; font-weight: 400; color: var(--text-3); margin-left: auto; }
+.fb-line { margin-top: 7px; font-size: 12.5px; color: var(--text-2); line-height: 1.7; }
+.fb-no { font-size: 11px; color: var(--text-3); margin-right: 7px; }
+.fb-line b { font-family: var(--thai-font); font-size: 16px; font-weight: 600; color: var(--text); }
+.fb-cn { display: block; color: var(--text-3); }
+
+.quiz-next-row { display: flex; justify-content: flex-end; margin-top: 14px; }
+.quiz-next-row .btn { padding: 10px 22px; font-weight: 600; }
+
+.quiz-foot {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line-soft);
+}
+
+/* ── 一轮结束 ───────────────────────── */
+.quiz-done {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 28px 22px 22px; text-align: center;
+}
+.qd-score { font-size: 44px; font-weight: 700; line-height: 1.1; }
+.qd-score b { color: var(--accent); }
+.qd-word { font-size: 14px; color: var(--text-2); margin-top: 6px; }
+.qd-clean { margin-top: 18px; font-size: 14px; color: var(--lv5); }
+.qd-missed { margin-top: 20px; text-align: left; }
+.qd-missed-h { font-size: 12px; color: var(--text-3); margin-bottom: 8px; }
+.qd-miss {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding: 8px 12px; border-radius: 10px; background: var(--card-2);
+  border: 1px solid var(--line-soft); margin-bottom: 6px;
+}
+.qd-miss-th {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-family: var(--thai-font); font-size: 19px; font-weight: 600; color: var(--text);
+}
+.qd-miss-th:hover, .qd-miss-th.speaking { color: var(--accent); }
+.qd-miss-ro { font-size: 11.5px; color: var(--accent-2); }
+.qd-miss-mean { margin-left: auto; font-size: 14px; color: var(--text-2); }
+.qd-actions { margin-top: 22px; display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+
+/* ── 复制不了时的兜底 ─────────────────── */
+.study-export {
+  margin-top: 16px; padding: 14px; border-radius: var(--radius);
+  background: var(--card); border: 1px solid var(--line);
+}
+.study-export p { margin: 0 0 8px; font-size: 13px; color: var(--text-2); }
+.study-export textarea {
+  width: 100%; background: var(--card-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+  resize: vertical; margin-bottom: 8px;
+}
+
+.study-note {
+  position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 11px 20px; border-radius: 999px;
+  font-size: 13.5px; z-index: 200; box-shadow: var(--shadow-lg);
+  pointer-events: none; opacity: 0; transition: opacity .25s;
+}
+.study-note.show { opacity: 1; }
+
+/* ── 手机 ───────────────────────────── */
+@media (max-width: 720px) {
+  .study { padding: 14px 12px 56px; }
+  .study-head { padding: 15px 15px 13px; }
+  /* 三个按钮：开始测验独占一行，另外两个平分下面一行，谁都不会被挤成两行字 */
+  .study-actions {
+    margin-left: 0; width: 100%;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .study-actions .btn { text-align: center; white-space: nowrap; }
+  .study-actions .btn.big { grid-column: 1 / -1; }
+  .study-stat-big { font-size: 26px; }
+
+  /* 一行塞不下五列，改成上下两行：词 + 意思一行，程度 + 按钮一行 */
+  .wrow {
+    grid-template-columns: 26px 1fr auto;
+    grid-template-areas:
+      "no  word  tools"
+      ".   mean  mean"
+      ".   lv    lv";
+    gap: 4px 10px; padding: 11px 12px;
+  }
+  .wrow-no    { grid-area: no; align-self: start; padding-top: 5px; }
+  .wrow-word  { grid-area: word; }
+  /* 手机上意思跟谐音上下挨着，加一道细边把「答案」这一行分出来 */
+  .wrow-mean  {
+    grid-area: mean; font-size: 14px;
+    border-left: 2px solid var(--line); padding-left: 8px; margin-top: 3px;
+  }
+  .wrow-lv    { grid-area: lv; margin-top: 3px; }
+  .wrow-tools { grid-area: tools; align-self: start; }
+
+  .quiz-next-row .btn { width: 100%; }
+  .quiz-th { font-size: 36px; }
+  .quiz-th.en { font-size: 30px; }
+  .quiz-card { padding: 20px 15px 14px; }
+  .qopt { font-size: 15px; padding: 12px 13px; }
+  .qd-score { font-size: 36px; }
+}
+
+/* ── 打印：把单词表打出来带在身上背 ────── */
+@media print {
+  .topbar, .banner, .stickydeck, .viewbar, .uku-hint, .foot,
+  .study-actions, .study-toolbar, .study-hint, .study-export,
+  .wrow-tools, .ktv-view, #lyrics, #studyQuiz { display: none !important; }
+  .study { max-width: none; padding: 0; }
+  .study-head, .wordlist { border: none; box-shadow: none; }
+  .wrow { break-inside: avoid; border-bottom: 1px solid #ddd; box-shadow: none; }
+  .wrow-mean.masked span { background: none; color: inherit; }
+}

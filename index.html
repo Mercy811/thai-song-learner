@@ -20,9 +20,12 @@
     </div>
     <div class="topbar-actions">
       <button id="btnSong" class="icon-btn" title="换一首歌">🎵 选歌</button>
-      <div class="mode-toggle" role="group" aria-label="切换模式" data-needs="timeline">
+      <!-- 只有 KTV 靠时间轴，没时间轴的歌单独把它收起来就行；
+           练习和单词模式哪首歌都能用 -->
+      <div class="mode-toggle" role="group" aria-label="切换模式">
         <button id="btnModePractice" class="mode-btn active" title="练习模式：逐句逐词、发音、录音">📖 练习</button>
-        <button id="btnModeKtv" class="mode-btn" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
+        <button id="btnModeKtv" class="mode-btn" data-needs="timeline" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
+        <button id="btnModeStudy" class="mode-btn" title="单词模式：单词表 + 四选一测验">🃏 单词</button>
       </div>
       <button id="btnVoice" class="icon-btn" title="发音设置">
         <span class="dot" id="voiceDot"></span> 发音
@@ -138,6 +141,94 @@
 
 <!-- ══ 歌词 ══ -->
 <main id="lyrics" class="lyrics"></main>
+
+<!-- ══ 单词模式：单词表 + 四选一测验 ══ -->
+<main class="study hidden" id="studyView">
+
+  <!-- 总览：掌握到什么程度了 -->
+  <section class="study-head" id="studyHead">
+    <div class="study-head-row">
+      <div class="study-stat">
+        <div class="study-stat-big"><b id="studyStatMastered">0</b> / <span id="studyStatTotal">0</span></div>
+        <div class="study-stat-label">个词已掌握 · 整体进度 <b id="studyStatPct">0%</b></div>
+        <div class="study-stat-sub">测验正确率 <span id="studyStatAcc">还没开始测验</span></div>
+      </div>
+      <div class="study-actions">
+        <button class="btn primary big" id="studyStart">🎯 开始测验</button>
+        <button class="btn ghost" id="studyCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制单词表</button>
+        <button class="btn ghost" id="studyReset" title="所有词的掌握程度清零">↺ 重置进度</button>
+      </div>
+    </div>
+    <div class="study-bar" id="studyBar"></div>
+    <div class="study-legend" id="studyLegend"></div>
+  </section>
+
+  <!-- 单词表 -->
+  <section id="studyList">
+    <div class="study-toolbar">
+      <label class="ctl"><span>排序</span>
+        <select id="studySort">
+          <option value="song">歌词顺序</option>
+          <option value="weak">最不熟的在前</option>
+          <option value="freq">出现最多的在前</option>
+        </select>
+      </label>
+      <label class="ctl"><span>只看</span>
+        <select id="studyFilter">
+          <option value="all">全部</option>
+          <option value="todo">还没掌握</option>
+          <option value="new">还没学过</option>
+          <option value="wrong">答错过的</option>
+          <option value="done">已掌握</option>
+        </select>
+      </label>
+      <label class="chip"><input type="checkbox" id="studyMask"><span>遮住意思（自测）</span></label>
+      <div class="spacer"></div>
+      <span class="study-count" id="wordListCount"></span>
+    </div>
+    <div class="wordlist" id="wordList"></div>
+  </section>
+
+  <!-- 四选一测验 -->
+  <section id="studyQuiz" class="quiz hidden">
+    <div class="quiz-top">
+      <button class="btn ghost" id="quizBack">← 单词表</button>
+      <div class="quiz-progress">第 <b id="quizStep">1</b> / <span id="quizTotal">10</span> 题</div>
+      <div class="quiz-score">✓ <b id="quizRight">0</b>　✗ <b id="quizWrong">0</b>　连对 <b id="quizStreak">0</b></div>
+    </div>
+
+    <div class="quiz-card" id="quizCard">
+      <div class="quiz-word">
+        <div class="quiz-th" id="quizTh"></div>
+        <div class="quiz-ro" id="quizRo"></div>
+        <div class="quiz-cn" id="quizCn"></div>
+        <button class="quiz-speak" id="quizSpeak" title="再听一遍">🔊 听发音</button>
+        <div class="quiz-lv" id="quizLv"></div>
+      </div>
+      <div class="quiz-ask">它是什么意思？</div>
+      <div class="quiz-opts" id="quizOpts"></div>
+      <div class="quiz-feedback hidden" id="quizFeedback"></div>
+      <!-- 「下一个」紧跟在反馈下面：答错时眼睛正好停在这儿，不用再往下找 -->
+      <div class="quiz-next-row"><button class="btn primary hidden" id="quizNext">下一个 →</button></div>
+      <div class="quiz-foot">
+        <label class="chip"><input type="checkbox" id="quizShowRo" checked><span>罗马音</span></label>
+        <label class="chip"><input type="checkbox" id="quizShowCn"><span>中文谐音</span></label>
+        <label class="chip"><input type="checkbox" id="quizAutoSpeak" checked><span>出题自动读一遍</span></label>
+      </div>
+    </div>
+
+    <div class="quiz-done hidden" id="quizDone"></div>
+  </section>
+
+  <p class="study-hint" id="studyHint"></p>
+
+  <!-- 剪贴板用不了时的兜底：手动复制 -->
+  <div class="study-export hidden" id="studyExport">
+    <p>浏览器不让直接写剪贴板，自己全选复制一下（已经帮你选中了）：</p>
+    <textarea id="studyExportText" rows="10" readonly></textarea>
+    <button class="btn" id="studyExportClose">关掉</button>
+  </div>
+</main>
 
 <footer class="foot">
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
@@ -298,6 +389,9 @@
 <script src="songs/hua-jai-sang-hai-rak-thoe.js"></script>
 <script src="songs/safe-near-me.js"></script>
 <script src="js/chords.js"></script>
+<script src="js/distractors.js"></script>
+<script src="js/vocab.js"></script>
+<script src="js/study.js"></script>
 <script src="js/tts.js"></script>
 <script src="js/player.js"></script>
 <script src="js/recorder.js"></script>

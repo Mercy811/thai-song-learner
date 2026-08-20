@@ -41,7 +41,13 @@
   );
 
   const state = {
-    mode: (HAS_TIMELINE && localStorage.getItem(LS.mode) === 'ktv') ? 'ktv' : 'practice',
+    // 记住上次用的模式：KTV 得有时间轴才给进；
+    // 单词模式跟时间轴没关系，哪首歌都能进
+    mode: (() => {
+      const saved = localStorage.getItem(LS.mode);
+      if (saved === 'study') return 'study';
+      return HAS_TIMELINE && saved === 'ktv' ? 'ktv' : 'practice';
+    })(),
     activeIdx: -1,
     follow: true,
     loopOn: false,
@@ -253,12 +259,16 @@
      跟顶部的双行槽位用的是同一套逻辑：单数句永远在槽 0，双数句永远在槽 1，
      位置从不跳动，换的只是哪个槽亮（正在唱）。 */
   function setMode(mode) {
-    if (!HAS_TIMELINE) mode = 'practice';   // 没时间轴就没法做 KTV 逐句跟唱
+    // 没时间轴就没法做 KTV 逐句跟唱；单词模式不看时间轴，照进不误
+    if (!HAS_TIMELINE && mode === 'ktv') mode = 'practice';
     state.mode = mode;
     document.body.classList.toggle('mode-ktv', mode === 'ktv');
+    document.body.classList.toggle('mode-study', mode === 'study');
     $('#ktvView').classList.toggle('hidden', mode !== 'ktv');
+    $('#studyView').classList.toggle('hidden', mode !== 'study');
     $('#btnModePractice').classList.toggle('active', mode === 'practice');
     $('#btnModeKtv').classList.toggle('active', mode === 'ktv');
+    $('#btnModeStudy').classList.toggle('active', mode === 'study');
     localStorage.setItem(LS.mode, mode);
     if (mode === 'ktv') {
       renderKtvView();
@@ -268,6 +278,9 @@
       $('#ktvDanmakuForm').classList.add('hidden');
       $('#ktvBtnDanmaku').classList.remove('on');
     }
+    // 背单词时原曲别在旁边响着，不然点词听发音听不清
+    if (mode === 'study') Player.pause();
+    Study.setActive(mode === 'study');
   }
 
   // KTV 背景要不要露出 MV 画面。音源就是这支 MV，所以背景不是另一路视频，
@@ -879,9 +892,10 @@
       else if (act === 'rec') toggleRec(line, lineNode, btn);
     });
 
-    // 练习 / KTV 模式切换
+    // 练习 / KTV / 单词 三种模式切换
     $('#btnModePractice').addEventListener('click', () => setMode('practice'));
     $('#btnModeKtv').addEventListener('click', () => setMode('ktv'));
+    $('#btnModeStudy').addEventListener('click', () => setMode('study'));
     $('#ktvExit').addEventListener('click', () => setMode('practice'));
     $('#ktvPlayPause').addEventListener('click', () => Player.toggle());
     $('#ktvBg').addEventListener('click', () => Player.toggle());
@@ -1010,6 +1024,9 @@
         return;
       }
 
+      // 单词模式那边有自己一套（1–4 选答案、Enter 下一题），这套全让开
+      if (state.mode === 'study') return;
+
       switch (e.code) {
         case 'Space':      e.preventDefault(); Player.toggle(); break;
         case 'ArrowLeft':  e.preventDefault(); step(-1); break;
@@ -1025,6 +1042,20 @@
           $$('.modal').forEach((m) => m.classList.add('hidden'));
           break;
       }
+    });
+
+    // 单词表里点 🎵：回练习模式，跳到这个词出现的第一句，并让那个词闪一下
+    document.addEventListener('study:goto', (e) => {
+      const { idx, th } = e.detail;
+      setMode('practice');
+      setActive(idx, { scroll: false });
+      // 有时间轴的歌顺便把原曲定位过去（只定位，不自动播）；没有的就单纯选中
+      if (HAS_TIMELINE) Player.seek(LINES[idx].start, false);
+      const node = $(`.line[data-idx="${idx}"]`);
+      if (!node) return;
+      scrollToLine(idx);
+      const w = $$('.word', node).find((b) => b.dataset.th === th);
+      if (w) { w.classList.add('flash'); setTimeout(() => w.classList.remove('flash'), 1800); }
     });
 
     document.addEventListener('tts:voiceschanged', refreshVoiceUI);
@@ -1166,6 +1197,7 @@
     initSeek();
     bind();
     applyKtvBg();
+    Study.init(SONG);       // 单词表从歌词里摊出来，要赶在 setMode 之前
     setMode(state.mode);
     initKtvInteractions();
     watchDeckHeight();
