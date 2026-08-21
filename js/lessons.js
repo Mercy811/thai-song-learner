@@ -249,6 +249,45 @@ window.Lessons = (() => {
     if (playing) pausePlay(); else startPlay();
   }
 
+  /* ════════ 测验 / 对战：把这节课的词喂给 Study 模块 ════════
+     Study/Vocab/Battle 那一整套本来是给「一首歌的单词表」用的，
+     字段对上了就能直接拿来用——没必要另外写一遍测验和对战。
+     把这节课的词条拼成一个假「歌」：每个词条当一句歌词，
+     词条本身的讲解（hook）顶「这句歌词的中文」用，四选一出题、干扰项、
+     掌握程度、对战抢答，全部照旧走 Vocab/Battle 原来那套逻辑。 */
+
+  function lessonSong(lesson) {
+    const lines = lesson.blocks
+      .filter((b) => b.type === 'word')
+      .map((b, i) => ({
+        id: `${lesson.id}-${i}`,
+        th: b.th,
+        cn: b.hook || b.mean,
+        start: undefined,
+        words: [{ th: b.th, ro: b.ro, cn: b.cn, mean: b.mean, lang: 'th' }],
+      }));
+    return { id: 'lesson-' + lesson.id, timeline: false, sections: [{ name: lesson.title, lines }] };
+  }
+
+  function openStudy() {
+    if (!curLesson) return;
+    stopPlay();
+    Study.init(lessonSong(curLesson));
+    Study.setActive(true);
+    $('#lessonsPageView').classList.add('hidden');
+    $('#studyView').classList.remove('hidden');
+    $('#studyBackToLesson').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  function closeStudy() {
+    Study.setActive(false);
+    $('#studyView').classList.add('hidden');
+    $('#studyBackToLesson').classList.add('hidden');
+    $('#lessonsPageView').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
   /* ════════ 单独点某一段 / 某个词 ════════ */
 
   function findQueueItem(bi, kind) {
@@ -284,6 +323,8 @@ window.Lessons = (() => {
     });
 
     $('#lessonBack').addEventListener('click', closeLesson);
+    $('#lessonQuizBtn').addEventListener('click', openStudy);
+    $('#studyBackToLesson').addEventListener('click', closeStudy);
     $('#lessonPlayBtn').addEventListener('click', togglePlay);
     $('#lessonStopBtn').addEventListener('click', stopPlay);
     $('#lessonDoneBtn').addEventListener('click', () => {

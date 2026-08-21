@@ -18,6 +18,11 @@ window.Study = (() => {
   const ROUND = 10;                 // 一轮多少题
   const RECENT = 6;                 // 最近考过的几个词不重复出
 
+  // init() 现在可能被叫不止一次（记忆课那边每换一节课就重新 init 一次
+  // 换上那节课的词），事件监听和 Player.tick 订阅只该挂一次，不然会重复触发
+  let bound = false;
+  let tickWatched = false;
+
   const state = {
     on: false,
     page: 'list',                   // list 单词表 | quiz 一个人测验 | battle 双人对战
@@ -109,6 +114,8 @@ window.Study = (() => {
   }
 
   function watchLineEnd() {
+    if (tickWatched) return;
+    tickWatched = true;
     Player.on('tick', (t) => {
       if (playUntil === null) return;
       if (t >= playUntil) stopLinePlay(true);          // 唱完这句，收
@@ -374,6 +381,8 @@ window.Study = (() => {
   /* ════════ 事件 ════════ */
 
   function bind() {
+    if (bound) return;
+    bound = true;
     // ── 单词表 ──
     $('#wordList').addEventListener('click', (e) => {
       const row = e.target.closest('.wrow');
