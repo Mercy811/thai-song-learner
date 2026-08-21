@@ -19,6 +19,7 @@
       <p class="sub"><span id="songTitleTh"></span><span id="songTitleSep"> · </span><span id="songArtist"></span></p>
     </div>
     <div class="topbar-actions">
+      <button id="btnHome" class="icon-btn" title="回首页看所有歌">🏠 首页</button>
       <button id="btnSong" class="icon-btn" title="换一首歌">🎵 选歌</button>
       <!-- 只有 KTV 靠时间轴，没时间轴的歌单独把它收起来就行；
            练习和单词模式哪首歌都能用 -->
@@ -35,6 +36,16 @@
     </div>
   </div>
 </header>
+
+<!-- ══ 首页：曲库一览，每首歌一张预览卡（YouTube 封面），点进去才加载那首歌 ══ -->
+<main class="home hidden" id="homeView">
+  <div class="home-hero">
+    <button id="btnThemeHome" class="icon-btn home-theme" title="切换深浅色">◐</button>
+    <h1>🎵 泰语歌逐句跟读</h1>
+    <p>选一首歌开始学 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点任意一个词就能听发音</p>
+  </div>
+  <div class="home-grid" id="homeGrid"></div>
+</main>
 
 <!-- ══ 没有泰语语音时的提示条 ══ -->
 <div id="voiceBanner" class="banner hidden">

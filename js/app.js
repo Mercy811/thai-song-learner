@@ -5,14 +5,36 @@
 (() => {
   'use strict';
 
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+  const LS_SONG  = 'tsl.song';
+  const LS_THEME = 'tsl.theme';
+  const SONG_IDS = Object.keys(window.SONGS || {});
+
+  // 主题在首页和歌曲页共用，两边都要先套上，别等进了某首歌才生效
+  document.documentElement.dataset.theme = localStorage.getItem(LS_THEME)
+    || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  function toggleTheme() {
+    const cur = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = cur;
+    localStorage.setItem(LS_THEME, cur);
+  }
+
+  /* ── 首页：曲库一览 ──
+     一进站先看到所有支持的歌，每首一张卡（YouTube 封面当预览），
+     点进去才走 ?song=id 加载那一首。只有带着 ?song= 打开才直接进某首歌
+     （分享链接、或从某首歌切到另一首）。 */
+  const explicitId = new URLSearchParams(location.search).get('song');
+  if (!explicitId || !window.SONGS[explicitId]) {
+    initHome();
+    return;
+  }
+
   /* ── 当前是哪首歌 ──
      songs/ 下每个文件往 window.SONGS 里塞一首，index.html 里的引入顺序 = 选歌列表顺序。
-     选中的歌记在 localStorage，也可以用 ?song=歌曲id 直接打开某一首（分享链接用）。 */
-  const LS_SONG = 'tsl.song';
-  const SONG_IDS = Object.keys(window.SONGS || {});
-  const wantId = new URLSearchParams(location.search).get('song')
-              || localStorage.getItem(LS_SONG);
-  const SONG = window.SONGS[wantId] || window.SONGS[SONG_IDS[0]];
+     选中的歌记在 localStorage，方便首页把「上次在学」标出来。 */
+  const SONG = window.SONGS[explicitId];
   localStorage.setItem(LS_SONG, SONG.id);
 
   // 有的歌只做练习模式（timeline: false）：没有逐句时间轴，
@@ -28,15 +50,11 @@
     marked: 'tsl.marked.' + SONG.id + '.' + SONG.youtubeId,
     done:   'tsl.done.' + SONG.id,
     view:   'tsl.view',
-    theme:  'tsl.theme',
     ttsRate:'tsl.ttsRate',
     videoSize:'tsl.videoSize',
     mode:   'tsl.mode',
     ktvBg:  'tsl.ktvBg',
   };
-
-  const $  = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
   // 把所有段落里的句子摊平成一维，方便上一句/下一句
   const LINES = SONG.sections.flatMap((sec) =>
@@ -871,6 +889,61 @@
     $('#exportModal').classList.remove('hidden');
   }
 
+  /* ════════ 首页 ════════
+     一进站看到的就是曲库里所有歌，每首一张卡：YouTube 封面当预览图，
+     标题 + 歌手 + 句数 + 时间轴状态。点哪张卡就整页跳到 ?song=id 打开那首。
+     只在没带 ?song= 参数时渲染（HTML 里其余内容——播放器/歌词/底栏——保持原样待命，
+     这里只是把它们先藏起来，换成这块）。 */
+  function initHome() {
+    document.title = '泰语歌逐句跟读';
+    $('.topbar').classList.add('hidden');
+    $('.stickydeck').classList.add('hidden');
+    $('.viewbar').classList.add('hidden');
+    $('#lyrics').classList.add('hidden');
+    $('.foot').classList.add('hidden');
+    $('#homeView').classList.remove('hidden');
+
+    const lastId = localStorage.getItem(LS_SONG);
+    const ids = Object.keys(window.SONGS || {});
+
+    $('#homeGrid').innerHTML = ids.map((id) => {
+      const s = window.SONGS[id];
+      const m = songMeta(s);
+      const by = [s.artist, s.album].filter(Boolean).join(' · ');
+      const syncTag = s.timeline === false
+        ? '只练歌词'
+        : (s.synced ? '时间轴已校准' : '时间轴：估算');
+      return `<a class="home-card" href="?song=${encodeURIComponent(id)}" data-song="${esc(id)}">
+        <span class="home-card-thumb">
+          <img src="https://img.youtube.com/vi/${esc(s.youtubeId)}/hqdefault.jpg" alt="" loading="lazy">
+          <span class="home-card-play">▶</span>
+          ${id === lastId ? '<span class="home-card-badge">上次在学</span>' : ''}
+        </span>
+        <span class="home-card-body">
+          <span class="home-card-th">${esc(s.titleTh || s.title)}</span>
+          <span class="home-card-cn">${esc(s.titleCn || s.title)}</span>
+          ${by ? `<span class="home-card-by">${esc(by)}</span>` : ''}
+          <span class="home-card-meta">
+            <span>${m.count} 句</span>
+            ${m.done ? `<span>已掌握 ${m.done}</span>` : ''}
+            <span>${s.timeline === false ? '练习模式' : '练习 + KTV'}</span>
+            <span>${syncTag}</span>
+          </span>
+        </span>
+      </a>`;
+    }).join('');
+
+    $('#homeGrid').addEventListener('click', (e) => {
+      const card = e.target.closest('.home-card');
+      if (!card) return;
+      e.preventDefault();
+      localStorage.setItem(LS_SONG, card.dataset.song);
+      location.href = card.getAttribute('href');
+    });
+
+    $('#btnThemeHome').addEventListener('click', toggleTheme);
+  }
+
   /* ════════ 选歌 ════════
      列表就是 window.SONGS 里的全部歌曲，顺序 = index.html 里 <script> 的引入顺序。
      换歌走整页重载（?song=id）：播放器、歌词、时间轴、掌握进度都是按歌走的，
@@ -1049,11 +1122,10 @@
     });
 
     // 主题
-    $('#btnTheme').addEventListener('click', () => {
-      const cur = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = cur;
-      localStorage.setItem(LS.theme, cur);
-    });
+    $('#btnTheme').addEventListener('click', toggleTheme);
+
+    // 回首页看所有歌
+    $('#btnHome').addEventListener('click', () => { location.href = location.pathname; });
 
     // 快捷键
     document.addEventListener('keydown', (e) => {
@@ -1215,11 +1287,6 @@
   /* ════════ 启动 ════════ */
 
   function init() {
-    // 主题
-    const savedTheme = localStorage.getItem(LS.theme);
-    document.documentElement.dataset.theme = savedTheme
-      || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-
     // 标题
     $('#songTitle').textContent = SONG.titleCn || SONG.title;
     $('#songTitleTh').textContent = SONG.titleTh || '';
