@@ -1,5 +1,8 @@
 /**
- * Enemies with Benefits
+ * Wine I Hate You? — Jan, Jingjing / Ost. ลัลล์ไม่ชอบไวน์ (Enemies With Benefits)
+ *
+ * （之前误把剧名「Enemies with Benefits」当成了歌名，这首歌实际叫
+ * 《Wine I Hate You?》，歌手是 Jan, Jingjing，是同名剧集的插曲之一。）
  *
  * 歌词文本：使用者自己提供的那份泰英混唱歌词。
  * 逐词罗马音 / 中文谐音 / 中文意思：沿用 safe-near-me、hua-jai 那两首的同一套写法，
@@ -245,11 +248,11 @@ window.SONGS = window.SONGS || {};
 
   window.SONGS['enemies-with-benefits'] = {
     id: 'enemies-with-benefits',
-    title: 'Enemies with Benefits',
+    title: 'Wine I Hate You?',
     titleTh: '',
-    titleCn: '各取所需的敌人',
-    artist: '',
-    album: '',
+    titleCn: '酒啊，我恨你吗？',
+    artist: 'Jan, Jingjing',
+    album: 'Ost. ลัลล์ไม่ชอบไวน์ (Enemies With Benefits)',
     youtubeId: 'MeEqOOH-2eE',
 
     // 时间轴是估算的：页面顶部会挂提示条，点「⏱ 校准」标一遍就准了
