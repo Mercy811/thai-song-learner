@@ -35,12 +35,13 @@ window.WordFreq = (() => {
       song.sections.forEach((sec) => {
         sec.lines.forEach((line) => {
           (line.words || []).forEach((w) => {
-            if (!w.th) return;
+            // 只留泰语词：英文这边只是穿插借用的短语，不是要学的泰语词汇
+            if (!w.th || w.lang === 'en') return;
             let e = byTh.get(w.th);
             if (!e) {
               e = {
                 th: w.th, ro: w.ro || '', cn: w.cn || '', mean: w.mean || '',
-                lang: w.lang === 'en' ? 'en' : 'th',
+                lang: 'th',
                 count: 0, songIds: new Set(),
               };
               byTh.set(w.th, e);
