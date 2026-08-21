@@ -1,12 +1,18 @@
 /**
  * Sync —— 登录用户的数据云端读写（Supabase）。
  *
- * 现在只接了单词掌握程度这一类数据（对应 Supabase 里的 vocab_progress 表），
- * 其它 localStorage 里的数据（时间轴校准、已学标记、朗读设置……）还是纯本地，
- * 以后要接的话照这个文件的样子加一对 pull/push 函数就行。
+ * 接了这几类数据（各自对应 Supabase 里的一张表）：
+ *   单词掌握程度         vocab_progress   （vocab.js）
+ *   歌词句子「已掌握」    line_done        （app.js）
+ *   时间轴校准结果        timeline_calib   （app.js）
+ *   词频总表「记住了」    freq_learned     （wordfreq.js）
+ *   记忆课进度            lesson_progress  （lessons.js）
  *
- * 没登录、或者压根没配置 Supabase 的时候，这些函数直接跟没发生一样返回空 /
- * 什么也不做，调用方（vocab.js）该怎么用 localStorage 还怎么用，不受影响。
+ * 没接的（朗读语速、选的音色、深浅色、固定栏这些）是纯粹的「这台设备」偏好，
+ * 不是「我学到哪了」这种该跟着账号走的东西，所以留在本地，不用同步。
+ *
+ * 没登录、或者压根没配置 Supabase 的时候，下面这些函数直接跟没发生一样返回空 /
+ * 什么也不做，调用方该怎么用 localStorage 还怎么用，不受影响。
  */
 window.Sync = (() => {
   'use strict';
@@ -19,34 +25,64 @@ window.Sync = (() => {
     return u ? u.id : null;
   }
 
-  /** 拉这首歌云端存的单词进度；没登录 / 云端还没有就返回 null */
-  async function pullVocabProgress(songId) {
+  /** 通用单行拉取：按 match 里的条件查一行，没登录 / 没有就返回 null */
+  async function pullRow(table, match, columns) {
     const c = client();
     const uid = userId();
     if (!c || !uid) return null;
-    const { data, error } = await c
-      .from('vocab_progress')
-      .select('stats')
-      .eq('user_id', uid)
-      .eq('song_id', songId)
-      .maybeSingle();
-    if (error) { console.warn('[Sync] 拉取单词进度失败', error); return null; }
-    return data ? data.stats : null;
+    let q = c.from(table).select(columns).eq('user_id', uid);
+    Object.entries(match).forEach(([k, v]) => { q = q.eq(k, v); });
+    const { data, error } = await q.maybeSingle();
+    if (error) { console.warn(`[Sync] 拉取 ${table} 失败`, error); return null; }
+    return data;
   }
 
-  /** 把这首歌的单词进度写回云端；没登录就什么也不做，静默跳过、不报错 */
-  async function pushVocabProgress(songId, stats) {
+  /** 通用单行写回：没登录就什么也不做，静默跳过、不报错 */
+  async function pushRow(table, row, onConflict) {
     const c = client();
     const uid = userId();
     if (!c || !uid) return;
     const { error } = await c
-      .from('vocab_progress')
-      .upsert(
-        { user_id: uid, song_id: songId, stats, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id,song_id' }
-      );
-    if (error) console.warn('[Sync] 保存单词进度失败', error);
+      .from(table)
+      .upsert({ ...row, user_id: uid, updated_at: new Date().toISOString() }, { onConflict });
+    if (error) console.warn(`[Sync] 保存 ${table} 失败`, error);
   }
 
-  return { pullVocabProgress, pushVocabProgress };
+  /* ── 单词掌握程度 ── */
+  const pullVocabProgress = (songId) =>
+    pullRow('vocab_progress', { song_id: songId }, 'stats').then((d) => (d ? d.stats : null));
+  const pushVocabProgress = (songId, stats) =>
+    pushRow('vocab_progress', { song_id: songId, stats }, 'user_id,song_id');
+
+  /* ── 歌词句子「已掌握」 ── */
+  const pullLineDone = (songId) =>
+    pullRow('line_done', { song_id: songId }, 'done_ids').then((d) => (d ? d.done_ids : null));
+  const pushLineDone = (songId, doneIds) =>
+    pushRow('line_done', { song_id: songId, done_ids: doneIds }, 'user_id,song_id');
+
+  /* ── 时间轴校准 ── */
+  const pullTimelineCalib = (songId, youtubeId) =>
+    pullRow('timeline_calib', { song_id: songId, youtube_id: youtubeId }, 'times,marked');
+  const pushTimelineCalib = (songId, youtubeId, times, marked) =>
+    pushRow('timeline_calib', { song_id: songId, youtube_id: youtubeId, times, marked }, 'user_id,song_id,youtube_id');
+
+  /* ── 词频总表「记住了」（全站范围，不分歌，一个用户一行） ── */
+  const pullFreqLearned = () =>
+    pullRow('freq_learned', {}, 'words').then((d) => (d ? d.words : null));
+  const pushFreqLearned = (words) =>
+    pushRow('freq_learned', { words }, 'user_id');
+
+  /* ── 记忆课进度（一个用户一行） ── */
+  const pullLessonProgress = () =>
+    pullRow('lesson_progress', {}, 'done,word_status');
+  const pushLessonProgress = (done, wordStatus) =>
+    pushRow('lesson_progress', { done, word_status: wordStatus }, 'user_id');
+
+  return {
+    pullVocabProgress, pushVocabProgress,
+    pullLineDone, pushLineDone,
+    pullTimelineCalib, pushTimelineCalib,
+    pullFreqLearned, pushFreqLearned,
+    pullLessonProgress, pushLessonProgress,
+  };
 })();

@@ -30,10 +30,26 @@ window.WordFreq = (() => {
   }
   function saveLearned() {
     try { localStorage.setItem(LS_LEARNED, JSON.stringify([...learned])); } catch { /* 无痕模式，存不了就算了 */ }
+    if (window.Sync) window.Sync.pushFreqLearned([...learned]);
   }
   function toggleLearned(th) {
     if (learned.has(th)) learned.delete(th); else learned.add(th);
     saveLearned();
+  }
+
+  /** 登录用户：跟云端对一次「记住了」标记，逻辑跟 vocab.js 的 syncFromCloud 一样——
+      云端有就用云端的（换设备/浏览器登录看到同一份），云端还没有、本地有就当第一次登录，把本地这份传上去。 */
+  async function syncLearnedFromCloud() {
+    if (!window.Sync || !window.Auth || !window.Auth.isLoggedIn()) return;
+    const cloud = await window.Sync.pullFreqLearned();
+    if (cloud && cloud.length) {
+      learned = new Set(cloud);
+      try { localStorage.setItem(LS_LEARNED, JSON.stringify(cloud)); } catch { /* 无痕模式 */ }
+      renderHead();
+      render();
+    } else if (learned.size) {
+      window.Sync.pushFreqLearned([...learned]);
+    }
   }
 
   function esc(s) {
@@ -261,7 +277,11 @@ window.WordFreq = (() => {
     renderHead();
     bind();
     render();
+    syncLearnedFromCloud();   // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
   }
+
+  // 登录状态变化（刚登录、换了账号、退出）时，跟云端重新对一次
+  if (window.Auth) window.Auth.onChange(() => syncLearnedFromCloud());
 
   // build/list 单独导出：科普页（Science）要用同一份聚合数据画覆盖率曲线，
   // 不用再摊一遍全部歌曲——但科普页不一定先逛过词频页，所以自己也能单独调 build()

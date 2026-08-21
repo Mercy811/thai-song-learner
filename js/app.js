@@ -202,6 +202,7 @@
     // 没时间的句子（歌词文件里漏了 start、又还没标到）先跳过，别写个 null 进去
     LINES.forEach((l) => { if (typeof l.start === 'number') map[l.id] = +l.start.toFixed(2); });
     localStorage.setItem(LS.times, JSON.stringify(map));
+    return map;
   }
   // 标过的句子（校准面板里按过一次的那些），中途保存也不会丢
   const loadMarked = () => new Set(JSON.parse(localStorage.getItem(LS.marked) || '[]'));
@@ -216,6 +217,50 @@
     const marked = JSON.parse(localStorage.getItem(LS.marked) || 'null');
     return !marked || LINES.every((l) => marked.includes(l.id));
   };
+
+  /** 登录用户：这首歌的时间轴校准结果跟云端对一次。
+      云端有 → 云端说了算（换设备/浏览器登录进来看到同一份校准结果）；
+      云端还没有、本地倒是标过 → 第一次登录，把本地这份传上去。 */
+  async function syncCalibFromCloud() {
+    if (!window.Sync || !window.Auth || !window.Auth.isLoggedIn() || !HAS_TIMELINE) return;
+    const cloud = await window.Sync.pullTimelineCalib(SONG.id, SONG.youtubeId);
+    if (cloud && cloud.times && Object.keys(cloud.times).length) {
+      try {
+        localStorage.setItem(LS.times, JSON.stringify(cloud.times));
+        localStorage.setItem(LS.marked, JSON.stringify(cloud.marked || []));
+      } catch { /* 无痕模式 */ }
+      loadTimes();
+      render();
+      renderSeekMarks();
+      $('#syncBanner').classList.toggle('hidden', isCalibrated());
+    } else {
+      const localTimes = JSON.parse(localStorage.getItem(LS.times) || 'null');
+      if (localTimes && Object.keys(localTimes).length) {
+        const localMarked = JSON.parse(localStorage.getItem(LS.marked) || '[]');
+        window.Sync.pushTimelineCalib(SONG.id, SONG.youtubeId, localTimes, localMarked);
+      }
+    }
+  }
+
+  /** 登录用户：这首歌「已掌握」的句子跟云端对一次，逻辑跟上面一样 */
+  async function syncDoneFromCloud() {
+    if (!window.Sync || !window.Auth || !window.Auth.isLoggedIn()) return;
+    const cloud = await window.Sync.pullLineDone(SONG.id);
+    if (cloud && cloud.length) {
+      state.done = new Set(cloud);
+      try { localStorage.setItem(LS.done, JSON.stringify(cloud)); } catch { /* 无痕模式 */ }
+      render();
+    } else if (state.done.size) {
+      window.Sync.pushLineDone(SONG.id, [...state.done]);
+    }
+  }
+
+  function syncProgressFromCloud() {
+    syncCalibFromCloud();
+    syncDoneFromCloud();
+  }
+  // 登录状态变化（刚登录、换了账号、退出）时，跟云端重新对一次
+  if (window.Auth) window.Auth.onChange(syncProgressFromCloud);
 
   // 一句的结束时间 = 下一句的开始
   function lineEnd(i) {
@@ -956,8 +1001,10 @@
     let k = 0;
     SONG.sections.forEach((s) => s.lines.forEach((l) => { l.start = LINES[k++].start; }));
     singDur.length = 0;         // 时间变了，KTV 逐字变色缓存的每句时长要重算
-    saveTimes();
-    localStorage.setItem(LS.marked, JSON.stringify([...marked]));
+    const timesMap = saveTimes();
+    const markedArr = [...marked];
+    localStorage.setItem(LS.marked, JSON.stringify(markedArr));
+    if (window.Sync) window.Sync.pushTimelineCalib(SONG.id, SONG.youtubeId, timesMap, markedArr);
     closeCalib();
     // 全部标完了才把提示条收掉；标了一半就留着，提醒还得接着标
     const left = LINES.length - LINES.filter((l) => marked.has(l.id)).length;
@@ -1363,6 +1410,7 @@
     else { state.done.add(line.id); btn.textContent = '✓ 已掌握'; }
     node.classList.toggle('done', state.done.has(line.id));
     localStorage.setItem(LS.done, JSON.stringify([...state.done]));
+    if (window.Sync) window.Sync.pushLineDone(SONG.id, [...state.done]);
   }
 
   async function toggleRec(line, node, btn) {
@@ -1486,6 +1534,8 @@
     watchStickyLayout();
 
     if (!isCalibrated()) $('#syncBanner').classList.remove('hidden');
+
+    syncProgressFromCloud();   // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
 
     TTS.init();
     setTimeout(refreshVoiceUI, 100);

@@ -53,6 +53,7 @@ window.Lessons = (() => {
   }
   function saveDone() {
     try { localStorage.setItem(LS_DONE, JSON.stringify(done)); } catch { /* 无痕模式存不了就算了 */ }
+    pushProgress();
   }
   function setDone(id, val) {
     if (val) done[id] = true; else delete done[id];
@@ -73,6 +74,33 @@ window.Lessons = (() => {
   }
   function saveWordStatus() {
     try { localStorage.setItem(LS_STATUS, JSON.stringify(wordStatus)); } catch { /* 无痕模式存不了就算了 */ }
+    pushProgress();
+  }
+
+  /** 登录了就把「哪几课学完了 + 单词学过/没学过」传一份到云端，异步、不等结果 */
+  function pushProgress() {
+    if (window.Sync) window.Sync.pushLessonProgress(done, wordStatus);
+  }
+
+  /** 登录用户：把课程进度跟云端对一次。
+      云端有 → 云端说了算（换设备/浏览器登录进来看到同一份进度）；
+      云端还没有、本地倒是有 → 第一次登录，把本地这份传上去。 */
+  async function syncProgressFromCloud() {
+    if (!window.Sync || !window.Auth || !window.Auth.isLoggedIn()) return;
+    const cloud = await window.Sync.pullLessonProgress();
+    const cloudHasData = cloud && (Object.keys(cloud.done || {}).length || Object.keys(cloud.word_status || {}).length);
+    if (cloudHasData) {
+      done = cloud.done || {};
+      wordStatus = cloud.word_status || {};
+      try {
+        localStorage.setItem(LS_DONE, JSON.stringify(done));
+        localStorage.setItem(LS_STATUS, JSON.stringify(wordStatus));
+      } catch { /* 无痕模式 */ }
+      renderList();
+      if (curLesson) renderArticle();
+    } else if (Object.keys(done).length || Object.keys(wordStatus).length) {
+      pushProgress();
+    }
   }
   function getWordStatus(bi) {
     return wordStatus[curLesson.id] && wordStatus[curLesson.id][bi];
@@ -475,7 +503,11 @@ window.Lessons = (() => {
     loadPlayFilter();
     bind();
     renderList();
+    syncProgressFromCloud();   // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
   }
+
+  // 登录状态变化（刚登录、换了账号、退出）时，跟云端重新对一次
+  if (window.Auth) window.Auth.onChange(() => syncProgressFromCloud());
 
   return { init };
 })();

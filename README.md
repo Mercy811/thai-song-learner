@@ -198,7 +198,9 @@ python3 -m http.server 4321 --directory .
 
 anon key 是设计成可以公开的（真正的权限控制在上面那段 SQL 的 Row Level Security 里），可以放心提交到仓库。
 
-目前只有「单词掌握程度」这一类数据接了云端同步，其余存在 `localStorage` 里的数据（时间轴校准、已学标记、朗读设置……）还是纯本地，逻辑都在 [`js/sync.js`](js/sync.js) 里，以后要接照着加就行。
+接了云端同步的数据：单词掌握程度、歌词句子「已掌握」打勾、时间轴校准结果、词频总表「记住了」标记、记忆课进度（哪几课学完了 + 单词卡「学过/没学过」）。逻辑都在 [`js/sync.js`](js/sync.js) 里，对应 Supabase 里的五张表（见 [`supabase/schema.sql`](supabase/schema.sql)）。
+
+朗读语速、选的音色、深浅色、固定栏这些留在本地不同步——它们是「这台设备」的偏好，不是「我学到哪了」，换设备本来就该各自设置。
 
 ## 部署（不用 GitHub Pages 的话）
 
