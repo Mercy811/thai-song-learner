@@ -1726,6 +1726,7 @@ body.mode-study .foot { display: none; }
 .lesson-article-sub { margin: 0 0 16px; font-size: 13px; color: var(--text-2); }
 
 .lesson-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.lesson-rate-ctl { margin-left: auto; }
 #lessonPlayBtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 .lesson-play-progress { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
 
@@ -1751,7 +1752,6 @@ body.mode-study .foot { display: none; }
 }
 .lesson-word-th:hover { color: var(--accent); text-decoration: underline; }
 .lesson-word-ro { font-size: 12.5px; color: var(--accent-2); }
-.lesson-word-cn { font-size: 13px; color: var(--text-3); }
 .lesson-word-mean { font-size: 14px; font-weight: 600; margin-left: auto; }
 .lesson-word-hook { margin-top: 5px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
 .lesson-word-tag { margin-top: 5px; font-size: 11.5px; color: var(--text-3); }

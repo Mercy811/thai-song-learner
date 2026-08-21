@@ -1,10 +1,17 @@
 /**
  * Lessons —— 记忆课：把 window.LESSONS 里的文字内容渲染成可读可听的课程页
  *
- * 每节课是一篇「文章」：讲解段落（中文朗读） + 单词卡片（先读泰语，
- * 紧跟着读中文意思和联想）。点「▶ 朗读整节课」会按顺序把这些片段
- * 拼成一条连续的语音播放列表，正在读的那一段会高亮 + 自动滚动到视野里，
- * 适合洗澡、走路、开车这种不方便看屏幕的场景——听就够了。
+ * 每节课是一篇「文章」：讲解段落（中文朗读） + 单词卡片（先读泰语真人发音，
+ * 紧跟着读中文讲解）。点「▶ 朗读整节课」会按顺序把这些片段拼成一条连续的
+ * 播放列表，正在读的那一段会高亮 + 自动滚动到视野里，适合洗澡、走路、
+ * 开车这种不方便看屏幕的场景——听就够了。
+ *
+ * 音频不是浏览器现读的机械语音，是提前用 edge-tts（免费、不用 API Key，
+ * 调的是 Microsoft Edge 朗读功能背后的神经网络语音）合成好、存在
+ * audio/lessons/ 下的真人感语音文件——文字改了要记得重跑一遍
+ * scripts/generate-lesson-audio.py。播放器优先放这些文件，万一某个
+ * 文件缺失（比如内容刚改还没来得及重新合成），会自动退回浏览器自带的
+ * Web Speech API，不会卡住播不出声。
  *
  * 进度只记一件事：这节课「听完了 / 手动标了已学完」没有，存在 localStorage，
  * 换设备不会同步，就是个小小的打勾用来提醒自己学到哪了。
@@ -16,15 +23,18 @@ window.Lessons = (() => {
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
   const LS_DONE = 'tsl.lessonsDone';
-  const LS_RATE = 'tsl.ttsRate';
+  const LS_RATE = 'tsl.lessonsRate';
+  const AUDIO_BASE = 'audio/lessons';
 
   let lessons = [];
   let done = {};
   let curLesson = null;
   let curIdx = -1;
-  let queue = [];          // 播放队列：[{ bi, lang:'zh'|'th', text, isTh? }]
+  let queue = [];          // 播放队列：[{ bi, lang:'zh'|'th', text, kind, src, isTh? }]
   let playPos = -1;        // 队列里播到第几条了
+  let loadedIdx = -1;      // player 里当前加载的是队列第几条——跟 playPos 相等时暂停/继续能接着播，不用从头来
   let playing = false;
+  const player = new Audio();  // 顺序播放和「点一下听」共用这一个播放器，同一时刻只放一样东西
 
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) =>
@@ -45,7 +55,10 @@ window.Lessons = (() => {
   }
 
   function rate() {
-    return Math.max(0.4, parseFloat(localStorage.getItem(LS_RATE)) || 0.7);
+    return Math.max(0.7, Math.min(1.5, parseFloat(localStorage.getItem(LS_RATE)) || 1));
+  }
+  function saveRate(v) {
+    try { localStorage.setItem(LS_RATE, v); } catch { /* 无痕模式存不了就算了 */ }
   }
 
   /* ════════ 课程列表 ════════ */
@@ -78,9 +91,8 @@ window.Lessons = (() => {
     return `
       <div class="lesson-word" data-bi="${bi}">
         <div class="lesson-word-head">
-          <button class="lesson-word-th" data-act="speak-th" data-bi="${bi}" title="点一下听泰语发音">${esc(b.th)}</button>
+          <button class="lesson-word-th" data-act="speak-th" data-bi="${bi}" title="点一下听泰语真人发音">${esc(b.th)}</button>
           ${roLine}
-          <span class="lesson-word-cn">${esc(b.cn)}</span>
           <span class="lesson-word-mean">${esc(b.mean)}</span>
         </div>
         <div class="lesson-word-hook">${esc(b.hook)}</div>
@@ -124,14 +136,18 @@ window.Lessons = (() => {
 
   /* ════════ 播放队列：讲解段落整段读，单词卡先读泰语再读中文联想 ════════ */
 
+  function audioSrc(lessonId, bi, kind) {
+    return `${AUDIO_BASE}/${lessonId}/${bi}-${kind}.mp3`;
+  }
+
   function buildQueue() {
     queue = [];
     curLesson.blocks.forEach((b, bi) => {
       if (b.type === 'p') {
-        queue.push({ bi, lang: 'zh', text: b.text });
+        queue.push({ bi, kind: 'p', lang: 'zh', text: b.text, src: audioSrc(curLesson.id, bi, 'p') });
       } else {
-        if (b.th) queue.push({ bi, lang: 'th', text: b.th, isTh: true });
-        if (b.hook) queue.push({ bi, lang: 'zh', text: b.hook });
+        if (b.th) queue.push({ bi, kind: 'th', lang: 'th', text: b.th, isTh: true, src: audioSrc(curLesson.id, bi, 'th') });
+        if (b.hook) queue.push({ bi, kind: 'hook', lang: 'zh', text: b.hook, src: audioSrc(curLesson.id, bi, 'hook') });
       }
     });
     playPos = -1;
@@ -156,6 +172,31 @@ window.Lessons = (() => {
       : '';
   }
 
+  /** 真人语音文件放不出来（还没合成、网络问题……）时的兜底：退回浏览器自带朗读 */
+  function fallbackSpeak(item, onDone) {
+    TTS.unlock();
+    TTS.speak(item.text, {
+      lang: item.lang,
+      rate: item.isTh ? Math.max(0.4, rate() - 0.3) : rate(),
+      onend: onDone,
+      onerror: onDone,
+    });
+  }
+
+  function playItem(item, onDone) {
+    player.onended = null;
+    player.onerror = null;
+    player.pause();
+    player.onended = onDone || null;
+    player.onerror = () => fallbackSpeak(item, onDone);
+    // 泰语词卡朗读得比中文讲解慢一点，听清楚每个音；播放速度靠 rate() 调
+    player.playbackRate = item.isTh ? Math.max(0.6, rate() - 0.15) : rate();
+    player.src = item.src;
+    player.currentTime = 0;
+    const p = player.play();
+    if (p && p.catch) p.catch(() => fallbackSpeak(item, onDone));
+  }
+
   function playFrom(qIdx) {
     if (qIdx >= queue.length) {
       stopPlay();
@@ -168,13 +209,16 @@ window.Lessons = (() => {
     const item = queue[qIdx];
     highlightBlock(item.bi);
     updatePlayUI();
-    TTS.unlock();
-    TTS.speak(item.text, {
-      lang: item.lang,
-      rate: item.isTh ? Math.max(0.4, rate() - 0.1) : rate(),
-      onend: () => { if (playing) playFrom(qIdx + 1); },
-      onerror: () => { if (playing) playFrom(qIdx + 1); },
-    });
+
+    // 暂停后原地继续：还是同一段、播放器里也还加载着，直接 play() 接着放，
+    // 不用重新加载文件、也不会从这一段的开头重来
+    if (loadedIdx === qIdx && player.src.endsWith(item.src)) {
+      const p = player.play();
+      if (p && p.catch) p.catch(() => fallbackSpeak(item, () => { if (playing) playFrom(qIdx + 1); }));
+      return;
+    }
+    loadedIdx = qIdx;
+    playItem(item, () => { if (playing) playFrom(qIdx + 1); });
   }
 
   function startPlay() {
@@ -185,14 +229,18 @@ window.Lessons = (() => {
 
   function pausePlay() {
     playing = false;
+    player.pause();
     TTS.stop();
     updatePlayUI();
   }
 
   function stopPlay() {
     playing = false;
+    player.pause();
+    player.currentTime = 0;
     TTS.stop();
     playPos = -1;
+    loadedIdx = -1;
     highlightBlock(null);
     updatePlayUI();
   }
@@ -203,10 +251,16 @@ window.Lessons = (() => {
 
   /* ════════ 单独点某一段 / 某个词 ════════ */
 
-  function speakOnce(text, lang) {
+  function findQueueItem(bi, kind) {
+    return queue.find((q) => q.bi === bi && q.kind === kind);
+  }
+
+  function speakOnce(item) {
+    if (!item) return;
     playing = false;
-    TTS.unlock();
-    TTS.speak(text, { lang, rate: lang === 'th' ? Math.max(0.4, rate() - 0.1) : rate() });
+    loadedIdx = -1;
+    playItem(item, null);
+    updatePlayUI();
   }
 
   /* ════════ 事件 ════════ */
@@ -228,15 +282,23 @@ window.Lessons = (() => {
 
     $('#lessonBlocks').addEventListener('click', (e) => {
       const thBtn = e.target.closest('[data-act="speak-th"]');
-      if (thBtn) { speakOnce(thBtn.textContent.trim(), 'th'); return; }
+      if (thBtn) { speakOnce(findQueueItem(+thBtn.dataset.bi, 'th')); return; }
       const p = e.target.closest('[data-act="speak-p"]');
-      if (p) { speakOnce(p.textContent.trim(), 'zh'); return; }
+      if (p) { speakOnce(findQueueItem(+p.dataset.bi, 'p')); return; }
       const wordCard = e.target.closest('.lesson-word');
-      if (wordCard) {
-        const hookEl = wordCard.querySelector('.lesson-word-hook');
-        if (hookEl) speakOnce(hookEl.textContent.trim(), 'zh');
-      }
+      if (wordCard) { speakOnce(findQueueItem(+wordCard.dataset.bi, 'hook')); }
     });
+
+    const rateSlider = $('#lessonRate');
+    if (rateSlider) {
+      rateSlider.value = rate();
+      $('#lessonRateVal').textContent = rate().toFixed(2) + '×';
+      rateSlider.addEventListener('input', (e) => {
+        saveRate(e.target.value);
+        $('#lessonRateVal').textContent = rate().toFixed(2) + '×';
+        if (playing) player.playbackRate = rate();
+      });
+    }
   }
 
   /* ════════ 启动 ════════ */
