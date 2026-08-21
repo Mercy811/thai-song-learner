@@ -1270,14 +1270,19 @@ body.mode-ktv.ktv-bg-video .video-box iframe {
   --lv5: #43ac66;
 }
 
-/* 单词模式下把跟唱那一套收起来，屏幕全留给单词 */
+/* 单词模式 / 词频模式下把跟唱那一套收起来，屏幕全留给单词表 */
 body.mode-study .stickydeck,
 body.mode-study .viewbar,
 body.mode-study .uku-hint,
 body.mode-study #lyrics,
-body.mode-study .foot { display: none; }
+body.mode-study .foot,
+body.mode-freq .stickydeck,
+body.mode-freq .viewbar,
+body.mode-freq .uku-hint,
+body.mode-freq #lyrics,
+body.mode-freq .foot { display: none; }
 
-.study { max-width: 1020px; margin: 0 auto; padding: 20px 18px 70px; }
+.study, .freq { max-width: 1020px; margin: 0 auto; padding: 20px 18px 70px; }
 
 /* ── 总览 ───────────────────────────── */
 .study-head {
@@ -1407,6 +1412,40 @@ body.mode-study .foot { display: none; }
   border-radius: 5px; padding: 1px 6px; font-size: 11px; font-family: inherit;
   color: var(--text-2); margin: 0 1px;
 }
+
+/* ── 词频总表 ───────────────────────── */
+.freq-search-wrap { flex: 1 1 220px; min-width: 160px; }
+.freq-search-wrap input {
+  width: 100%; font: inherit; font-size: 14px; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card-2); color: var(--text);
+}
+.freq-search-wrap input:focus { outline: none; border-color: var(--accent); background: var(--card); }
+.freq-search-wrap input::placeholder { color: var(--text-3); }
+
+.frow {
+  display: grid;
+  grid-template-columns: 34px minmax(150px, 1.1fr) minmax(110px, .9fr) 100px minmax(130px, 1fr);
+  align-items: center; gap: 12px;
+  padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+}
+.frow:last-child { border-bottom: none; }
+.frow:hover { background: var(--card-2); }
+
+.frow-count { text-align: left; white-space: nowrap; }
+.frow-count b { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+.frow-count span { font-size: 11.5px; color: var(--text-3); }
+.frow-bar { height: 4px; border-radius: 2px; background: var(--card-2); margin-top: 5px; overflow: hidden; }
+.frow-bar > i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
+
+.frow-songs { display: flex; flex-wrap: wrap; gap: 4px; }
+.freq-song-chip {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card-2); color: var(--text-3);
+  cursor: pointer; font-family: inherit; line-height: 1.6; transition: all .15s;
+}
+.freq-song-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
 /* 从单词表跳回歌词时，让那个词闪一下，好在句子里一眼找到 */
 .word.flash {
@@ -1558,7 +1597,7 @@ body.mode-study .foot { display: none; }
 
 /* ── 手机 ───────────────────────────── */
 @media (max-width: 720px) {
-  .study { padding: 14px 12px 56px; }
+  .study, .freq { padding: 14px 12px 56px; }
   .study-head { padding: 15px 15px 13px; }
   /* 三个按钮：开始测验独占一行，另外两个平分下面一行，谁都不会被挤成两行字 */
   .study-actions {
@@ -1587,6 +1626,24 @@ body.mode-study .foot { display: none; }
   }
   .wrow-lv    { grid-area: lv; margin-top: 3px; }
   .wrow-tools { grid-area: tools; align-self: start; }
+
+  /* 词频总表：同样挤不下五列，改成词 + 次数一行，意思一行，出自一行 */
+  .frow {
+    grid-template-columns: 26px 1fr auto;
+    grid-template-areas:
+      "no  word  count"
+      ".   mean  mean"
+      ".   songs songs";
+    gap: 4px 10px; padding: 11px 12px;
+  }
+  .frow .wrow-no    { grid-area: no; align-self: start; padding-top: 5px; }
+  .frow .wrow-word  { grid-area: word; }
+  .frow .wrow-mean  {
+    grid-area: mean; font-size: 14px;
+    border-left: 2px solid var(--line); padding-left: 8px; margin-top: 3px;
+  }
+  .frow-count { grid-area: count; text-align: right; align-self: start; }
+  .frow-songs { grid-area: songs; margin-top: 3px; }
 
   .quiz-next-row .btn { width: 100%; }
   .quiz-th { font-size: 36px; }

@@ -49,6 +49,7 @@
     mode: (() => {
       const saved = localStorage.getItem(LS.mode);
       if (saved === 'study') return 'study';
+      if (saved === 'freq') return 'freq';
       return HAS_TIMELINE && saved === 'ktv' ? 'ktv' : 'practice';
     })(),
     activeIdx: -1,
@@ -276,11 +277,14 @@
     state.mode = mode;
     document.body.classList.toggle('mode-ktv', mode === 'ktv');
     document.body.classList.toggle('mode-study', mode === 'study');
+    document.body.classList.toggle('mode-freq', mode === 'freq');
     $('#ktvView').classList.toggle('hidden', mode !== 'ktv');
     $('#studyView').classList.toggle('hidden', mode !== 'study');
+    $('#freqView').classList.toggle('hidden', mode !== 'freq');
     $('#btnModePractice').classList.toggle('active', mode === 'practice');
     $('#btnModeKtv').classList.toggle('active', mode === 'ktv');
     $('#btnModeStudy').classList.toggle('active', mode === 'study');
+    $('#btnModeFreq').classList.toggle('active', mode === 'freq');
     localStorage.setItem(LS.mode, mode);
     if (mode === 'ktv') {
       renderKtvView();
@@ -290,8 +294,8 @@
       $('#ktvDanmakuForm').classList.add('hidden');
       $('#ktvBtnDanmaku').classList.remove('on');
     }
-    // 背单词时原曲别在旁边响着，不然点词听发音听不清
-    if (mode === 'study') Player.pause();
+    // 背单词 / 看词频表时原曲别在旁边响着，不然点词听发音听不清
+    if (mode === 'study' || mode === 'freq') Player.pause();
     Study.setActive(mode === 'study');
   }
 
@@ -935,10 +939,11 @@
       else if (act === 'rec') toggleRec(line, lineNode, btn);
     });
 
-    // 练习 / KTV / 单词 三种模式切换
+    // 练习 / KTV / 单词 / 词频 四种模式切换
     $('#btnModePractice').addEventListener('click', () => setMode('practice'));
     $('#btnModeKtv').addEventListener('click', () => setMode('ktv'));
     $('#btnModeStudy').addEventListener('click', () => setMode('study'));
+    $('#btnModeFreq').addEventListener('click', () => setMode('freq'));
     $('#ktvExit').addEventListener('click', () => setMode('practice'));
     $('#ktvPlayPause').addEventListener('click', () => Player.toggle());
     $('#ktvBg').addEventListener('click', () => Player.toggle());
@@ -1241,6 +1246,7 @@
     bind();
     applyKtvBg();
     Study.init(SONG);       // 单词表从歌词里摊出来，要赶在 setMode 之前
+    WordFreq.init(switchSong); // 词频总表摊全部歌曲，点歌名用 switchSong 跳过去
     setMode(state.mode);
     initKtvInteractions();
     watchDeckHeight();
