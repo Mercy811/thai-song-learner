@@ -24,15 +24,20 @@ window.Lessons = (() => {
 
   const LS_DONE = 'tsl.lessonsDone';
   const LS_RATE = 'tsl.lessonsRate';
+  const LS_STATUS = 'tsl.lessonsWordStatus';
+  const LS_FILTER = 'tsl.lessonsPlayFilter';
   const AUDIO_BASE = 'audio/lessons';
 
   let lessons = [];
   let done = {};
+  let wordStatus = {};     // { [lessonId]: { [bi]: 'known' | 'unknown' } } —— 单词卡自己标的「学过 / 没学过」，没标的算未标记
+  let playFilter = 'all';  // 'all' | 'known' | 'unknown' —— 「朗读整节课」读哪个范围的词
   let curLesson = null;
   let curIdx = -1;
-  let queue = [];          // 播放队列：[{ bi, lang:'zh'|'th', text, kind, src, isTh? }]
-  let playPos = -1;        // 队列里播到第几条了
-  let loadedIdx = -1;      // player 里当前加载的是队列第几条——跟 playPos 相等时暂停/继续能接着播，不用从头来
+  let queue = [];          // 完整队列（不受朗读范围筛选）：[{ bi, lang:'zh'|'th', text, kind, src, isTh? }]，点单个词/段落用这个查
+  let playQueue = [];      // 朗读整节课实际会顺序播放的子集——按 playFilter 从 queue 里挑出来的
+  let playPos = -1;        // playQueue 里播到第几条了
+  let loadedIdx = -1;      // player 里当前加载的是 playQueue 第几条——跟 playPos 相等时暂停/继续能接着播，不用从头来
   let playing = false;
   const player = new Audio();  // 顺序播放和「点一下听」共用这一个播放器，同一时刻只放一样东西
 
@@ -59,6 +64,37 @@ window.Lessons = (() => {
   }
   function saveRate(v) {
     try { localStorage.setItem(LS_RATE, v); } catch { /* 无痕模式存不了就算了 */ }
+  }
+
+  /* ════════ 单词「学过 / 没学过」状态 ════════ */
+
+  function loadWordStatus() {
+    try { wordStatus = JSON.parse(localStorage.getItem(LS_STATUS) || '{}') || {}; } catch { wordStatus = {}; }
+  }
+  function saveWordStatus() {
+    try { localStorage.setItem(LS_STATUS, JSON.stringify(wordStatus)); } catch { /* 无痕模式存不了就算了 */ }
+  }
+  function getWordStatus(bi) {
+    return wordStatus[curLesson.id] && wordStatus[curLesson.id][bi];
+  }
+  /** 点「学过」/「没学过」：再点一下同一个取消，变回未标记 */
+  function toggleWordStatus(bi, val) {
+    const cur = wordStatus[curLesson.id] || (wordStatus[curLesson.id] = {});
+    if (cur[bi] === val) delete cur[bi]; else cur[bi] = val;
+    if (!Object.keys(cur).length) delete wordStatus[curLesson.id];
+    saveWordStatus();
+    refreshWordCard(bi);
+    updateStatusSummary();
+    if (!playing) buildPlayQueue();
+  }
+
+  function loadPlayFilter() {
+    const v = localStorage.getItem(LS_FILTER);
+    playFilter = (v === 'known' || v === 'unknown') ? v : 'all';
+  }
+  function savePlayFilter(v) {
+    playFilter = (v === 'known' || v === 'unknown') ? v : 'all';
+    try { localStorage.setItem(LS_FILTER, playFilter); } catch { /* 无痕模式存不了就算了 */ }
   }
 
   /* ════════ 课程列表 ════════ */
@@ -88,8 +124,10 @@ window.Lessons = (() => {
     }
     const roLine = b.ro ? `<span class="lesson-word-ro">${esc(b.ro)}</span>` : '';
     const tagLine = b.tag ? `<div class="lesson-word-tag">🎵 出自《${esc(b.tag)}》</div>` : '';
+    const st = getWordStatus(bi);
+    const cardCls = st === 'known' ? ' is-known' : st === 'unknown' ? ' is-unknown' : '';
     return `
-      <div class="lesson-word" data-bi="${bi}">
+      <div class="lesson-word${cardCls}" data-bi="${bi}">
         <div class="lesson-word-head">
           <button class="lesson-word-th" data-act="speak-th" data-bi="${bi}" title="点一下听泰语真人发音">${esc(b.th)}</button>
           ${roLine}
@@ -97,7 +135,39 @@ window.Lessons = (() => {
         </div>
         <div class="lesson-word-hook" data-act="speak-zh" data-bi="${bi}" title="点一下听中文讲解">${esc(b.hook)}</div>
         ${tagLine}
+        <div class="lesson-word-status">
+          <button class="lw-status-btn lw-known${st === 'known' ? ' active' : ''}" data-act="mark-known" data-bi="${bi}" title="标记为已经学过了">✓ 学过</button>
+          <button class="lw-status-btn lw-unknown${st === 'unknown' ? ' active' : ''}" data-act="mark-unknown" data-bi="${bi}" title="标记为还没学过">✗ 没学过</button>
+        </div>
       </div>`;
+  }
+
+  /** 点了「学过/没学过」之后只刷新这一张卡，不动别的（比如正在播的高亮） */
+  function refreshWordCard(bi) {
+    const card = $(`.lesson-word[data-bi="${bi}"]`);
+    if (!card) return;
+    const st = getWordStatus(bi);
+    card.classList.toggle('is-known', st === 'known');
+    card.classList.toggle('is-unknown', st === 'unknown');
+    const knownBtn = $('[data-act="mark-known"]', card);
+    const unknownBtn = $('[data-act="mark-unknown"]', card);
+    if (knownBtn) knownBtn.classList.toggle('active', st === 'known');
+    if (unknownBtn) unknownBtn.classList.toggle('active', st === 'unknown');
+  }
+
+  function updateStatusSummary() {
+    const el = $('#lessonStatusSummary');
+    if (!el || !curLesson) return;
+    let total = 0, known = 0, unknown = 0;
+    curLesson.blocks.forEach((b, bi) => {
+      if (b.type !== 'word') return;
+      total++;
+      const st = getWordStatus(bi);
+      if (st === 'known') known++;
+      else if (st === 'unknown') unknown++;
+    });
+    const neutral = total - known - unknown;
+    el.textContent = `共 ${total} 个词 · 已学过 ${known} · 没学过 ${unknown}${neutral ? ` · 还没标记 ${neutral}` : ''}`;
   }
 
   function renderArticle() {
@@ -106,8 +176,11 @@ window.Lessons = (() => {
     $('#lessonArticleSub').textContent = l.subtitle;
     $('#lessonBlocks').innerHTML = l.blocks.map(blockHtml).join('');
     updateDoneBtn();
+    const filterSel = $('#lessonPlayFilter');
+    if (filterSel) filterSel.value = playFilter;
     buildQueue();
     updatePlayUI();
+    updateStatusSummary();
   }
 
   function updateDoneBtn() {
@@ -150,6 +223,19 @@ window.Lessons = (() => {
         if (b.hook) queue.push({ bi, kind: 'hook', lang: 'zh', text: b.hook, src: audioSrc(curLesson.id, bi, 'hook') });
       }
     });
+    buildPlayQueue();
+  }
+
+  /** 从完整队列里按 playFilter 挑出「朗读整节课」实际要播的那部分：
+   *  选了只读某个范围的词时，讲解段落先跳过，专心过词；单个词点听不受这个筛选影响。 */
+  function buildPlayQueue() {
+    playQueue = playFilter === 'all'
+      ? queue.slice()
+      : queue.filter((item) => {
+          if (item.kind === 'p') return false;
+          const st = getWordStatus(item.bi) || 'unknown';
+          return st === playFilter;
+        });
     playPos = -1;
   }
 
@@ -165,11 +251,13 @@ window.Lessons = (() => {
 
   function updatePlayUI() {
     const btn = $('#lessonPlayBtn');
-    btn.textContent = playing ? '⏸ 暂停' : (playPos >= 0 && playPos < queue.length ? '▶ 继续朗读' : '▶ 朗读整节课');
+    const empty = playQueue.length === 0;
+    btn.disabled = empty;
+    btn.textContent = playing ? '⏸ 暂停' : (playPos >= 0 && playPos < playQueue.length ? '▶ 继续朗读' : '▶ 朗读整节课');
     btn.classList.toggle('on', playing);
-    $('#lessonPlayProgress').textContent = (queue.length && playPos >= 0)
-      ? `第 ${Math.min(playPos + 1, queue.length)} / ${queue.length} 段`
-      : '';
+    $('#lessonPlayProgress').textContent = empty
+      ? '这个范围里没有词，换个朗读范围试试'
+      : (playPos >= 0 ? `第 ${Math.min(playPos + 1, playQueue.length)} / ${playQueue.length} 段` : '');
   }
 
   /** 真人语音文件放不出来（还没合成、网络问题……）时的兜底：退回浏览器自带朗读 */
@@ -198,15 +286,18 @@ window.Lessons = (() => {
   }
 
   function playFrom(qIdx) {
-    if (qIdx >= queue.length) {
+    if (qIdx >= playQueue.length) {
       stopPlay();
-      setDone(curLesson.id, true);
-      updateDoneBtn();
-      renderList();
+      // 只读了部分范围（比如「只读没学过的」）不代表整节课都听完了，只有读全部才算学完
+      if (playFilter === 'all') {
+        setDone(curLesson.id, true);
+        updateDoneBtn();
+        renderList();
+      }
       return;
     }
     playPos = qIdx;
-    const item = queue[qIdx];
+    const item = playQueue[qIdx];
     highlightBlock(item.bi);
     updatePlayUI();
 
@@ -222,9 +313,10 @@ window.Lessons = (() => {
   }
 
   function startPlay() {
-    if (!queue.length) buildQueue();
+    if (!playQueue.length) buildPlayQueue();
+    if (!playQueue.length) { updatePlayUI(); return; }
     playing = true;
-    playFrom(playPos >= 0 && playPos < queue.length ? playPos : 0);
+    playFrom(playPos >= 0 && playPos < playQueue.length ? playPos : 0);
   }
 
   function pausePlay() {
@@ -333,6 +425,11 @@ window.Lessons = (() => {
     });
 
     $('#lessonBlocks').addEventListener('click', (e) => {
+      const statusBtn = e.target.closest('[data-act="mark-known"], [data-act="mark-unknown"]');
+      if (statusBtn) {
+        toggleWordStatus(+statusBtn.dataset.bi, statusBtn.dataset.act === 'mark-known' ? 'known' : 'unknown');
+        return;
+      }
       const thBtn = e.target.closest('[data-act="speak-th"]');
       if (thBtn) { speakOnce(findQueueItem(+thBtn.dataset.bi, 'th')); return; }
       const zh = e.target.closest('[data-act="speak-zh"]');
@@ -345,6 +442,17 @@ window.Lessons = (() => {
         speakSequence([findQueueItem(bi, 'th'), findQueueItem(bi, 'hook')]);
       }
     });
+
+    const filterSel = $('#lessonPlayFilter');
+    if (filterSel) {
+      filterSel.value = playFilter;
+      filterSel.addEventListener('change', (e) => {
+        savePlayFilter(e.target.value);
+        stopPlay();
+        buildPlayQueue();
+        updatePlayUI();
+      });
+    }
 
     const rateSlider = $('#lessonRate');
     if (rateSlider) {
@@ -363,6 +471,8 @@ window.Lessons = (() => {
   function init() {
     lessons = window.LESSONS || [];
     loadDone();
+    loadWordStatus();
+    loadPlayFilter();
     bind();
     renderList();
   }

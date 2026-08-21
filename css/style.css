@@ -1746,10 +1746,12 @@ body.mode-study .foot { display: none; }
 #lessonArticleTitle { margin: 0 0 4px; font-size: 19px; }
 .lesson-article-sub { margin: 0 0 16px; font-size: 13px; color: var(--text-2); }
 
-.lesson-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.lesson-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
 .lesson-rate-ctl { margin-left: auto; }
 #lessonPlayBtn.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+#lessonPlayBtn:disabled { opacity: .5; cursor: default; }
 .lesson-play-progress { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.lesson-status-summary { margin: 0 0 16px; font-size: 12px; color: var(--text-3); }
 
 .lesson-blocks { display: flex; flex-direction: column; gap: 12px; max-width: 68ch; }
 
@@ -1766,6 +1768,9 @@ body.mode-study .foot { display: none; }
 }
 .lesson-word:hover { border-color: var(--accent); }
 .lesson-word.playing { background: var(--accent-soft); border-color: var(--accent); }
+.lesson-word.is-known { border-color: var(--accent-2); }
+.lesson-word.is-unknown { border-color: var(--danger); }
+.lesson-word.is-known.playing, .lesson-word.is-unknown.playing { background: var(--accent-soft); border-color: var(--accent); }
 .lesson-word-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .lesson-word-th {
   font-family: var(--thai-font); font-size: 18px; font-weight: 600; color: var(--text);
@@ -1776,6 +1781,15 @@ body.mode-study .foot { display: none; }
 .lesson-word-mean { font-size: 14px; font-weight: 600; margin-left: auto; }
 .lesson-word-hook { margin-top: 5px; font-size: 13px; color: var(--text-2); line-height: 1.6; }
 .lesson-word-tag { margin-top: 5px; font-size: 11.5px; color: var(--text-3); }
+
+.lesson-word-status { display: flex; gap: 6px; margin-top: 9px; }
+.lw-status-btn {
+  font-size: 11.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line);
+  background: var(--card); color: var(--text-3); cursor: pointer; transition: border-color .15s, background .15s, color .15s;
+}
+.lw-status-btn:hover { border-color: var(--accent); color: var(--text); }
+.lw-status-btn.lw-known.active { background: var(--accent-2-soft); border-color: var(--accent-2); color: var(--accent-2); font-weight: 600; }
+.lw-status-btn.lw-unknown.active { background: rgba(194,69,58,.13); border-color: var(--danger); color: var(--danger); font-weight: 600; }
 
 @media (max-width: 720px) {
   .lesson-article { padding: 16px 14px 18px; }

@@ -155,12 +155,21 @@
       <div class="lesson-toolbar">
         <button class="btn primary" id="lessonPlayBtn">▶ 朗读整节课</button>
         <button class="btn ghost" id="lessonStopBtn" title="停止朗读，回到这节课开头">⏹ 停止</button>
+        <label class="ctl" title="点每个单词卡下面的「学过 / 没学过」先标一下，这里选朗读范围">
+          <span>朗读范围</span>
+          <select id="lessonPlayFilter">
+            <option value="all">全部</option>
+            <option value="unknown">只读没学过的</option>
+            <option value="known">只读已学过的</option>
+          </select>
+        </label>
         <span class="lesson-play-progress" id="lessonPlayProgress"></span>
         <label class="ctl lesson-rate-ctl">
           <span>语速 <b id="lessonRateVal">1.00×</b></span>
           <input type="range" id="lessonRate" min="0.75" max="1.4" step="0.05" value="1">
         </label>
       </div>
+      <p class="lesson-status-summary" id="lessonStatusSummary"></p>
 
       <div class="lesson-blocks" id="lessonBlocks"></div>
     </section>
