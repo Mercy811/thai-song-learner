@@ -93,9 +93,9 @@ window.Lessons = (() => {
         <div class="lesson-word-head">
           <button class="lesson-word-th" data-act="speak-th" data-bi="${bi}" title="点一下听泰语真人发音">${esc(b.th)}</button>
           ${roLine}
-          <span class="lesson-word-mean">${esc(b.mean)}</span>
+          <span class="lesson-word-mean" data-act="speak-zh" data-bi="${bi}" title="点一下听中文讲解">${esc(b.mean)}</span>
         </div>
-        <div class="lesson-word-hook">${esc(b.hook)}</div>
+        <div class="lesson-word-hook" data-act="speak-zh" data-bi="${bi}" title="点一下听中文讲解">${esc(b.hook)}</div>
         ${tagLine}
       </div>`;
   }
@@ -335,6 +335,8 @@ window.Lessons = (() => {
     $('#lessonBlocks').addEventListener('click', (e) => {
       const thBtn = e.target.closest('[data-act="speak-th"]');
       if (thBtn) { speakOnce(findQueueItem(+thBtn.dataset.bi, 'th')); return; }
+      const zh = e.target.closest('[data-act="speak-zh"]');
+      if (zh) { speakOnce(findQueueItem(+zh.dataset.bi, 'hook')); return; }
       const p = e.target.closest('[data-act="speak-p"]');
       if (p) { speakOnce(findQueueItem(+p.dataset.bi, 'p')); return; }
       const wordCard = e.target.closest('.lesson-word');
