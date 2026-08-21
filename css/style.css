@@ -1046,14 +1046,6 @@ body {
 .home-card-th { font-family: var(--thai-font); font-size: 18px; line-height: 1.4; }
 .home-card-cn { font-size: 14.5px; font-weight: 600; }
 .home-card-by { font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
-.home-card-meta {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
-  font-size: 11px; color: var(--text-2);
-}
-.home-card-meta > span {
-  background: var(--card-2); border: 1px solid var(--line-soft);
-  border-radius: 999px; padding: 1px 8px;
-}
 
 @media (max-width: 720px) {
   .home { padding: 24px 14px 44px; }

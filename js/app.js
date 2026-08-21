@@ -912,11 +912,7 @@
 
     $('#homeGrid').innerHTML = ids.map((id) => {
       const s = window.SONGS[id];
-      const m = songMeta(s);
       const by = [s.artist, s.album].filter(Boolean).join(' · ');
-      const syncTag = s.timeline === false
-        ? '只练歌词'
-        : (s.synced ? '时间轴已校准' : '时间轴：估算');
       return `<a class="home-card" href="?song=${encodeURIComponent(id)}" data-song="${esc(id)}">
         <span class="home-card-thumb">
           <img src="https://img.youtube.com/vi/${esc(s.youtubeId)}/hqdefault.jpg" alt="" loading="lazy">
@@ -927,12 +923,6 @@
           <span class="home-card-th">${esc(s.titleTh || s.title)}</span>
           <span class="home-card-cn">${esc(s.titleCn || s.title)}</span>
           ${by ? `<span class="home-card-by">${esc(by)}</span>` : ''}
-          <span class="home-card-meta">
-            <span>${m.count} 句</span>
-            ${m.done ? `<span>已掌握 ${m.done}</span>` : ''}
-            <span>${s.timeline === false ? '练习模式' : '练习 + KTV'}</span>
-            <span>${syncTag}</span>
-          </span>
         </span>
       </a>`;
     }).join('');
