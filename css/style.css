@@ -1587,13 +1587,16 @@ body.mode-study .foot { display: none; }
 
 .frow {
   display: grid;
-  grid-template-columns: 34px minmax(150px, 1.1fr) minmax(110px, .9fr) 100px 92px;
+  grid-template-columns: 34px minmax(150px, 1.1fr) minmax(110px, .9fr) 100px auto;
   align-items: center; gap: 12px;
   padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
   cursor: pointer;
 }
 .frow:last-child { border-bottom: none; }
 .frow:hover { background: var(--card-2); }
+/* 标记「记住了」的词：左边一道绿条 + 淡淡的底色，一眼扫过去就知道学到哪了 */
+.frow[data-learned="1"] { background: var(--accent-2-soft); box-shadow: inset 3px 0 0 var(--accent-2); }
+.frow[data-learned="1"]:hover { background: var(--accent-2-soft); }
 
 .frow-count { text-align: left; white-space: nowrap; }
 .frow-count b { font-size: 15px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -1601,14 +1604,43 @@ body.mode-study .foot { display: none; }
 .frow-bar { height: 4px; border-radius: 2px; background: var(--card-2); margin-top: 5px; overflow: hidden; }
 .frow-bar > i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
 
+.frow-actions { display: flex; align-items: center; gap: 6px; justify-self: end; justify-content: flex-end; }
+
+/* 「记住了」标记按钮：点一下切换，不用真的答对几次才算数——自己说了算 */
+.frow-mark {
+  font: inherit; font-size: 12px; white-space: nowrap;
+  background: var(--card-2); border: 1px solid var(--line); color: var(--text-2);
+  border-radius: 999px; padding: 5px 10px; cursor: pointer; transition: all .15s;
+}
+.frow-mark:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.frow-mark.on { border-color: var(--accent-2); color: var(--accent-2); background: var(--accent-2-soft); font-weight: 600; }
+
 /* 「N 句」展开按钮：点了才看这个词在歌里出现的原句，默认收着省地方 */
 .frow-toggle {
-  justify-self: end; font: inherit; font-size: 12px; white-space: nowrap;
+  font: inherit; font-size: 12px; white-space: nowrap;
   background: var(--card-2); border: 1px solid var(--line); color: var(--text-2);
   border-radius: 999px; padding: 5px 10px; cursor: pointer; transition: all .15s;
 }
 .frow-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .frow-toggle[aria-expanded="true"] { border-color: var(--accent-2); color: var(--accent-2); background: var(--accent-2-soft); }
+
+/* 学习进度条：放在词频表最上头，实时看到学了百分之多少，图一激励 */
+.freq-progress {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft);
+}
+.freq-progress-bar {
+  flex: 1 1 auto; height: 8px; border-radius: 4px;
+  background: var(--card-2); overflow: hidden;
+}
+.freq-progress-bar > i {
+  display: block; height: 100%; background: var(--accent-2);
+  border-radius: 4px; transition: width .25s ease;
+}
+.freq-progress-label {
+  flex: 0 0 auto; font-size: 12.5px; color: var(--text-2); white-space: nowrap;
+}
+.freq-progress-label b { color: var(--accent-2); font-variant-numeric: tabular-nums; }
 
 /* 展开面板：这个词在库里出现过的每一句原文，带出自哪首歌 */
 .frow-lines {
@@ -1976,12 +2008,12 @@ body.mode-study .foot { display: none; }
   .wrow-lv    { grid-area: lv; margin-top: 3px; }
   .wrow-tools { grid-area: tools; align-self: start; }
 
-  /* 词频总表：同样挤不下五列，改成词 + 次数一行，意思 + 展开按钮一行 */
+  /* 词频总表：同样挤不下五列，改成词 + 次数一行，意思 + 标记/展开按钮一行 */
   .frow {
     grid-template-columns: 26px 1fr auto;
     grid-template-areas:
       "no  word   count"
-      ".   mean   toggle";
+      ".   mean   actions";
     gap: 4px 10px; padding: 11px 12px;
   }
   .frow .wrow-no    { grid-area: no; align-self: start; padding-top: 5px; }
@@ -1990,9 +2022,12 @@ body.mode-study .foot { display: none; }
     grid-area: mean; font-size: 14px;
     border-left: 2px solid var(--line); padding-left: 8px; margin-top: 3px;
   }
-  .frow-count  { grid-area: count; text-align: right; align-self: start; }
-  .frow-toggle { grid-area: toggle; align-self: end; margin-top: 6px; }
-  .frow-lines  { padding-left: 12px; }
+  .frow-count   { grid-area: count; text-align: right; align-self: start; }
+  .frow-actions { grid-area: actions; align-self: end; margin-top: 6px; }
+  .frow-lines   { padding-left: 12px; }
+
+  .freq-progress { flex-wrap: wrap; }
+  .freq-progress-label { flex-basis: 100%; }
 
   .quiz-next-row .btn { width: 100%; }
   .quiz-th { font-size: 36px; }

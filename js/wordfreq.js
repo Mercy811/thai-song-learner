@@ -18,7 +18,23 @@ window.WordFreq = (() => {
   let songTitle = {};     // songId -> 中文标题
   let onJump = null;      // 点歌名跳过去，由 app.js 传进来
 
-  const state = { search: '', sort: 'count-desc', songId: '' };
+  const state = { search: '', sort: 'count-desc', songId: '', learned: '' };
+
+  // 「记住了」标记：全站范围，跟哪首歌无关，按泰语文本存
+  const LS_LEARNED = 'tsl.freqLearned';
+  let learned = new Set();
+
+  function loadLearned() {
+    try { learned = new Set(JSON.parse(localStorage.getItem(LS_LEARNED) || '[]')); }
+    catch { learned = new Set(); }
+  }
+  function saveLearned() {
+    try { localStorage.setItem(LS_LEARNED, JSON.stringify([...learned])); } catch { /* 无痕模式，存不了就算了 */ }
+  }
+  function toggleLearned(th) {
+    if (learned.has(th)) learned.delete(th); else learned.add(th);
+    saveLearned();
+  }
 
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) =>
@@ -73,6 +89,8 @@ window.WordFreq = (() => {
 
   function matches(w) {
     if (state.songId && !w.songIds.includes(state.songId)) return false;
+    if (state.learned === 'learned' && !learned.has(w.th)) return false;
+    if (state.learned === 'unlearned' && learned.has(w.th)) return false;
     if (!state.search) return true;
     const q = state.search;
     return w.th.toLowerCase().includes(q)
@@ -99,6 +117,7 @@ window.WordFreq = (() => {
 
   function rowHtml(w) {
     const barPct = Math.max(4, Math.round((w.count / maxCount) * 100));
+    const isLearned = learned.has(w.th);
     const linesHtml = w.lines.map((l) => `
       <div class="frow-line">
         <button class="frow-line-song" data-song="${esc(l.songId)}" title="跳去《${esc(songTitle[l.songId] || l.songId)}》">${esc(songTitle[l.songId] || l.songId)}</button>
@@ -106,7 +125,7 @@ window.WordFreq = (() => {
         ${l.cn ? `<div class="frow-line-cn">${esc(l.cn)}</div>` : ''}
       </div>`).join('');
     return `
-      <div class="frow" data-th="${esc(w.th)}">
+      <div class="frow"${isLearned ? ' data-learned="1"' : ''} data-th="${esc(w.th)}">
         <span class="wrow-no">${w.no}</span>
         <div class="wrow-word">
           <button class="wrow-th${w.lang === 'en' ? ' en' : ''}" data-act="speak" title="点一下听发音">${esc(w.th)}</button>
@@ -118,7 +137,10 @@ window.WordFreq = (() => {
           <b>${w.count}</b><span> 次</span>
           <div class="frow-bar"><i style="width:${barPct}%"></i></div>
         </div>
-        <button class="frow-toggle" data-act="toggle" aria-expanded="false">▸ ${w.lines.length} 句</button>
+        <div class="frow-actions">
+          <button class="frow-mark${isLearned ? ' on' : ''}" data-act="mark" aria-pressed="${isLearned}" title="标记这个词记住了没">${isLearned ? '✅ 记住了' : '⬜ 记住'}</button>
+          <button class="frow-toggle" data-act="toggle" aria-expanded="false">▸ ${w.lines.length} 句</button>
+        </div>
       </div>
       <div class="frow-lines hidden">${linesHtml}</div>`;
   }
@@ -139,6 +161,13 @@ window.WordFreq = (() => {
     $('#freqStatWords').textContent = words.length;
     $('#freqStatSongs').textContent = Object.keys(songTitle).length;
     $('#freqStatOcc').textContent = totalOcc;
+
+    const learnedCount = words.filter((w) => learned.has(w.th)).length;
+    const pct = words.length ? Math.round((learnedCount / words.length) * 100) : 0;
+    $('#freqStatLearned').textContent = learnedCount;
+    $('#freqStatTotal').textContent = words.length;
+    $('#freqProgressPct').textContent = pct + '%';
+    $('#freqProgressFill').style.width = pct + '%';
   }
 
   function fillSongFilter() {
@@ -168,6 +197,7 @@ window.WordFreq = (() => {
     });
     $('#freqSort').addEventListener('change', (e) => { state.sort = e.target.value; render(); });
     $('#freqSongFilter').addEventListener('change', (e) => { state.songId = e.target.value; render(); });
+    $('#freqLearnedFilter').addEventListener('change', (e) => { state.learned = e.target.value; render(); });
 
     $('#freqList').addEventListener('click', (e) => {
       // 展开面板里点歌名 = 跳去那首歌
@@ -185,6 +215,19 @@ window.WordFreq = (() => {
         const open = panel.classList.toggle('hidden') === false;
         toggle.setAttribute('aria-expanded', String(open));
         toggle.textContent = `${open ? '▾' : '▸'} ${w.lines.length} 句`;
+        return;
+      }
+      const markBtn = e.target.closest('[data-act="mark"]');
+      if (markBtn) {
+        toggleLearned(w.th);
+        const nowLearned = learned.has(w.th);
+        if (nowLearned) row.dataset.learned = '1'; else delete row.dataset.learned;
+        markBtn.classList.toggle('on', nowLearned);
+        markBtn.setAttribute('aria-pressed', String(nowLearned));
+        markBtn.textContent = nowLearned ? '✅ 记住了' : '⬜ 记住';
+        renderHead();
+        // 当前筛的是「已记住/没记住」，标记完这行可能不该再留在列表里，重排一下
+        if (state.learned) render();
         return;
       }
       if (e.target.closest('[data-act="speak"]')) {
@@ -212,6 +255,7 @@ window.WordFreq = (() => {
 
   function init(jumpToSong) {
     onJump = jumpToSong;
+    loadLearned();
     build();
     fillSongFilter();
     renderHead();

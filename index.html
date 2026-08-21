@@ -98,6 +98,10 @@
           <button class="btn ghost" id="freqCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制词表</button>
         </div>
       </div>
+      <div class="freq-progress">
+        <div class="freq-progress-bar"><i id="freqProgressFill" style="width:0%"></i></div>
+        <span class="freq-progress-label">已记住 <b id="freqStatLearned">0</b> / <span id="freqStatTotal">0</span> 个 · <b id="freqProgressPct">0%</b></span>
+      </div>
     </section>
 
     <section id="freqListWrap">
@@ -114,6 +118,13 @@
         </label>
         <label class="ctl"><span>只看</span>
           <select id="freqSongFilter"><option value="">全部歌曲</option></select>
+        </label>
+        <label class="ctl"><span>状态</span>
+          <select id="freqLearnedFilter">
+            <option value="">全部</option>
+            <option value="learned">已记住</option>
+            <option value="unlearned">没记住</option>
+          </select>
         </label>
         <div class="spacer"></div>
         <span class="study-count" id="freqListCount"></span>
