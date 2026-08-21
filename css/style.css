@@ -1475,7 +1475,7 @@ body.mode-freq .foot { display: none; }
 
 .frow {
   display: grid;
-  grid-template-columns: 34px minmax(150px, 1.1fr) minmax(110px, .9fr) 100px minmax(130px, 1fr);
+  grid-template-columns: 34px minmax(150px, 1.1fr) minmax(110px, .9fr) 100px 92px;
   align-items: center; gap: 12px;
   padding: 10px 14px; border-bottom: 1px solid var(--line-soft);
   cursor: pointer;
@@ -1489,13 +1489,31 @@ body.mode-freq .foot { display: none; }
 .frow-bar { height: 4px; border-radius: 2px; background: var(--card-2); margin-top: 5px; overflow: hidden; }
 .frow-bar > i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
 
-.frow-songs { display: flex; flex-wrap: wrap; gap: 4px; }
-.freq-song-chip {
-  font-size: 11px; padding: 2px 8px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--card-2); color: var(--text-3);
-  cursor: pointer; font-family: inherit; line-height: 1.6; transition: all .15s;
+/* 「N 句」展开按钮：点了才看这个词在歌里出现的原句，默认收着省地方 */
+.frow-toggle {
+  justify-self: end; font: inherit; font-size: 12px; white-space: nowrap;
+  background: var(--card-2); border: 1px solid var(--line); color: var(--text-2);
+  border-radius: 999px; padding: 5px 10px; cursor: pointer; transition: all .15s;
 }
-.freq-song-chip:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.frow-toggle:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.frow-toggle[aria-expanded="true"] { border-color: var(--accent-2); color: var(--accent-2); background: var(--accent-2-soft); }
+
+/* 展开面板：这个词在库里出现过的每一句原文，带出自哪首歌 */
+.frow-lines {
+  background: var(--card-2); border-bottom: 1px solid var(--line-soft);
+  padding: 4px 14px 10px 60px;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.frow-line { padding-top: 8px; border-top: 1px dashed var(--line); }
+.frow-line:first-child { border-top: none; padding-top: 0; }
+.frow-line-song {
+  display: inline-block; font: inherit; font-size: 11px; margin-bottom: 3px;
+  background: var(--card); border: 1px solid var(--line); color: var(--text-3);
+  border-radius: 999px; padding: 2px 8px; cursor: pointer; transition: all .15s;
+}
+.frow-line-song:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.frow-line-th { font-family: var(--thai-font); font-size: 15px; color: var(--text); line-height: 1.45; }
+.frow-line-cn { font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
 
 /* 从单词表跳回歌词时，让那个词闪一下，好在句子里一眼找到 */
 .word.flash {
@@ -1677,13 +1695,12 @@ body.mode-freq .foot { display: none; }
   .wrow-lv    { grid-area: lv; margin-top: 3px; }
   .wrow-tools { grid-area: tools; align-self: start; }
 
-  /* 词频总表：同样挤不下五列，改成词 + 次数一行，意思一行，出自一行 */
+  /* 词频总表：同样挤不下五列，改成词 + 次数一行，意思 + 展开按钮一行 */
   .frow {
     grid-template-columns: 26px 1fr auto;
     grid-template-areas:
-      "no  word  count"
-      ".   mean  mean"
-      ".   songs songs";
+      "no  word   count"
+      ".   mean   toggle";
     gap: 4px 10px; padding: 11px 12px;
   }
   .frow .wrow-no    { grid-area: no; align-self: start; padding-top: 5px; }
@@ -1692,8 +1709,9 @@ body.mode-freq .foot { display: none; }
     grid-area: mean; font-size: 14px;
     border-left: 2px solid var(--line); padding-left: 8px; margin-top: 3px;
   }
-  .frow-count { grid-area: count; text-align: right; align-self: start; }
-  .frow-songs { grid-area: songs; margin-top: 3px; }
+  .frow-count  { grid-area: count; text-align: right; align-self: start; }
+  .frow-toggle { grid-area: toggle; align-self: end; margin-top: 6px; }
+  .frow-lines  { padding-left: 12px; }
 
   .quiz-next-row .btn { width: 100%; }
   .quiz-th { font-size: 36px; }

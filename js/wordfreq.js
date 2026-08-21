@@ -13,7 +13,7 @@ window.WordFreq = (() => {
   const $  = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-  let words = [];        // { th, ro, cn, mean, lang, count, songIds:[...], no }
+  let words = [];        // { th, ro, cn, mean, lang, count, songIds:[...], lines:[...], no }
   let maxCount = 1;
   let songTitle = {};     // songId -> 中文标题
   let onJump = null;      // 点歌名跳过去，由 app.js 传进来
@@ -42,12 +42,16 @@ window.WordFreq = (() => {
               e = {
                 th: w.th, ro: w.ro || '', cn: w.cn || '', mean: w.mean || '',
                 lang: 'th',
-                count: 0, songIds: new Set(),
+                count: 0, songIds: new Set(), lines: [],
               };
               byTh.set(w.th, e);
             }
             e.count++;
             e.songIds.add(song.id);
+            // 同一句里这个词出现两次也只记一遍句子，句子列表是给「在哪句」看的，不是数出现次数
+            if (!e.lines.some((l) => l.songId === song.id && l.id === line.id)) {
+              e.lines.push({ songId: song.id, id: line.id, th: line.th, cn: line.cn });
+            }
           });
         });
       });
@@ -95,9 +99,12 @@ window.WordFreq = (() => {
 
   function rowHtml(w) {
     const barPct = Math.max(4, Math.round((w.count / maxCount) * 100));
-    const songsHtml = w.songIds.map((id) =>
-      `<button class="freq-song-chip" data-song="${esc(id)}" title="跳去《${esc(songTitle[id] || id)}》">${esc(songTitle[id] || id)}</button>`
-    ).join('');
+    const linesHtml = w.lines.map((l) => `
+      <div class="frow-line">
+        <button class="frow-line-song" data-song="${esc(l.songId)}" title="跳去《${esc(songTitle[l.songId] || l.songId)}》">${esc(songTitle[l.songId] || l.songId)}</button>
+        <div class="frow-line-th">${esc(l.th)}</div>
+        ${l.cn ? `<div class="frow-line-cn">${esc(l.cn)}</div>` : ''}
+      </div>`).join('');
     return `
       <div class="frow" data-th="${esc(w.th)}">
         <span class="wrow-no">${w.no}</span>
@@ -111,8 +118,9 @@ window.WordFreq = (() => {
           <b>${w.count}</b><span> 次</span>
           <div class="frow-bar"><i style="width:${barPct}%"></i></div>
         </div>
-        <div class="frow-songs">${songsHtml}</div>
-      </div>`;
+        <button class="frow-toggle" data-act="toggle" aria-expanded="false">▸ ${w.lines.length} 句</button>
+      </div>
+      <div class="frow-lines hidden">${linesHtml}</div>`;
   }
 
   function render() {
@@ -162,13 +170,23 @@ window.WordFreq = (() => {
     $('#freqSongFilter').addEventListener('change', (e) => { state.songId = e.target.value; render(); });
 
     $('#freqList').addEventListener('click', (e) => {
-      const songBtn = e.target.closest('.freq-song-chip');
+      // 展开面板里点歌名 = 跳去那首歌
+      const songBtn = e.target.closest('.frow-line-song');
       if (songBtn) { onJump && onJump(songBtn.dataset.song); return; }
 
       const row = e.target.closest('.frow');
       if (!row) return;
       const w = words.find((x) => x.th === row.dataset.th);
       if (!w) return;
+
+      const toggle = e.target.closest('[data-act="toggle"]');
+      if (toggle) {
+        const panel = row.nextElementSibling;
+        const open = panel.classList.toggle('hidden') === false;
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.textContent = `${open ? '▾' : '▸'} ${w.lines.length} 句`;
+        return;
+      }
       if (e.target.closest('[data-act="speak"]')) {
         speak(w.th, w.lang, e.target.closest('[data-act]'));
         return;
