@@ -12,6 +12,7 @@ const TTS = (() => {
   let voices = [];
   let thaiVoices = [];
   let enVoices = [];
+  let zhVoices = [];
   let chosenThaiVoiceURI = localStorage.getItem('tsl.voiceURI') || null;
   let ready = false;
   const readyCallbacks = [];
@@ -19,11 +20,13 @@ const TTS = (() => {
   const normLang = (l) => (l || '').toLowerCase().replace('_', '-');
   const isThai = (v) => normLang(v.lang).startsWith('th');
   const isEnglish = (v) => normLang(v.lang).startsWith('en');
+  const isChinese = (v) => normLang(v.lang).startsWith('zh');
 
   function loadVoices() {
     voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
     thaiVoices = voices.filter(isThai);
     enVoices = voices.filter(isEnglish);
+    zhVoices = voices.filter(isChinese);
 
     if (voices.length > 0 && !ready) {
       ready = true;
@@ -83,11 +86,11 @@ const TTS = (() => {
   /**
    * 朗读一段文本
    * @param {string} text
-   * @param {{lang?:'th'|'en', rate?:number, onend?:Function, onerror?:Function}} opts
+   * @param {{lang?:'th'|'en'|'zh', rate?:number, onend?:Function, onerror?:Function}} opts
    */
   function speak(text, opts = {}) {
     if (!isSupported() || !text) return false;
-    const lang = opts.lang === 'en' ? 'en' : 'th';
+    const lang = opts.lang === 'en' ? 'en' : opts.lang === 'zh' ? 'zh' : 'th';
 
     stop();
 
@@ -100,6 +103,12 @@ const TTS = (() => {
       const v = getSelectedThaiVoice();
       if (v) u.voice = v;
       u.lang = v ? v.lang : 'th-TH';
+    } else if (lang === 'zh') {
+      // 中文朗读不额外做「没有语音」的安装引导——绝大多数系统自带中文语音，
+      // 真没有的话交给浏览器按 lang 兜底选一个，静默降级就好
+      const v = zhVoices.find((x) => x.localService) || zhVoices[0];
+      if (v) u.voice = v;
+      u.lang = v ? v.lang : 'zh-CN';
     } else {
       const v = enVoices.find((x) => x.localService) || enVoices[0];
       if (v) u.voice = v;

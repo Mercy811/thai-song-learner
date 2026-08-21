@@ -74,6 +74,7 @@
 
   document.body.dataset.page = pageParam === 'freq' ? 'freq'
     : pageParam === 'science' ? 'science'
+    : pageParam === 'lessons' ? 'lessons'
     : (explicitId && window.SONGS[explicitId]) ? 'song' : 'home';
 
   // 词频页 / 覆盖率页共用的收尾：把歌曲页那一整套（播放器、歌词、页脚……）和首页都收起来
@@ -100,6 +101,15 @@
     $('#sciencePageView').classList.remove('hidden');
     $('#btnThemeScience').addEventListener('click', toggleTheme);
     Science.init();
+    return;
+  }
+  if (pageParam === 'lessons') {
+    document.title = '记忆课 — 泰语歌逐句跟读';
+    hideForStandalonePage();
+    $('#lessonsPageView').classList.remove('hidden');
+    $('#btnThemeLessons').addEventListener('click', toggleTheme);
+    TTS.init();
+    Lessons.init();
     return;
   }
 

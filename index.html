@@ -29,6 +29,10 @@
     <span class="drawer-item-icon">📊</span>
     <span class="drawer-item-text"><b>词频总表</b><small>全部歌曲的单词，按出现次数排序</small></span>
   </a>
+  <a class="drawer-item" data-page="lessons" href="?page=lessons">
+    <span class="drawer-item-icon">🎓</span>
+    <span class="drawer-item-text"><b>记忆课</b><small>7 节课，把常见词串成故事讲一遍，能听着学</small></span>
+  </a>
   <a class="drawer-item" data-page="science" href="?page=science">
     <span class="drawer-item-icon">📈</span>
     <span class="drawer-item-text"><b>覆盖率曲线</b><small>学多少词能看懂多少歌词？一点小科普</small></span>
@@ -118,6 +122,45 @@
     </section>
 
     <p class="study-hint">这份表把库里所有歌的逐词卡片按泰语文本去重、按出现次数排好——副歌重复几遍就算几次出现。点泰语听发音，点歌名跳去那首歌。</p>
+  </div>
+</main>
+
+<!-- ══ 记忆课：把常出现的词按主题串成故事讲一遍，能听着学 ══
+     跟具体某首歌无关，独立页面——靠 URL 上的 ?page=lessons 进来。
+     内容在 js/lessons-data.js 里，渲染 + 朗读播放逻辑在 js/lessons.js。 -->
+<main class="page lessonspage hidden" id="lessonsPageView">
+  <div class="page-hero">
+    <button id="btnThemeLessons" class="icon-btn page-hero-theme" title="切换深浅色">◐</button>
+    <h1>🎓 记忆课</h1>
+    <p>库里反复出现的词，按主题串成 7 节课的小故事——先认几个「基础词」，再看它们怎么拼成歌词里那些长句子。每节课都能整节朗读，洗澡、走路、开车的时候用耳朵学</p>
+  </div>
+
+  <div class="page-body">
+    <section id="lessonList">
+      <div class="study-toolbar">
+        <span class="study-count" id="lessonProgressText"></span>
+      </div>
+      <div class="lesson-grid" id="lessonGrid"></div>
+    </section>
+
+    <section id="lessonArticle" class="lesson-article hidden">
+      <div class="lesson-article-head">
+        <button class="btn ghost" id="lessonBack">← 回课程列表</button>
+        <button class="btn ghost" id="lessonDoneBtn">标记为已学完</button>
+      </div>
+      <h2 id="lessonArticleTitle"></h2>
+      <p class="lesson-article-sub" id="lessonArticleSub"></p>
+
+      <div class="lesson-toolbar">
+        <button class="btn primary" id="lessonPlayBtn">▶ 朗读整节课</button>
+        <button class="btn ghost" id="lessonStopBtn" title="停止朗读，回到这节课开头">⏹ 停止</button>
+        <span class="lesson-play-progress" id="lessonPlayProgress"></span>
+      </div>
+
+      <div class="lesson-blocks" id="lessonBlocks"></div>
+    </section>
+
+    <p class="study-hint">这 7 节课只挑了库里反复出现的词，一次性只出现过的长句留给「词频总表」和每首歌的「单词」模式当参考——那边搜得到、这边讲故事。</p>
   </div>
 </main>
 
@@ -660,6 +703,8 @@
 <script src="js/vocab.js"></script>
 <script src="js/wordfreq.js"></script>
 <script src="js/science.js"></script>
+<script src="js/lessons-data.js"></script>
+<script src="js/lessons.js"></script>
 <script src="js/gesture.js"></script>
 <script src="js/battle.js"></script>
 <script src="js/study.js"></script>
