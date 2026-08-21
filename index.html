@@ -306,7 +306,7 @@
   <div class="viewbar-inner">
     <span class="viewbar-label">显示：</span>
     <label class="chip"><input type="checkbox" id="showRo" checked><span>罗马音</span></label>
-    <label class="chip"><input type="checkbox" id="showCn" checked><span>中文谐音</span></label>
+    <label class="chip"><input type="checkbox" id="showCn"><span>中文谐音</span></label>
     <label class="chip"><input type="checkbox" id="showMean" checked><span>中文意思</span></label>
     <label class="chip"><input type="checkbox" id="showWords" checked><span>逐词卡片</span></label>
     <label class="chip"><input type="checkbox" id="showUku"><span>🎸 尤克里里和弦</span></label>
@@ -563,6 +563,7 @@
     <button id="ktvExit" class="ktv-pill" title="退出 KTV 模式">✕ 退出</button>
     <div class="ktv-view-top-right">
       <button id="ktvChordToggle" class="ktv-pill" title="显示 / 隐藏尤克里里和弦">🎸 和弦</button>
+      <button id="ktvCnToggle" class="ktv-pill" title="显示 / 隐藏中文谐音">🀄 中文</button>
       <button id="ktvBgToggle" class="ktv-pill" title="背景放 MV 画面 / 只要纯色背景">🎬 MV</button>
       <button id="ktvPlayPause" class="ktv-pill" title="播放 / 暂停 (空格)">▶</button>
     </div>
@@ -586,12 +587,14 @@
     <div class="ktv-vline" id="ktvSlot0">
       <div class="ktv-vline-chords" data-f="uku"></div>
       <div class="ktv-vline-th"></div>
-      <div class="ktv-vline-cnro"></div>
+      <div class="ktv-vline-ro" data-f="ro"></div>
+      <div class="ktv-vline-cnro" data-f="cn"></div>
     </div>
     <div class="ktv-vline" id="ktvSlot1">
       <div class="ktv-vline-chords" data-f="uku"></div>
       <div class="ktv-vline-th"></div>
-      <div class="ktv-vline-cnro"></div>
+      <div class="ktv-vline-ro" data-f="ro"></div>
+      <div class="ktv-vline-cnro" data-f="cn"></div>
     </div>
   </div>
 </div>

@@ -166,7 +166,9 @@
     ttsRate: parseFloat(localStorage.getItem(LS.ttsRate)) || 0.7,
     // uku（尤克里里和弦）默认关着：不弹琴的人不需要多这一行
     view: Object.assign(
-      { ro: true, cn: true, mean: true, words: true, uku: false },
+      // 罗马音默认开、中文谐音默认关——跟网站其它地方（单词测验等）的默认一致，
+      // 中文谐音现在不够好懂，想看的人自己勾选
+      { ro: true, cn: false, mean: true, words: true, uku: false },
       JSON.parse(localStorage.getItem(LS.view) || '{}')
     ),
     done: new Set(JSON.parse(localStorage.getItem(LS.done) || '[]')),
@@ -341,8 +343,9 @@
       $(sel).checked = state.view[k];
       $$(`[data-f="${k}"]`).forEach((n) => n.classList.toggle('hidden', !state.view[k]));
     });
-    // 和弦在 KTV 沉浸模式里也能开关，那边用的是右上角的胶囊按钮，状态跟这里同一份
+    // 和弦、中文谐音在 KTV 沉浸模式里也能开关，那边用的是右上角的胶囊按钮，状态跟这里同一份
     $('#ktvChordToggle').classList.toggle('on', state.view.uku);
+    $('#ktvCnToggle').classList.toggle('on', state.view.cn);
     // 开了和弦歌词区更高，弹幕的飞行区跟着往上让一让，别糊在和弦上
     $('#ktvView').classList.toggle('chords-on', state.view.uku);
     localStorage.setItem(LS.view, JSON.stringify(state.view));
@@ -443,26 +446,62 @@
     return d;
   }
 
+  // 逐词表里的每个词，按顺序去整句字符里找它占的那一段（字素下标，不是字符串下标）。
+  // 找不齐（英文夹词、词表跟整句对不上）就放弃，调用方会退回整句一条百分比的老逻辑。
+  function findWordSpans(chars, wordTexts) {
+    const bounds = [];
+    let cursor = 0;
+    for (const w of wordTexts) {
+      const wChars = graphemes(w || '');
+      if (!wChars.length) return null;
+      let idx = -1;
+      for (let i = cursor; i <= chars.length - wChars.length; i++) {
+        if (wChars.every((c, j) => chars[i + j] === c)) { idx = i; break; }
+      }
+      if (idx < 0) return null;
+      bounds.push([idx, idx + wChars.length]);
+      cursor = idx + wChars.length;
+    }
+    return bounds;
+  }
+
   // 一个字一个 span，这样换行照旧，也不用 background-clip:text
   // （那样文字投影会盖在渐变上面，糊成一团）
-  function buildKaraokeRow(node, text) {
+  // wordTexts 给了的话，会按词分组记下每个词占的字素区间（见 findWordSpans）——
+  // 泰文行、中文谐音行各自的字数差很多，光按整句字符数算百分比会导致两行进度对不上、
+  // 一个词唱完了另一行同一个词还只亮一半；有逐词表就按「唱到第几个词」推进，两行才能同步。
+  function buildKaraokeRow(node, text, wordTexts) {
     if (node._ktext === text) return;
     node._ktext = text;
     node.textContent = '';
-    node._kchars = graphemes(text).map((ch) => {
+    const chars = graphemes(text);
+    node._kchars = chars.map((ch) => {
       const sp = document.createElement('span');
       sp.className = 'kchar';
       sp.textContent = ch;
       node.appendChild(sp);
       return sp;
     });
+    node._kwordBounds = wordTexts && wordTexts.length > 1 ? findWordSpans(chars, wordTexts) : null;
     node._kn = 0;
   }
 
   // p = 这句唱到了百分之几；只动状态变了的那几个字，别每帧刷一整行
   function paintKaraokeRow(node, p) {
     const chars = node._kchars || [];
-    const n = Math.min(chars.length, Math.floor(p * chars.length));
+    const bounds = node._kwordBounds;
+    let n;
+    if (bounds) {
+      const wp = Math.max(0, Math.min(bounds.length, p * bounds.length));
+      const fullWords = Math.min(bounds.length, Math.floor(wp));
+      if (fullWords >= bounds.length) n = chars.length;
+      else {
+        const [ws, we] = bounds[fullWords];
+        n = ws + Math.floor((wp - fullWords) * (we - ws));
+      }
+    } else {
+      n = Math.min(chars.length, Math.floor(p * chars.length));
+    }
     if (node._kn === n) return;
     if (n > node._kn) for (let k = node._kn; k < n; k++) chars[k].classList.add('sung');
     else for (let k = n; k < node._kn; k++) chars[k].classList.remove('sung');
@@ -471,6 +510,7 @@
 
   function paintKtvSlot(el, p) {
     paintKaraokeRow(el.querySelector('.ktv-vline-th'), p);
+    paintKaraokeRow(el.querySelector('.ktv-vline-ro'), p);
     paintKaraokeRow(el.querySelector('.ktv-vline-cnro'), p);
   }
 
@@ -486,10 +526,24 @@
     paintKtvSlot(el, Math.max(0, Math.min(1, p)));
   }
 
+  // 罗马音每个词都有；中文谐音只有整句的逐词表里每个词都有一份干净的（没有英文夹词、
+  // 没有说明性占位）时才按词同步高亮——碰上对不整齐的句子，那一行退回整句一条百分比，不硬凑。
+  function ktvWordTexts(line) {
+    if (!line || !line.words || line.words.length < 2) return null;
+    const cn = line.words.map((w) => (w.lang === 'en' ? null : w.cn));
+    return {
+      th: line.words.map((w) => w.th),
+      ro: line.words.map((w) => w.ro),
+      cn: cn.some((s) => !s || /^[（(]/.test(s)) ? null : cn,
+    };
+  }
+
   function fillKtvViewSlot(el, line, isLive) {
     el.querySelector('.ktv-vline-chords').textContent = chordText(line);
-    buildKaraokeRow(el.querySelector('.ktv-vline-th'), line ? line.th : '🎉 这一轮唱完了');
-    buildKaraokeRow(el.querySelector('.ktv-vline-cnro'), line ? cnRoOf(line) : '');
+    const wt = ktvWordTexts(line);
+    buildKaraokeRow(el.querySelector('.ktv-vline-th'), line ? line.th : '🎉 这一轮唱完了', wt && wt.th);
+    buildKaraokeRow(el.querySelector('.ktv-vline-ro'), line ? (line.ro || '') : '', wt && wt.ro);
+    buildKaraokeRow(el.querySelector('.ktv-vline-cnro'), line ? cnRoOf(line) : '', wt && wt.cn);
     el.classList.toggle('en-slot', !!line && line.lang === 'en');
     el.classList.toggle('live', isLive);
     // 待唱的那句从头白起；正在唱的那句交给 rAF 下一帧填
@@ -1139,12 +1193,17 @@
         $(sel).addEventListener('change', (e) => { state.view[key] = e.target.checked; applyView(); });
       });
 
-    // KTV 沉浸模式里的和弦开关：跟视图栏那个复选框共用 state.view.uku，
+    // KTV 沉浸模式里的和弦、中文谐音开关：跟视图栏那两个复选框共用同一份 state.view，
     // 在哪边开都是两种模式一起生效
     $('#ktvChordToggle').addEventListener('click', () => {
       state.view.uku = !state.view.uku;
       applyView();
       toast(state.view.uku ? '🎸 和弦已打开' : '和弦已关掉');
+    });
+    $('#ktvCnToggle').addEventListener('click', () => {
+      state.view.cn = !state.view.cn;
+      applyView();
+      toast(state.view.cn ? '🀄 中文谐音已打开' : '中文谐音已关掉');
     });
 
     // 朗读语速
