@@ -1,6 +1,10 @@
 /**
- * งั้นรักละ (Don't wanna, But I Do) — Jan, Jingjing / Ost. ลัลล์ไม่ชอบไว้นั้น (Enemies With Benefits)
+ * Don't Wanna, But I Do (งั้นรักละ) — Jan, Jingjing / Ost. ลัลล์ไม่ชอบไวน์ (Enemies With Benefits)
  * 频道：GMMTV RECORDS
+ *
+ * （之前 title 字段写成了带罗马音的「Ngan Rak La (Don't Wanna, But I Do)」，
+ * 歌曲官方英文名其实就是《Don't Wanna, But I Do》，已改正；album 里剧名的
+ * 泰文拼写「ไว้นั้น」也是打错了，应为「ไวน์」。）
  *
  * 歌词文本：使用者自己提供的那份泰英混唱歌词。
  * 这首歌泰文、英文混着唱，句子里同时有泰文和英文的，句子整体按 lang:'th' 处理
@@ -270,11 +274,11 @@ window.SONGS = window.SONGS || {};
 
   window.SONGS['dont-wanna-but-i-do'] = {
     id: 'dont-wanna-but-i-do',
-    title: "Ngan Rak La (Don't Wanna, But I Do)",
+    title: "Don't Wanna, But I Do",
     titleTh: 'งั้นรักละ',
     titleCn: '不想说，但我是（那就爱了吧）',
     artist: 'Jan, Jingjing',
-    album: 'Ost. ลัลล์ไม่ชอบไว้นั้น (Enemies With Benefits)',
+    album: 'Ost. ลัลล์ไม่ชอบไวน์ (Enemies With Benefits)',
     youtubeId: 'xWvhq6bsde8',
 
     // 有逐句时间轴：页面跟着原曲自动高亮，KTV / 单句循环 / 自动跟随都能用。
