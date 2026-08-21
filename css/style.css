@@ -1197,6 +1197,18 @@ body.no-timeline [data-needs="timeline"] { display: none !important; }
 }
 body.mode-ktv { overflow: hidden; }
 
+/* KTV 全屏时，顶栏 / 视图栏「固定」与否本来只影响普通滚动模式的吸顶行为，
+   但 .stickydeck 有 isolation:isolate（见上面注释），它的层叠顺序由自己的
+   z-index 决定 —— 固定了是 30、没固定是「和普通内容一起按 DOM 顺序」。
+   顶栏固定时 z-index 35 比 30 高，视图栏一直是 25，两边都可能比没固定的
+   .stickydeck 排得靠前，于是各自在没被对方盖住的组合下漏到 KTV 背景视频上面。
+   进了 KTV 就不该再看这两个开关：直接把 .stickydeck 提到顶栏/视图栏之上、
+   .ktv-view 之下，固定与否都不影响。 */
+body.mode-ktv .stickydeck {
+  position: relative;
+  z-index: 400;
+}
+
 .ktv-bg {
   position: absolute; inset: 0; z-index: 0;
   background: radial-gradient(120% 90% at 50% 15%, #3a3252 0%, #1c1826 55%, #100e16 100%);
