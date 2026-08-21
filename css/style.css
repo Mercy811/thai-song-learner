@@ -64,20 +64,33 @@ body {
 .hidden { display: none !important; }
 
 /* ── 顶栏 ───────────────────────────── */
-/* 顶栏不吸顶：唱歌时用不到，让它滚走把屏幕留给歌词 */
+/* 顶栏默认不吸顶：唱歌时用不到，让它滚走把屏幕留给歌词。
+   按了「📌 固定」（.pinned）才吸到最上面。 */
 .topbar {
   background: var(--bg-soft);
   border-bottom: 1px solid var(--line);
 }
-
-/* 播放器 + KTV 合成一个整体吸顶。
-   之前两者各自 sticky 且 top 相同，会互相抢位置，KTV 面板被压到播放器底下切掉。 */
-.stickydeck {
-  position: sticky; top: 0; z-index: 30;
-  background: var(--bg);
+.topbar.pinned {
+  position: sticky; top: 0; z-index: 35;
   box-shadow: 0 6px 16px -10px rgba(43,38,34,.35);
 }
-:root[data-theme="dark"] .stickydeck { box-shadow: 0 6px 16px -10px rgba(0,0,0,.7); }
+:root[data-theme="dark"] .topbar.pinned { box-shadow: 0 6px 16px -10px rgba(0,0,0,.7); }
+
+/* 播放器 + KTV 合成一个整体，默认吸顶（.pinned），也能按「📌 固定」关掉滚走。
+   之前两者各自 sticky 且 top 相同，会互相抢位置，KTV 面板被压到播放器底下切掉。
+   top 用 --eff-topbar-h：顶栏没固定时是 0，固定了就顶开顶栏那么高，两层不重叠。 */
+.stickydeck {
+  background: var(--bg);
+  /* KTV 背景视频那段（下面 body.mode-ktv.ktv-bg-video .video-box 的注释）靠这层
+     自成一个层叠上下文才能稳定盖在 KTV 歌词下面；固定/不固定播放器都不能丢这个，
+     所以放在没有 .pinned 也生效的基础规则里，不能只写在 .pinned 里。 */
+  isolation: isolate;
+}
+.stickydeck.pinned {
+  position: sticky; top: var(--eff-topbar-h, 0px); z-index: 30;
+  box-shadow: 0 6px 16px -10px rgba(43,38,34,.35);
+}
+:root[data-theme="dark"] .stickydeck.pinned { box-shadow: 0 6px 16px -10px rgba(0,0,0,.7); }
 .topbar-inner {
   max-width: 1020px; margin: 0 auto;
   padding: 12px 18px;
@@ -114,6 +127,10 @@ body {
 }
 .icon-btn:hover { background: var(--card-2); border-color: var(--text-3); }
 .icon-btn:active { transform: translateY(1px); }
+.icon-btn.toggle.active {
+  background: var(--accent-2-soft); border-color: var(--accent-2); color: var(--accent-2);
+  font-weight: 600;
+}
 
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
 .dot.ok   { background: #3ba55d; box-shadow: 0 0 0 3px rgba(59,165,93,.16); }
@@ -273,10 +290,11 @@ body {
 .ctl input[type=range] { width: 108px; accent-color: var(--accent); }
 
 /* ── 视图栏 ─────────────────────────── */
-/* 紧跟在 .stickydeck 下面吸顶，往下滑歌词时「显示：」这排开关也留在最上面。
-   top 用 --deck-h（app.js 按 .stickydeck 实际高度写入）保证两个吸顶层不重叠。 */
+/* 紧跟在顶栏 + 播放器下面吸顶，往下滑歌词时「显示：」这排开关也留在最上面。
+   top 用 --eff-topbar-h + --eff-deck-h（app.js 按两者是否固定、实际高度算出来）
+   叠在当前实际吸顶的那些层正下方，谁固定就顶多少，不固定就是 0。 */
 .viewbar {
-  position: sticky; top: var(--deck-h, 0px); z-index: 25;
+  position: sticky; top: calc(var(--eff-topbar-h, 0px) + var(--eff-deck-h, 0px)); z-index: 25;
   background: var(--bg-soft); border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -348,8 +366,8 @@ body {
   box-shadow: var(--shadow); overflow: hidden;
   transition: border-color .2s, box-shadow .2s, background .2s;
   /* 自动滚动时留出吸顶区的高度，别让当前句藏到播放器/KTV 底下。
-     --deck-h 由 app.js 按实际高度写入 */
-  scroll-margin-top: calc(var(--deck-h, 260px) + 18px);
+     --sticky-total-h 由 app.js 按顶栏/播放器是否固定 + 视图栏高度算出来 */
+  scroll-margin-top: calc(var(--sticky-total-h, 260px) + 18px);
 }
 .line.active {
   border-color: var(--hl-edge); background: var(--hl);

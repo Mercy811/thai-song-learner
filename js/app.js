@@ -10,6 +10,9 @@
 
   const LS_SONG  = 'tsl.song';
   const LS_THEME = 'tsl.theme';
+  // 顶栏 / 播放器要不要吸顶是全局偏好，跟主题一样不分歌
+  const LS_PIN_TOPBAR = 'tsl.pinTopbar';
+  const LS_PIN_DECK   = 'tsl.pinDeck';
   const SONG_IDS = Object.keys(window.SONGS || {});
 
   // 主题在首页和歌曲页共用，两边都要先套上，别等进了某首歌才生效
@@ -81,6 +84,9 @@
     ),
     done: new Set(JSON.parse(localStorage.getItem(LS.done) || '[]')),
     calib: { on: false, idx: 0, marks: [] },
+    // 顶栏默认不固定（原本的设计：滚走把屏幕留给歌词），播放器默认固定（原本一直吸顶）
+    pinTopbar: localStorage.getItem(LS_PIN_TOPBAR) === '1',
+    pinDeck: localStorage.getItem(LS_PIN_DECK) !== '0',
     // KTV 背景放不放 MV，默认放
     ktvBg: localStorage.getItem(LS.ktvBg) !== '0',
   };
@@ -1039,6 +1045,16 @@
       $('#btnFollow').classList.toggle('active', state.follow);
       scrollToActive();
     });
+    $('#btnPinTopbar').addEventListener('click', () => {
+      state.pinTopbar = !state.pinTopbar;
+      localStorage.setItem(LS_PIN_TOPBAR, state.pinTopbar ? '1' : '0');
+      applyPins();
+    });
+    $('#btnPinDeck').addEventListener('click', () => {
+      state.pinDeck = !state.pinDeck;
+      localStorage.setItem(LS_PIN_DECK, state.pinDeck ? '1' : '0');
+      applyPins();
+    });
 
     // 视图开关
     [['#showRo', 'ro'], ['#showCn', 'cn'], ['#showMean', 'mean'], ['#showWords', 'words'], ['#showUku', 'uku']]
@@ -1238,18 +1254,39 @@
 
   /* ════════ 工具 ════════ */
 
-  // 把吸顶区的实际高度写进 CSS 变量，供 .line 的 scroll-margin-top 用。
+  // 顶栏 / 播放器 / 视图栏三层吸顶区各自的实际高度，供下面算 sticky 偏移量、
+  // .line 的 scroll-margin-top 用。谁固定了才算进偏移量，没固定就当 0 高。
+  const stickyH = { topbar: 0, deck: 0, viewbar: 0 };
+  function updateStickyVars() {
+    const effTopbar = state.pinTopbar ? stickyH.topbar : 0;
+    const effDeck = state.pinDeck ? stickyH.deck : 0;
+    const root = document.documentElement.style;
+    root.setProperty('--eff-topbar-h', effTopbar + 'px');
+    root.setProperty('--eff-deck-h', effDeck + 'px');
+    root.setProperty('--sticky-total-h', (effTopbar + effDeck + stickyH.viewbar) + 'px');
+  }
   // 高度会随「画面」档位、窗口宽度、歌词长短变化，所以用 ResizeObserver 持续跟。
-  function watchDeckHeight() {
-    const deck = $('.stickydeck');
-    if (!deck) return;
-    const apply = () => {
-      const h = Math.round(deck.getBoundingClientRect().height);
-      document.documentElement.style.setProperty('--deck-h', h + 'px');
-    };
-    apply();
-    if (window.ResizeObserver) new ResizeObserver(apply).observe(deck);
-    window.addEventListener('resize', apply);
+  function watchStickyLayout() {
+    const map = { topbar: $('.topbar'), deck: $('.stickydeck'), viewbar: $('.viewbar') };
+    Object.entries(map).forEach(([key, el]) => {
+      if (!el) return;
+      const measure = () => {
+        stickyH[key] = Math.round(el.getBoundingClientRect().height);
+        updateStickyVars();
+      };
+      measure();
+      if (window.ResizeObserver) new ResizeObserver(measure).observe(el);
+    });
+    window.addEventListener('resize', updateStickyVars);
+  }
+
+  // 「📌 固定」按钮：顶栏、播放器各自独立开关，按了哪个哪个就吸顶
+  function applyPins() {
+    $('.topbar').classList.toggle('pinned', state.pinTopbar);
+    $('.stickydeck').classList.toggle('pinned', state.pinDeck);
+    $('#btnPinTopbar').classList.toggle('active', state.pinTopbar);
+    $('#btnPinDeck').classList.toggle('active', state.pinDeck);
+    updateStickyVars();
   }
 
   function esc(s) {
@@ -1306,7 +1343,8 @@
     WordFreq.init(switchSong); // 词频总表摊全部歌曲，点歌名用 switchSong 跳过去
     setMode(state.mode);
     initKtvInteractions();
-    watchDeckHeight();
+    applyPins();
+    watchStickyLayout();
 
     if (!isCalibrated()) $('#syncBanner').classList.remove('hidden');
 

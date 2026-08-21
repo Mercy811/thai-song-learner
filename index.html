@@ -33,6 +33,7 @@
         <span class="dot" id="voiceDot"></span> 发音
       </button>
       <button id="btnCalib" class="icon-btn" title="校准歌词时间轴" data-needs="timeline">⏱ 校准</button>
+      <button id="btnPinTopbar" class="icon-btn toggle" title="固定住这一栏，往下滑也不消失">📌 固定</button>
       <button id="btnTheme" class="icon-btn" title="切换深浅色">◐</button>
     </div>
   </div>
@@ -68,7 +69,7 @@
 </div>
 
 <!-- ══ 吸顶区：播放器 + KTV 作为一个整体吸顶，避免互相遮挡 ══ -->
-<div class="stickydeck">
+<div class="stickydeck pinned">
 
 <!-- ══ 播放器 ══ -->
 <section class="player-wrap">
@@ -125,6 +126,7 @@
 
       <button id="btnLoop" class="tbtn toggle" title="单句循环" data-needs="timeline">🔁 单句循环</button>
       <button id="btnFollow" class="tbtn toggle active" title="歌词自动跟随" data-needs="timeline">📍 自动跟随</button>
+      <button id="btnPinDeck" class="tbtn toggle active" title="固定住播放器这一栏，往下滑也不消失">📌 固定</button>
     </div>
   </div>
 </section>
