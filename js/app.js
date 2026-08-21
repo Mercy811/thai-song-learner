@@ -15,7 +15,7 @@
   const LS_PIN_DECK   = 'tsl.pinDeck';
   const SONG_IDS = Object.keys(window.SONGS || {});
 
-  // 主题在首页和歌曲页共用，两边都要先套上，别等进了某首歌才生效
+  // 主题在首页、歌曲页、词频页、覆盖率页共用，都要先套上，别等进了某个页面才生效
   document.documentElement.dataset.theme = localStorage.getItem(LS_THEME)
     || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   function toggleTheme() {
@@ -24,11 +24,89 @@
     localStorage.setItem(LS_THEME, cur);
   }
 
+  // 换到某首歌：首页卡片、词频表点歌名跳转都用这个
+  function gotoSong(id) {
+    if (!window.SONGS[id]) return;
+    localStorage.setItem(LS_SONG, id);
+    location.href = location.pathname + '?song=' + encodeURIComponent(id);
+  }
+
+  /* ── 站内导航抽屉 ──
+     跟具体在看哪首歌无关，每个页面（首页/歌曲页/词频页/覆盖率页）都挂着同一个，
+     点汉堡图标弹出来，三个入口之间随便跳，都是整页跳转（改 URL），不是页内切换。 */
+  function bindDrawer() {
+    const overlay = $('#drawerOverlay');
+    const drawer = $('#drawer');
+    const fab = $('#btnNav');
+    if (!overlay || !drawer || !fab) return;
+
+    const open = () => {
+      overlay.classList.remove('hidden');
+      drawer.classList.remove('hidden');
+      requestAnimationFrame(() => drawer.classList.add('open'));
+      fab.setAttribute('aria-expanded', 'true');
+    };
+    const close = () => {
+      drawer.classList.remove('open');
+      fab.setAttribute('aria-expanded', 'false');
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        drawer.classList.add('hidden');
+      }, 200);
+    };
+
+    fab.addEventListener('click', open);
+    overlay.addEventListener('click', close);
+    $('#drawerClose').addEventListener('click', close);
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape' && drawer.classList.contains('open')) close();
+    });
+  }
+  bindDrawer();
+
+  /* ── 顶层路由：首页 / 某首歌 / 词频总表 / 覆盖率曲线 ──
+     后两个是全站范围的东西，跟哪首歌无关，所以跟首页一样是独立页面
+     （靠 URL 上的 ?page= 区分，不是挂在某首歌的模式栏下面），
+     每次跳转都是整页刷新，各自管自己的 DOM，互不依赖。 */
+  const params = new URLSearchParams(location.search);
+  const pageParam = params.get('page');
+  const explicitId = params.get('song');
+
+  document.body.dataset.page = pageParam === 'freq' ? 'freq'
+    : pageParam === 'science' ? 'science'
+    : (explicitId && window.SONGS[explicitId]) ? 'song' : 'home';
+
+  // 词频页 / 覆盖率页共用的收尾：把歌曲页那一整套（播放器、歌词、页脚……）和首页都收起来
+  function hideForStandalonePage() {
+    $('.topbar').classList.add('hidden');
+    $('.stickydeck').classList.add('hidden');
+    $('.viewbar').classList.add('hidden');
+    $('#lyrics').classList.add('hidden');
+    $('.foot').classList.add('hidden');
+    $('#homeView').classList.add('hidden');
+  }
+
+  if (pageParam === 'freq') {
+    document.title = '词频总表 — 泰语歌逐句跟读';
+    hideForStandalonePage();
+    $('#freqPageView').classList.remove('hidden');
+    $('#btnThemeFreq').addEventListener('click', toggleTheme);
+    WordFreq.init(gotoSong);
+    return;
+  }
+  if (pageParam === 'science') {
+    document.title = '词频覆盖率曲线 — 泰语歌逐句跟读';
+    hideForStandalonePage();
+    $('#sciencePageView').classList.remove('hidden');
+    $('#btnThemeScience').addEventListener('click', toggleTheme);
+    Science.init();
+    return;
+  }
+
   /* ── 首页：曲库一览 ──
      一进站先看到所有支持的歌，每首一张卡（YouTube 封面当预览），
      点进去才走 ?song=id 加载那一首。只有带着 ?song= 打开才直接进某首歌
      （分享链接、或从某首歌切到另一首）。 */
-  const explicitId = new URLSearchParams(location.search).get('song');
   if (!explicitId || !window.SONGS[explicitId]) {
     initHome();
     return;
@@ -70,7 +148,6 @@
     mode: (() => {
       const saved = localStorage.getItem(LS.mode);
       if (saved === 'study') return 'study';
-      if (saved === 'freq') return 'freq';
       return HAS_TIMELINE && saved === 'ktv' ? 'ktv' : 'practice';
     })(),
     activeIdx: -1,
@@ -301,14 +378,11 @@
     state.mode = mode;
     document.body.classList.toggle('mode-ktv', mode === 'ktv');
     document.body.classList.toggle('mode-study', mode === 'study');
-    document.body.classList.toggle('mode-freq', mode === 'freq');
     $('#ktvView').classList.toggle('hidden', mode !== 'ktv');
     $('#studyView').classList.toggle('hidden', mode !== 'study');
-    $('#freqView').classList.toggle('hidden', mode !== 'freq');
     $('#btnModePractice').classList.toggle('active', mode === 'practice');
     $('#btnModeKtv').classList.toggle('active', mode === 'ktv');
     $('#btnModeStudy').classList.toggle('active', mode === 'study');
-    $('#btnModeFreq').classList.toggle('active', mode === 'freq');
     localStorage.setItem(LS.mode, mode);
     if (mode === 'ktv') {
       renderKtvView();
@@ -318,8 +392,8 @@
       $('#ktvDanmakuForm').classList.add('hidden');
       $('#ktvBtnDanmaku').classList.remove('on');
     }
-    // 背单词 / 看词频表时原曲别在旁边响着，不然点词听发音听不清
-    if (mode === 'study' || mode === 'freq') Player.pause();
+    // 背单词时原曲别在旁边响着，不然点词听发音听不清
+    if (mode === 'study') Player.pause();
     Study.setActive(mode === 'study');
   }
 
@@ -974,12 +1048,6 @@
     }).join('');
   }
 
-  function switchSong(id) {
-    if (!window.SONGS[id]) return;
-    localStorage.setItem(LS_SONG, id);
-    location.href = location.pathname + '?song=' + encodeURIComponent(id);
-  }
-
   /* ════════ 事件 ════════ */
 
   function bind() {
@@ -1008,11 +1076,10 @@
       else if (act === 'rec') toggleRec(line, lineNode, btn);
     });
 
-    // 练习 / KTV / 单词 / 词频 四种模式切换
+    // 练习 / KTV / 单词 三种模式切换
     $('#btnModePractice').addEventListener('click', () => setMode('practice'));
     $('#btnModeKtv').addEventListener('click', () => setMode('ktv'));
     $('#btnModeStudy').addEventListener('click', () => setMode('study'));
-    $('#btnModeFreq').addEventListener('click', () => setMode('freq'));
     $('#ktvExit').addEventListener('click', () => setMode('practice'));
     $('#ktvPlayPause').addEventListener('click', () => Player.toggle());
     $('#ktvBg').addEventListener('click', () => Player.toggle());
@@ -1087,7 +1154,7 @@
     });
     $('#songList').addEventListener('click', (e) => {
       const card = e.target.closest('.song-card');
-      if (card) switchSong(card.dataset.song);
+      if (card) gotoSong(card.dataset.song);
     });
 
     // 弹窗
@@ -1340,7 +1407,6 @@
     bind();
     applyKtvBg();
     Study.init(SONG);       // 单词表从歌词里摊出来，要赶在 setMode 之前
-    WordFreq.init(switchSong); // 词频总表摊全部歌曲，点歌名用 switchSong 跳过去
     setMode(state.mode);
     initKtvInteractions();
     applyPins();

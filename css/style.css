@@ -132,6 +132,67 @@ body {
   font-weight: 600;
 }
 
+/* ── 站内导航：汉堡图标 + 抽屉 ─────────── */
+.nav-fab {
+  position: fixed; top: 14px; left: 14px; z-index: 60;
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  background: var(--card); border: 1px solid var(--line); color: var(--text);
+  border-radius: 50%; font-size: 17px; cursor: pointer; box-shadow: var(--shadow);
+  transition: background .15s, border-color .15s, transform .08s;
+}
+.nav-fab:hover { background: var(--card-2); border-color: var(--text-3); }
+.nav-fab:active { transform: translateY(1px); }
+
+.drawer-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.38);
+  z-index: 70; opacity: 0; transition: opacity .18s;
+}
+.drawer-overlay:not(.hidden) { opacity: 1; }
+
+.drawer {
+  position: fixed; top: 0; left: 0; bottom: 0; width: min(300px, 84vw);
+  background: var(--card); border-right: 1px solid var(--line);
+  box-shadow: var(--shadow-lg); z-index: 71;
+  display: flex; flex-direction: column;
+  transform: translateX(-100%); transition: transform .2s ease;
+}
+.drawer.open { transform: translateX(0); }
+
+.drawer-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 16px 14px; border-bottom: 1px solid var(--line);
+}
+.drawer-title { font-size: 15px; font-weight: 700; }
+.drawer-close {
+  background: transparent; border: none; color: var(--text-3);
+  font-size: 15px; cursor: pointer; padding: 4px 8px; border-radius: 8px;
+}
+.drawer-close:hover { background: var(--card-2); color: var(--text); }
+
+.drawer-item {
+  display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  text-decoration: none; color: var(--text); border-bottom: 1px solid var(--line-soft);
+  transition: background .12s;
+}
+.drawer-item:hover { background: var(--card-2); }
+.drawer-item-icon { font-size: 21px; flex: none; }
+.drawer-item-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.drawer-item-text b { font-size: 14px; }
+.drawer-item-text small { font-size: 12px; color: var(--text-3); }
+/* 当前页对应的入口高亮出来，一眼看出自己在哪 */
+body[data-page="home"] .drawer-item[data-page="home"],
+body[data-page="song"] .drawer-item[data-page="home"],
+body[data-page="freq"] .drawer-item[data-page="freq"],
+body[data-page="science"] .drawer-item[data-page="science"] {
+  background: var(--accent-soft);
+}
+body[data-page="home"] .drawer-item[data-page="home"] .drawer-item-text b,
+body[data-page="song"] .drawer-item[data-page="home"] .drawer-item-text b,
+body[data-page="freq"] .drawer-item[data-page="freq"] .drawer-item-text b,
+body[data-page="science"] .drawer-item[data-page="science"] .drawer-item-text b {
+  color: var(--accent);
+}
+
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); flex: none; }
 .dot.ok   { background: #3ba55d; box-shadow: 0 0 0 3px rgba(59,165,93,.16); }
 .dot.warn { background: #d9a92f; box-shadow: 0 0 0 3px rgba(217,169,47,.18); }
@@ -1075,13 +1136,27 @@ body {
   .home-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 }
 
+/* ── 词频总表 / 覆盖率曲线：跟首页平级的独立页面，样式也仿首页的头部处理 ── */
+.page { max-width: 1100px; margin: 0 auto; padding: 36px 20px 60px; }
+.page-hero { position: relative; text-align: center; padding: 8px 0 30px; }
+.page-hero h1 { margin: 0 0 8px; font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+.page-hero p { margin: 0 auto; max-width: 60ch; font-size: 14.5px; color: var(--text-2); }
+.page-hero-theme { position: absolute; top: 0; right: 0; }
+.page-body { max-width: 1020px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+@media (max-width: 720px) {
+  .page { padding: 24px 14px 44px; }
+  .page-hero { padding: 44px 0 22px; }
+  .page-hero-theme { top: -36px; right: 0; }
+}
+
 /* ── 只做练习模式的歌（timeline: false）──
    KTV、时间轴校准、单句循环、自动跟随这些都得靠逐句时间点，
    这类歌没有时间轴，相关入口直接不出现，免得点了没反应。 */
 body.no-timeline [data-needs="timeline"] { display: none !important; }
 
 @media (max-width: 720px) {
-  .topbar-inner { padding: 10px 13px; }
+  .topbar-inner { padding: 10px 13px 10px 58px; }
   .brand h1 { font-size: 17px; }
   .topbar-actions { width: 100%; margin-left: 0; }
   .icon-btn { flex: 1; justify-content: center; padding: 7px 8px; }
@@ -1341,19 +1416,14 @@ body.mode-ktv.ktv-bg-video .video-box iframe {
   --lv5: #43ac66;
 }
 
-/* 单词模式 / 词频模式下把跟唱那一套收起来，屏幕全留给单词表 */
+/* 单词模式下把跟唱那一套收起来，屏幕全留给单词表 */
 body.mode-study .stickydeck,
 body.mode-study .viewbar,
 body.mode-study .uku-hint,
 body.mode-study #lyrics,
-body.mode-study .foot,
-body.mode-freq .stickydeck,
-body.mode-freq .viewbar,
-body.mode-freq .uku-hint,
-body.mode-freq #lyrics,
-body.mode-freq .foot { display: none; }
+body.mode-study .foot { display: none; }
 
-.study, .freq { max-width: 1020px; margin: 0 auto; padding: 20px 18px 70px; }
+.study { max-width: 1020px; margin: 0 auto; padding: 20px 18px 70px; }
 
 /* ── 总览 ───────────────────────────── */
 .study-head {
@@ -1535,6 +1605,93 @@ body.mode-freq .foot { display: none; }
 .frow-line-song:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 .frow-line-th { font-family: var(--thai-font); font-size: 15px; color: var(--text); line-height: 1.45; }
 .frow-line-cn { font-size: 12.5px; color: var(--text-2); margin-top: 1px; }
+
+/* ── 覆盖率曲线科普页 ───────────────────
+   跟主色系走同一套 --accent/--card/--line，不单独引进一套配色，
+   看着还是这个网站，不是外面贴过来的图。 */
+.sci-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+  gap: 1px; background: var(--line); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+}
+.sci-stat { background: var(--card); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.sci-stat b { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.sci-stat span { font-size: 11.5px; color: var(--text-3); }
+
+.sci-card {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 18px 18px 10px;
+}
+.sci-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+.sci-card-title { font-size: 14.5px; font-weight: 600; }
+.sci-card-sub { font-size: 12px; color: var(--text-3); }
+
+.sci-chart-pos { position: relative; }
+#sciChart { display: block; width: 100%; height: auto; overflow: visible; }
+.sci-gridline { stroke: var(--line); stroke-width: 1; }
+.sci-baseline { stroke: var(--text-3); stroke-width: 1; }
+.sci-axis-label { fill: var(--text-3); font-size: 11px; font-family: inherit; }
+.sci-ref-line { stroke: var(--accent-2); stroke-width: 1; stroke-dasharray: 3 3; opacity: .6; }
+.sci-ref-label { fill: var(--accent-2); font-size: 10.5px; font-family: inherit; font-weight: 600; }
+
+.sci-area-fill { fill: color-mix(in srgb, var(--accent) 14%, transparent); }
+.sci-curve-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+
+.sci-mk-dot { fill: var(--accent); stroke: var(--card); stroke-width: 2; }
+.sci-mk-label-bg { fill: var(--card); opacity: .94; }
+.sci-mk-label { fill: var(--text); font-size: 11px; font-family: inherit; font-weight: 600; }
+.sci-mk-label-sub { fill: var(--text-3); font-size: 10px; font-family: inherit; }
+
+.sci-crosshair { stroke: var(--text-2); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0; pointer-events: none; }
+.sci-hover-dot { fill: var(--accent); stroke: var(--card); stroke-width: 2; opacity: 0; pointer-events: none; }
+.sci-hit-rect { fill: transparent; cursor: crosshair; }
+
+.sci-tooltip {
+  position: absolute; pointer-events: none; opacity: 0; transition: opacity .1s;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; font-size: 12.5px; box-shadow: var(--shadow-lg);
+  white-space: nowrap; z-index: 5;
+}
+.sci-tooltip b { font-size: 15px; font-variant-numeric: tabular-nums; color: var(--accent); }
+.sci-tt-word { font-family: var(--thai-font); color: var(--text); font-weight: 600; margin-top: 3px; }
+.sci-tt-sub { color: var(--text-3); margin-top: 1px; }
+
+.sci-legend { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); margin: 10px 2px 4px; }
+.sci-legend i { width: 14px; height: 2px; background: var(--accent); border-radius: 1px; display: inline-block; }
+
+.sci-explain {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 18px 20px; font-size: 13.5px; line-height: 1.7; color: var(--text-2);
+}
+.sci-explain h2 { font-size: 14.5px; color: var(--text); margin: 0 0 8px; }
+.sci-explain p { margin: 0 0 10px; }
+.sci-explain p:last-child { margin-bottom: 0; }
+.sci-explain b { color: var(--text); }
+
+.sci-tablewrap {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+}
+.sci-tablewrap summary {
+  cursor: pointer; padding: 14px 16px; font-size: 13.5px; font-weight: 600;
+  list-style: none; display: flex; align-items: center; gap: 8px;
+}
+.sci-tablewrap summary::-webkit-details-marker { display: none; }
+.sci-tablewrap summary::before { content: "▸"; color: var(--text-3); font-size: 11px; transition: transform .15s; }
+.sci-tablewrap[open] summary::before { transform: rotate(90deg); }
+.sci-tbl-scroll { overflow-x: auto; padding: 0 16px 14px; }
+.sci-tbl-scroll table { border-collapse: collapse; width: 100%; min-width: 440px; }
+.sci-tbl-scroll th, .sci-tbl-scroll td {
+  text-align: left; padding: 7px 10px; font-size: 12.5px; border-bottom: 1px solid var(--line-soft);
+  font-variant-numeric: tabular-nums;
+}
+.sci-tbl-scroll th { color: var(--text-3); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .03em; }
+.sci-tbl-scroll tr:last-child td { border-bottom: none; }
+.sci-tbl-scroll .hl { color: var(--text); }
+
+@media (max-width: 720px) {
+  .sci-explain, .sci-card { padding: 14px 14px 8px; }
+  .sci-tablewrap summary { padding: 12px 14px; }
+}
 
 /* 从单词表跳回歌词时，让那个词闪一下，好在句子里一眼找到 */
 .word.flash {

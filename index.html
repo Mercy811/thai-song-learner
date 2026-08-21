@@ -11,6 +11,30 @@
 </head>
 <body>
 
+<!-- ══ 站内导航：汉堡图标 + 抽屉，哪个页面都能点开 ══
+     三个入口是「唱歌练习」「词频总表」「覆盖率曲线」——后两个跟具体某首歌无关，
+     是全站范围的东西，所以跟首页平级，不挂在某首歌的模式栏下面。 -->
+<button id="btnNav" class="nav-fab" title="导航" aria-haspopup="true" aria-expanded="false">☰</button>
+<div class="drawer-overlay hidden" id="drawerOverlay"></div>
+<nav class="drawer hidden" id="drawer" aria-label="站内导航">
+  <div class="drawer-head">
+    <span class="drawer-title">🎵 泰语歌学习</span>
+    <button class="drawer-close" id="drawerClose" aria-label="关闭导航">✕</button>
+  </div>
+  <a class="drawer-item" data-page="home" href="?">
+    <span class="drawer-item-icon">🏠</span>
+    <span class="drawer-item-text"><b>唱歌练习</b><small>选一首歌，跟着练发音、学歌词</small></span>
+  </a>
+  <a class="drawer-item" data-page="freq" href="?page=freq">
+    <span class="drawer-item-icon">📊</span>
+    <span class="drawer-item-text"><b>词频总表</b><small>全部歌曲的单词，按出现次数排序</small></span>
+  </a>
+  <a class="drawer-item" data-page="science" href="?page=science">
+    <span class="drawer-item-icon">📈</span>
+    <span class="drawer-item-text"><b>覆盖率曲线</b><small>学多少词能看懂多少歌词？一点小科普</small></span>
+  </a>
+</nav>
+
 <!-- ══ 顶部 ══ -->
 <header class="topbar">
   <div class="topbar-inner">
@@ -27,7 +51,6 @@
         <button id="btnModePractice" class="mode-btn active" title="练习模式：逐句逐词、发音、录音">📖 练习</button>
         <button id="btnModeKtv" class="mode-btn" data-needs="timeline" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
         <button id="btnModeStudy" class="mode-btn" title="单词模式：单词表 + 四选一测验">🃏 单词</button>
-        <button id="btnModeFreq" class="mode-btn" title="词频总表：所有歌曲的单词按出现次数排序，从最常见的学起">📊 词频</button>
       </div>
       <button id="btnVoice" class="icon-btn" title="发音设置">
         <span class="dot" id="voiceDot"></span> 发音
@@ -47,6 +70,103 @@
     <p>选一首歌开始学 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点任意一个词就能听发音</p>
   </div>
   <div class="home-grid" id="homeGrid"></div>
+</main>
+
+<!-- ══ 词频总表：全站所有歌曲的单词，按出现次数排序 ══
+     跟具体某首歌无关，是全站范围的东西，所以是独立页面（跟首页平级），
+     不挂在某首歌的模式栏下面——靠 URL 上的 ?page=freq 进来。 -->
+<main class="page freqpage hidden" id="freqPageView">
+  <div class="page-hero">
+    <button id="btnThemeFreq" class="icon-btn page-hero-theme" title="切换深浅色">◐</button>
+    <h1>📊 词频总表</h1>
+    <p>全部歌曲的逐词卡片摊平去重，按出现次数从高到低排——从最常见的词学起，覆盖面最快</p>
+  </div>
+
+  <div class="page-body">
+    <section class="study-head" id="freqHead">
+      <div class="study-head-row">
+        <div class="study-stat">
+          <div class="study-stat-big"><b id="freqStatWords">0</b></div>
+          <div class="study-stat-label">个不重复的词 · 来自 <b id="freqStatSongs">0</b> 首歌</div>
+          <div class="study-stat-sub">总出现 <span id="freqStatOcc">0</span> 次 · 从最常见的词学起，覆盖面最快</div>
+        </div>
+        <div class="study-actions">
+          <button class="btn ghost" id="freqCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制词表</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="freqListWrap">
+      <div class="study-toolbar">
+        <div class="freq-search-wrap">
+          <input type="text" id="freqSearch" placeholder="搜索泰语 / 罗马音 / 意思…" autocomplete="off">
+        </div>
+        <label class="ctl"><span>排序</span>
+          <select id="freqSort">
+            <option value="count-desc">出现最多在前</option>
+            <option value="count-asc">出现最少在前</option>
+            <option value="alpha">泰语字母序</option>
+          </select>
+        </label>
+        <label class="ctl"><span>只看</span>
+          <select id="freqSongFilter"><option value="">全部歌曲</option></select>
+        </label>
+        <div class="spacer"></div>
+        <span class="study-count" id="freqListCount"></span>
+      </div>
+      <div class="wordlist" id="freqList"></div>
+    </section>
+
+    <p class="study-hint">这份表把库里所有歌的逐词卡片按泰语文本去重、按出现次数排好——副歌重复几遍就算几次出现。点泰语听发音，点歌名跳去那首歌。</p>
+  </div>
+</main>
+
+<!-- ══ 覆盖率曲线：学多少词能看懂多少歌词的一点小科普 ══
+     同样跟具体某首歌无关，独立页面——靠 URL 上的 ?page=science 进来。 -->
+<main class="page sciencepage hidden" id="sciencePageView">
+  <div class="page-hero">
+    <button id="btnThemeScience" class="icon-btn page-hero-theme" title="切换深浅色">◐</button>
+    <h1>📈 词频覆盖率曲线</h1>
+    <p>这张图叫「累积覆盖率曲线」——学多少个高频词，能看懂库里歌词的百分之多少？鼠标移到曲线上任意一点都能看数字</p>
+  </div>
+
+  <div class="page-body">
+    <div class="sci-stats" id="sciStats"></div>
+
+    <div class="sci-card">
+      <div class="sci-card-head">
+        <span class="sci-card-title">学习进度 → 内容覆盖率</span>
+        <span class="sci-card-sub">移动鼠标查看任意一点</span>
+      </div>
+      <div class="sci-chart-pos" id="sciChartPos">
+        <svg id="sciChart" viewBox="0 0 860 380" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="sci-tooltip" id="sciTooltip"></div>
+      </div>
+      <div class="sci-legend"><i></i> 累计覆盖率（学到第 N 个高频词为止）</div>
+    </div>
+
+    <div class="sci-explain">
+      <h2>为什么长这样，不是正态分布</h2>
+      <p>
+        正态分布是「中间多两头少」的钟形；这条曲线不是钟形，是<b>前段陡、后段平的长尾曲线</b>——
+        因为泰语（和大部分语言一样）的用词频率服从<b>齐夫定律（Zipf's Law）</b>：
+        少数几个词（你、我、是、和这类虚词/代词）反复出现，绝大多数词只出现一两次就再没见过。
+      </p>
+      <p id="sciExplainNums"></p>
+    </div>
+
+    <details class="sci-tablewrap">
+      <summary>按出现次数分层的完整表格</summary>
+      <div class="sci-tbl-scroll">
+        <table>
+          <thead>
+            <tr><th class="hl">出现次数 ≥</th><th>学到这里，累计词数</th><th>占词表</th><th class="hl">累计覆盖率</th></tr>
+          </thead>
+          <tbody id="sciThBody"></tbody>
+        </table>
+      </div>
+    </details>
+  </div>
 </main>
 
 <!-- ══ 没有泰语语音时的提示条 ══ -->
@@ -372,46 +492,6 @@
   </div>
 </main>
 
-<!-- ══ 词频模式：全部歌曲的单词摊平去重，按出现次数排序 ══ -->
-<main class="freq hidden" id="freqView">
-
-  <section class="study-head" id="freqHead">
-    <div class="study-head-row">
-      <div class="study-stat">
-        <div class="study-stat-big"><b id="freqStatWords">0</b></div>
-        <div class="study-stat-label">个不重复的词 · 来自 <b id="freqStatSongs">0</b> 首歌</div>
-        <div class="study-stat-sub">总出现 <span id="freqStatOcc">0</span> 次 · 从最常见的词学起，覆盖面最快</div>
-      </div>
-      <div class="study-actions">
-        <button class="btn ghost" id="freqCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制词表</button>
-      </div>
-    </div>
-  </section>
-
-  <section id="freqListWrap">
-    <div class="study-toolbar">
-      <div class="freq-search-wrap">
-        <input type="text" id="freqSearch" placeholder="搜索泰语 / 罗马音 / 意思…" autocomplete="off">
-      </div>
-      <label class="ctl"><span>排序</span>
-        <select id="freqSort">
-          <option value="count-desc">出现最多在前</option>
-          <option value="count-asc">出现最少在前</option>
-          <option value="alpha">泰语字母序</option>
-        </select>
-      </label>
-      <label class="ctl"><span>只看</span>
-        <select id="freqSongFilter"><option value="">全部歌曲</option></select>
-      </label>
-      <div class="spacer"></div>
-      <span class="study-count" id="freqListCount"></span>
-    </div>
-    <div class="wordlist" id="freqList"></div>
-  </section>
-
-  <p class="study-hint">这份表把库里所有歌的逐词卡片按泰语文本去重、按出现次数排好——副歌重复几遍就算几次出现。点泰语听发音，点歌名跳去那首歌。</p>
-</main>
-
 <footer class="foot">
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
   <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句<span data-needs="timeline"> · <kbd>R</kbd> 单句循环</span> · <kbd>S</kbd> 朗读当前句</p>
@@ -579,6 +659,7 @@
 <script src="js/distractors.js"></script>
 <script src="js/vocab.js"></script>
 <script src="js/wordfreq.js"></script>
+<script src="js/science.js"></script>
 <script src="js/gesture.js"></script>
 <script src="js/battle.js"></script>
 <script src="js/study.js"></script>

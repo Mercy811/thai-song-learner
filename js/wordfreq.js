@@ -219,5 +219,7 @@ window.WordFreq = (() => {
     render();
   }
 
-  return { init };
+  // build/list 单独导出：科普页（Science）要用同一份聚合数据画覆盖率曲线，
+  // 不用再摊一遍全部歌曲——但科普页不一定先逛过词频页，所以自己也能单独调 build()
+  return { init, build, list: () => words, songCount: () => Object.keys(songTitle).length };
 })();
