@@ -60,7 +60,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-1',
           lang: 'th',
-          start: 16.26,
+          start: 14.74,
           uku: ['D', 'Bm'],
           th: 'อาจจะมีบางทีที่เผลอพลาดไป',
           ro: 'at cha mi bangthi thi phloe phlat pai',
@@ -76,7 +76,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-2',
           lang: 'th',
-          start: 19.75,
+          start: 18.23,
           uku: ['Em', 'A'],
           th: 'ทำให้เธอรู้สึกว่าฉันหายไป',
           ro: 'thamhai thoe rusuek wa chan hai pai',
@@ -92,7 +92,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v1-3',
           lang: 'th',
-          start: 22.91,
+          start: 21.39,
           uku: ['D', 'Bm', 'Em', 'A'],
           th: 'ทำเธอน้อยใจ ทำให้เธอเหงา Hohoho',
           ro: 'tham thoe noichai thamhai thoe ngao Hohoho',
@@ -114,7 +114,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-1',
           lang: 'th',
-          start: 28.78,
+          start: 27.26,
           uku: ['D', 'Bm'],
           th: 'อยากจะบอกให้เธอได้รู้ความจริง',
           ro: 'ayak cha bok hai thoe dai ru khwam ching',
@@ -130,7 +130,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-2',
           lang: 'th',
-          start: 32.82,
+          start: 31.3,
           uku: ['Em', 'A'],
           th: 'ว่าที่ทำลงไปกับเธอทุกสิ่ง',
           ro: 'wathi tham long pai kap thoe thuk sing',
@@ -146,7 +146,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'v2-3',
           lang: 'th',
-          start: 36.05,
+          start: 34.53,
           uku: ['D', 'Bm', 'Em', 'A'],
           th: 'อาจจะไม่จริง ไม่ตรงกับใจฉันทุกอย่าง',
           ro: 'at cha mai ching mai trong kap chai chan thuk yang',
@@ -169,7 +169,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-1',
           lang: 'th',
-          start: 42.32,
+          start: 40.8,
           uku: ['G', 'F#m'],
           th: 'อย่าโกรธ อย่าลงโทษฉัน',
           ro: 'aya krot aya longthot chan',
@@ -184,7 +184,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-2',
           lang: 'th',
-          start: 45.72,
+          start: 44.2,
           uku: ['Bm', 'B'],
           th: 'ด้วยท่าทางที่เฉยเมย',
           ro: 'duai thathang thi choeimei',
@@ -199,7 +199,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc-3',
           lang: 'th',
-          start: 48.53,
+          start: 47.01,
           uku: ['Em', 'A'],
           th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
           ro: 'ru laeo wa mai di loei aphai dai haimai',
@@ -222,7 +222,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-1',
           lang: 'th',
-          start: 54.75,
+          start: 53.23,
           uku: ['D', 'Bm'],
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
@@ -241,7 +241,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-2',
           lang: 'th',
-          start: 58.79,
+          start: 57.27,
           uku: ['Em', 'A'],
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
@@ -257,7 +257,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-3',
           lang: 'th',
-          start: 62.08,
+          start: 60.56,
           uku: ['D'],
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
@@ -272,7 +272,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-4',
           lang: 'th',
-          start: 63.98,
+          start: 62.46,
           uku: ['Bm'],
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
@@ -286,7 +286,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1-5',
           lang: 'th',
-          start: 65.81,
+          start: 64.29,
           uku: ['Em', 'A'],
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
@@ -308,7 +308,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-1',
           lang: 'th',
-          start: 69.49,
+          start: 67.97,
           uku: ['D', 'Bm'],
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
@@ -325,7 +325,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-2',
           lang: 'th',
-          start: 72.3,
+          start: 70.78,
           uku: ['Em', 'A'],
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
@@ -341,7 +341,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-3',
           lang: 'th',
-          start: 77.13,
+          start: 75.61,
           uku: ['D', 'Bm'],
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
@@ -356,7 +356,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2-4',
           lang: 'th',
-          start: 80.32,
+          start: 78.8,
           uku: ['Em', 'A'],
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
@@ -378,29 +378,29 @@ window.SONGS['safe-near-me'] = {
       note: '这一段基本是英语，只有第 5 句是泰语',
       lines: [
         {
-          id: 'br-1', lang: 'en', start: 88.48,
+          id: 'br-1', lang: 'en', start: 86.96,
           uku: ['D', 'Bm', 'Em', 'A'],
           th: 'You can trust me', ro: '', cn: '你可以相信我', words: [],
         },
         {
-          id: 'br-2', lang: 'en', start: 98.37,
+          id: 'br-2', lang: 'en', start: 96.85,
           uku: ['D'],
           th: 'Please you can trust me', ro: '', cn: '求你相信我', words: [],
         },
         {
-          id: 'br-3', lang: 'en', start: 99.59,
+          id: 'br-3', lang: 'en', start: 98.07,
           uku: ['Bm'],
           th: 'Let me touch ur body', ro: '', cn: '让我触碰你', words: [],
         },
         {
-          id: 'br-4', lang: 'en', start: 101.14,
+          id: 'br-4', lang: 'en', start: 99.62,
           uku: ['Em'],
           th: 'Look in my eyes', ro: '', cn: '看着我的眼睛', words: [],
         },
         {
           id: 'br-5',
           lang: 'th',
-          start: 102.99,
+          start: 101.47,
           uku: ['A'],
           th: 'ฉันจะอยู่ตรงนี้',
           ro: 'chan cha yu trong ni',
@@ -414,17 +414,17 @@ window.SONGS['safe-near-me'] = {
           ],
         },
         {
-          id: 'br-6', lang: 'en', start: 104.44,
+          id: 'br-6', lang: 'en', start: 102.92,
           uku: ['D'],
           th: 'Come on stay with me', ro: '', cn: '留下来陪着我', words: [],
         },
         {
-          id: 'br-7', lang: 'en', start: 106.12,
+          id: 'br-7', lang: 'en', start: 104.6,
           uku: ['Bm'],
           th: "You won't be lonely", ro: '', cn: '你不会孤单', words: [],
         },
         {
-          id: 'br-8', lang: 'en', start: 108.51,
+          id: 'br-8', lang: 'en', start: 106.99,
           uku: ['Em', 'A'],
           th: 'Come on Baby Cause you save me', ro: '', cn: '因为你拯救了我', words: [],
         },
@@ -439,7 +439,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc2-1',
           lang: 'th',
-          start: 111.56,
+          start: 110.04,
           uku: ['G', 'F#m'],
           th: 'อย่าโกรธ อย่าลงโทษฉัน',
           ro: 'aya krot aya longthot chan',
@@ -454,7 +454,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc2-2',
           lang: 'th',
-          start: 114.53,
+          start: 113.01,
           uku: ['Bm', 'B'],
           th: 'ด้วยท่าทางที่เฉยเมย',
           ro: 'duai thathang thi choeimei',
@@ -469,7 +469,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'pc2-3',
           lang: 'th',
-          start: 117.01,
+          start: 115.49,
           uku: ['Em', 'A'],
           th: 'รู้แล้วว่าไม่ดีเลย อภัยได้ไหม',
           ro: 'ru laeo wa mai di loei aphai dai haimai',
@@ -493,7 +493,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-1',
           lang: 'th',
-          start: 123.16,
+          start: 121.64,
           uku: ['D', 'Bm'],
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
@@ -512,7 +512,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-2',
           lang: 'th',
-          start: 127.31,
+          start: 125.79,
           uku: ['Em', 'A'],
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
@@ -528,7 +528,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-3',
           lang: 'th',
-          start: 130.61,
+          start: 129.09,
           uku: ['D'],
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
@@ -543,7 +543,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-4',
           lang: 'th',
-          start: 132.43,
+          start: 130.91,
           uku: ['Bm'],
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
@@ -557,7 +557,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1b-5',
           lang: 'th',
-          start: 134.16,
+          start: 132.64,
           uku: ['Em', 'A'],
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
@@ -580,7 +580,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-1',
           lang: 'th',
-          start: 137.87,
+          start: 136.35,
           uku: ['D', 'Bm'],
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
@@ -597,7 +597,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-2',
           lang: 'th',
-          start: 141.05,
+          start: 139.53,
           uku: ['Em', 'A'],
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
@@ -613,7 +613,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-3',
           lang: 'th',
-          start: 145.58,
+          start: 144.06,
           uku: ['D', 'Bm'],
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
@@ -628,7 +628,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2b-4',
           lang: 'th',
-          start: 148.77,
+          start: 147.25,
           uku: ['Em', 'A'],
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
@@ -652,7 +652,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-1',
           lang: 'th',
-          start: 165.5,
+          start: 163.98,
           uku: ['D', 'Bm'],
           th: 'ก็เพราะว่าเธอคือที่ปลอดภัยใกล้ฉัน',
           ro: 'ko phro wa thoe khue thi plotphai klai chan',
@@ -671,7 +671,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-2',
           lang: 'th',
-          start: 168.98,
+          start: 167.46,
           uku: ['Em', 'A'],
           th: 'ถ้าไม่มีเธอ ฉันจะอยู่ที่ไหน',
           ro: 'tha mai mi thoe chan cha yu thi nai',
@@ -687,7 +687,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-3',
           lang: 'th',
-          start: 172.32,
+          start: 170.8,
           uku: ['D'],
           th: 'เธอคือ Save zone',
           ro: 'thoe khue save zone',
@@ -702,7 +702,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-4',
           lang: 'th',
-          start: 174.03,
+          start: 172.51,
           uku: ['Bm'],
           th: 'ไม่อยาก Alone',
           ro: 'mai ayak alone',
@@ -716,7 +716,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c1c-5',
           lang: 'th',
-          start: 175.35,
+          start: 173.83,
           uku: ['Em', 'A'],
           th: 'เรากลับมาเป็นเหมือนเดิมได้ไหม',
           ro: 'rao klap ma pen muean doem dai haimai',
@@ -739,7 +739,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-1',
           lang: 'th',
-          start: 178.94,
+          start: 177.42,
           uku: ['D', 'Bm'],
           th: 'เพราะว่าเธอคือที่ห่วงใยใกล้ฉัน',
           ro: 'phro wa thoe khue thi huangyai klai chan',
@@ -756,7 +756,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-2',
           lang: 'th',
-          start: 182.3,
+          start: 180.78,
           uku: ['Em', 'A'],
           th: 'Location ที่ฉันปักหมุดใจเอาไว้',
           ro: 'location thi chan pak mut chai ao wai',
@@ -772,7 +772,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-3',
           lang: 'th',
-          start: 186.6,
+          start: 185.08,
           uku: ['D', 'Bm'],
           th: 'สัญญาเลยว่า จากนี้ไป',
           ro: 'sanya loei wa chak ni pai',
@@ -787,7 +787,7 @@ window.SONGS['safe-near-me'] = {
         {
           id: 'c2c-4',
           lang: 'th',
-          start: 190.16,
+          start: 188.64,
           uku: ['Em', 'A'],
           th: 'จะอยู่แต่ในพื้นที่หัวใจของเธอ',
           ro: 'cha yu tae nai phuenthi huachai khong thoe',
