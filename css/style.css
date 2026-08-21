@@ -273,7 +273,10 @@ body {
 .ctl input[type=range] { width: 108px; accent-color: var(--accent); }
 
 /* ── 视图栏 ─────────────────────────── */
+/* 紧跟在 .stickydeck 下面吸顶，往下滑歌词时「显示：」这排开关也留在最上面。
+   top 用 --deck-h（app.js 按 .stickydeck 实际高度写入）保证两个吸顶层不重叠。 */
 .viewbar {
+  position: sticky; top: var(--deck-h, 0px); z-index: 25;
   background: var(--bg-soft); border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
