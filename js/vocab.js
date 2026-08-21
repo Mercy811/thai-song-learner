@@ -22,6 +22,7 @@ window.Vocab = (() => {
   let words = [];              // 去重后的单词表
   let byTh = new Map();        // 泰文 → 单词
   let stats = {};              // 泰文 → { r 对, w 错, lv 级别, streak 连对, last 上次时间 }
+  let onUpdateCb = null;       // 云端数据异步回来、覆盖了本地 stats 时通知外面重新画一遍
 
   const cfg = () => window.VOCAB_QUIZ || { wrong: {}, groups: [], meanOverride: {} };
 
@@ -77,6 +78,27 @@ window.Vocab = (() => {
   }
   function save() {
     try { localStorage.setItem(key, JSON.stringify(stats)); } catch { /* 无痕模式，存不了就算了 */ }
+    // 登录了就顺手把这份进度也传一份到云端，异步、不等结果、失败也不影响本地这份
+    if (window.Sync && song) window.Sync.pushVocabProgress(song.id, stats);
+  }
+
+  /**
+   * 登录用户专用：把当前这首歌的进度跟云端对一次。
+   * 云端已经有这首歌的记录 → 云端说了算（换设备/换浏览器登录进来，看到的是同一份进度）；
+   * 云端还没有、本地倒是有 → 说明是第一次登录，把本地这份「认领」上去，不会因为登录清零。
+   * 没登录 / 没配置 Supabase 时直接跳过，游客模式不受影响。
+   */
+  async function syncFromCloud() {
+    if (!song || !window.Sync || !window.Auth || !window.Auth.isLoggedIn()) return;
+    const cloud = await window.Sync.pullVocabProgress(song.id);
+    if (cloud && Object.keys(cloud).length) {
+      stats = cloud;
+      Object.keys(stats).forEach((th) => { if (!byTh.has(th)) delete stats[th]; });
+      try { localStorage.setItem(key, JSON.stringify(stats)); } catch { /* 无痕模式 */ }
+      if (onUpdateCb) onUpdateCb();
+    } else if (Object.keys(stats).length) {
+      window.Sync.pushVocabProgress(song.id, stats);
+    }
   }
 
   /** 记一次答题结果 */
@@ -226,13 +248,18 @@ window.Vocab = (() => {
     key = 'tsl.vocab.' + song.id;
     build();
     load();
+    syncFromCloud();    // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
     return words;
   }
+
+  // 登录状态变化（刚登录、换了账号、退出）时，当前这首歌也跟着重新对一次云端
+  if (window.Auth) window.Auth.onChange(() => syncFromCloud());
 
   return {
     init, list: () => words, get: (th) => byTh.get(th),
     stat, attempts, levelLabel, setLevel, record, reset, summary,
     makeQuestion, pick, distractorsFor, toTSV,
     LEVELS, MAX_LV,
+    onUpdate: (fn) => { onUpdateCb = fn; },
   };
 })();

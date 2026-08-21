@@ -525,5 +525,9 @@ window.Study = (() => {
     renderList();
   }
 
+  // 登录以后云端数据是异步拉回来的，回来的时候如果单词表正开着就重新画一遍，
+  // 不然界面会一直停在刚打开页面那一刻的本地数据上
+  if (window.Vocab) Vocab.onUpdate(() => { if (state.on && state.page === 'list') { renderHead(); renderList(); } });
+
   return { init, setActive, isOn: () => state.on, note };
 })();

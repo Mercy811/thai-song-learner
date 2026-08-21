@@ -187,6 +187,23 @@ python3 -m http.server 4321 --directory .
 
 然后打开 <http://localhost:4321>。纯静态站，没有构建步骤、没有依赖。
 
+## 开启登录注册（可选）
+
+不配置的话网站照常用，进度存在本地浏览器（游客模式）。想让单词掌握程度能跨设备同步，按下面几步开：
+
+1. 去 [supabase.com](https://supabase.com) 免费建一个项目。
+2. 项目建好后，进 SQL Editor，把 [`supabase/schema.sql`](supabase/schema.sql) 整段粘贴执行一次（建表 + 权限隔离，只用做一次）。
+3. 进 Settings → API，把 **Project URL** 和 **anon public key** 填进 [`js/config.js`](js/config.js)。
+4. 刷新页面，左上角抽屉里的「👤 登录 / 注册」就能用了。
+
+anon key 是设计成可以公开的（真正的权限控制在上面那段 SQL 的 Row Level Security 里），可以放心提交到仓库。
+
+目前只有「单词掌握程度」这一类数据接了云端同步，其余存在 `localStorage` 里的数据（时间轴校准、已学标记、朗读设置……）还是纯本地，逻辑都在 [`js/sync.js`](js/sync.js) 里，以后要接照着加就行。
+
+## 部署（不用 GitHub Pages 的话）
+
+仓库本身不用改，去 [vercel.com](https://vercel.com) 用 GitHub 账号登录，选这个仓库建一个新项目——Vercel 能识别纯静态站，不用填任何构建命令，直接部署，git push 到 `main` 就会自动重新部署。部署好会给一个 `*.vercel.app` 的公开链接，想绑自己的域名的话在 Vercel 项目设置里加一下就行。
+
 ## 加新歌
 
 1. 复制 `songs/` 里现成的一份改，文件名随意，放同一个目录；
