@@ -263,6 +263,17 @@ window.Lessons = (() => {
     updatePlayUI();
   }
 
+  /** 点整张单词卡：先读泰语原音，读完接着读中文讲解，跟顺序播放里同一张卡的顺序一致 */
+  function speakSequence(items) {
+    items = items.filter(Boolean);
+    if (!items.length) return;
+    playing = false;
+    loadedIdx = -1;
+    updatePlayUI();
+    const playAt = (i) => { if (i < items.length) playItem(items[i], () => playAt(i + 1)); };
+    playAt(0);
+  }
+
   /* ════════ 事件 ════════ */
 
   function bind() {
@@ -286,7 +297,10 @@ window.Lessons = (() => {
       const p = e.target.closest('[data-act="speak-p"]');
       if (p) { speakOnce(findQueueItem(+p.dataset.bi, 'p')); return; }
       const wordCard = e.target.closest('.lesson-word');
-      if (wordCard) { speakOnce(findQueueItem(+wordCard.dataset.bi, 'hook')); }
+      if (wordCard) {
+        const bi = +wordCard.dataset.bi;
+        speakSequence([findQueueItem(bi, 'th'), findQueueItem(bi, 'hook')]);
+      }
     });
 
     const rateSlider = $('#lessonRate');
