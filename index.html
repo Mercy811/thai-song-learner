@@ -27,6 +27,7 @@
         <button id="btnModePractice" class="mode-btn active" title="练习模式：逐句逐词、发音、录音">📖 练习</button>
         <button id="btnModeKtv" class="mode-btn" data-needs="timeline" title="KTV 模式：沉浸式跟唱">🎤 KTV</button>
         <button id="btnModeStudy" class="mode-btn" title="单词模式：单词表 + 四选一测验">🃏 单词</button>
+        <button id="btnModeFreq" class="mode-btn" title="词频总表：所有歌曲的单词按出现次数排序，从最常见的学起">📊 词频</button>
       </div>
       <button id="btnVoice" class="icon-btn" title="发音设置">
         <span class="dot" id="voiceDot"></span> 发音
@@ -369,6 +370,46 @@
   </div>
 </main>
 
+<!-- ══ 词频模式：全部歌曲的单词摊平去重，按出现次数排序 ══ -->
+<main class="freq hidden" id="freqView">
+
+  <section class="study-head" id="freqHead">
+    <div class="study-head-row">
+      <div class="study-stat">
+        <div class="study-stat-big"><b id="freqStatWords">0</b></div>
+        <div class="study-stat-label">个不重复的词 · 来自 <b id="freqStatSongs">0</b> 首歌</div>
+        <div class="study-stat-sub">总出现 <span id="freqStatOcc">0</span> 次 · 从最常见的词学起，覆盖面最快</div>
+      </div>
+      <div class="study-actions">
+        <button class="btn ghost" id="freqCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制词表</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="freqListWrap">
+    <div class="study-toolbar">
+      <div class="freq-search-wrap">
+        <input type="text" id="freqSearch" placeholder="搜索泰语 / 罗马音 / 意思…" autocomplete="off">
+      </div>
+      <label class="ctl"><span>排序</span>
+        <select id="freqSort">
+          <option value="count-desc">出现最多在前</option>
+          <option value="count-asc">出现最少在前</option>
+          <option value="alpha">泰语字母序</option>
+        </select>
+      </label>
+      <label class="ctl"><span>只看</span>
+        <select id="freqSongFilter"><option value="">全部歌曲</option></select>
+      </label>
+      <div class="spacer"></div>
+      <span class="study-count" id="freqListCount"></span>
+    </div>
+    <div class="wordlist" id="freqList"></div>
+  </section>
+
+  <p class="study-hint">这份表把库里所有歌的逐词卡片按泰语文本去重、按出现次数排好——副歌重复几遍就算几次出现。点泰语听发音，点歌名跳去那首歌。</p>
+</main>
+
 <footer class="foot">
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
   <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句<span data-needs="timeline"> · <kbd>R</kbd> 单句循环</span> · <kbd>S</kbd> 朗读当前句</p>
@@ -535,6 +576,7 @@
 <script src="js/chords.js"></script>
 <script src="js/distractors.js"></script>
 <script src="js/vocab.js"></script>
+<script src="js/wordfreq.js"></script>
 <script src="js/gesture.js"></script>
 <script src="js/battle.js"></script>
 <script src="js/study.js"></script>
