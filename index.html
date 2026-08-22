@@ -7,6 +7,9 @@
 <meta name="description" content="逐句、逐词学泰语歌：泰文 + 罗马音 + 中文谐音 + 中文意思，每个词点一下就能听发音。" />
 <meta name="theme-color" content="#f7f3ee" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -71,12 +74,75 @@
 
 <!-- ══ 首页：曲库一览，每首歌一张预览卡（YouTube 封面），点进去才加载那首歌 ══ -->
 <main class="home hidden" id="homeView">
-  <div class="home-hero">
-    <button id="btnThemeHome" class="icon-btn home-theme" title="切换深浅色">◐</button>
-    <h1>🎵 泰语歌逐句跟读</h1>
-    <p>选一首歌开始学 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点任意一个词就能听发音</p>
-  </div>
-  <div class="home-grid" id="homeGrid"></div>
+
+  <header class="home-topnav">
+    <div class="home-topnav-inner">
+      <a class="home-brand" href="?">
+        <span class="home-brand-mark">🎵</span>
+        <span class="home-brand-text">泰语歌<em>逐句</em>跟读</span>
+      </a>
+      <nav class="home-topnav-links">
+        <a href="?page=lessons">记忆课</a>
+        <a href="?page=freq">词频总表</a>
+        <a href="?page=science">覆盖率曲线</a>
+      </nav>
+      <div class="home-topnav-actions">
+        <button id="btnThemeHome" class="icon-btn home-theme" title="切换深浅色">◐</button>
+        <button class="btn primary home-topnav-cta" id="btnHomeStart">开始学习 →</button>
+      </div>
+    </div>
+  </header>
+
+  <section class="home-hero">
+    <p class="home-eyebrow">TELL ME A SONG TO LEARN</p>
+    <h1 class="home-title">跟着喜欢的歌，<em>听懂</em>泰语</h1>
+    <p class="home-sub">逐句、逐词拆解泰语歌词 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点一个词就能听发音。挑一首歌，五分钟就能带走一句真正会唱的泰语。</p>
+
+    <div class="home-hero-form">
+      <input type="text" id="homeSearch" class="home-search" placeholder="搜索歌名 / 歌手…" autocomplete="off">
+      <button class="btn primary home-cta-btn" id="homeCtaBtn">▶ 挑一首开始</button>
+    </div>
+    <p class="home-hero-meta">已收录 <b id="homeStatSongs">0</b> 首歌 · <b id="homeStatWords">0</b> 个泰语词 · 练习 / KTV / 单词测验三种模式</p>
+  </section>
+
+  <section class="home-features">
+    <div class="home-feature-card">
+      <span class="hf-icon">📖</span>
+      <b>练习模式</b>
+      <small>逐句逐词、发音跟读</small>
+    </div>
+    <div class="home-feature-card">
+      <span class="hf-icon">🎤</span>
+      <b>KTV 模式</b>
+      <small>沉浸式跟唱，弹幕互动</small>
+    </div>
+    <div class="home-feature-card">
+      <span class="hf-icon">🃏</span>
+      <b>单词测验</b>
+      <small>四选一 + 双人对战</small>
+    </div>
+    <a class="home-feature-card" href="?page=lessons">
+      <span class="hf-icon">🎓</span>
+      <b>记忆课</b>
+      <small>高频词串成故事讲一遍</small>
+    </a>
+    <a class="home-feature-card" href="?page=freq">
+      <span class="hf-icon">📊</span>
+      <b>词频总表</b>
+      <small>从最常见的词学起</small>
+    </a>
+    <a class="home-feature-card" href="?page=science">
+      <span class="hf-icon">📈</span>
+      <b>覆盖率曲线</b>
+      <small>学多少词能看懂多少</small>
+    </a>
+  </section>
+
+  <section class="home-library" id="homeLibrary">
+    <h2 class="home-library-title">选一首歌开始</h2>
+    <div class="home-grid" id="homeGrid"></div>
+    <p class="home-empty hidden" id="homeEmpty">没找到匹配的歌，换个关键词试试。</p>
+  </section>
 </main>
 
 <!-- ══ 词频总表：全站所有歌曲的单词，按出现次数排序 ══

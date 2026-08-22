@@ -1108,7 +1108,8 @@
     $('#homeGrid').innerHTML = ids.map((id) => {
       const s = window.SONGS[id];
       const by = [s.artist, s.album].filter(Boolean).join(' · ');
-      return `<a class="home-card" href="?song=${encodeURIComponent(id)}" data-song="${esc(id)}">
+      return `<a class="home-card" href="?song=${encodeURIComponent(id)}" data-song="${esc(id)}"
+                 data-search="${esc([s.titleTh, s.titleCn, s.title, s.artist].filter(Boolean).join(' ').toLowerCase())}">
         <span class="home-card-thumb">
           <img src="https://img.youtube.com/vi/${esc(s.youtubeId)}/hqdefault.jpg" alt="" loading="lazy">
           <span class="home-card-play">▶</span>
@@ -1131,6 +1132,43 @@
     });
 
     $('#btnThemeHome').addEventListener('click', toggleTheme);
+
+    // 顶栏 / 主视觉的「开始学习」都是同一个目的地：接着上次学的歌，没有就跳去挑歌区
+    const goStart = () => {
+      if (lastId && window.SONGS[lastId]) { location.href = `?song=${encodeURIComponent(lastId)}`; return; }
+      $('#homeLibrary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    $('#btnHomeStart').addEventListener('click', goStart);
+    $('#homeCtaBtn').addEventListener('click', () => {
+      const q = $('#homeSearch').value.trim();
+      if (!q) { goStart(); return; }
+      const firstMatch = $('#homeGrid').querySelector('.home-card:not(.hidden)');
+      if (firstMatch) { localStorage.setItem(LS_SONG, firstMatch.dataset.song); location.href = firstMatch.getAttribute('href'); }
+    });
+
+    // 搜索框：按歌名 / 歌手实时过滤下面的曲库网格
+    $('#homeSearch').addEventListener('input', () => {
+      const q = $('#homeSearch').value.trim().toLowerCase();
+      let shown = 0;
+      $('#homeGrid').querySelectorAll('.home-card').forEach((card) => {
+        const hit = !q || card.dataset.search.includes(q);
+        card.classList.toggle('hidden', !hit);
+        if (hit) shown++;
+      });
+      $('#homeEmpty').classList.toggle('hidden', shown > 0);
+    });
+
+    // 顶部小字：歌曲数 + 去重后的泰语词总数
+    $('#homeStatSongs').textContent = ids.length;
+    const thSet = new Set();
+    ids.forEach((id) => {
+      window.SONGS[id].sections.forEach((sec) => {
+        sec.lines.forEach((line) => (line.words || []).forEach((w) => {
+          if (w.th && w.lang !== 'en') thSet.add(w.th);
+        }));
+      });
+    });
+    $('#homeStatWords').textContent = thSet.size;
   }
 
   /* ════════ 选歌 ════════
