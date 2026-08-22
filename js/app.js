@@ -207,17 +207,6 @@
   // 标过的句子（校准面板里按过一次的那些），中途保存也不会丢
   const loadMarked = () => new Set(JSON.parse(localStorage.getItem(LS.marked) || '[]'));
 
-  // 只有每一句都真的标过才算校准完，标了一半仍然提示接着标。
-  // 补了新歌词之后，浏览器里存的旧时间轴只覆盖一部分句子，同理。
-  const isCalibrated = () => {
-    if (!HAS_TIMELINE || SONG.synced) return true;
-    const saved = JSON.parse(localStorage.getItem(LS.times) || 'null');
-    if (!saved || !LINES.every((l) => typeof saved[l.id] === 'number')) return false;
-    // 没有 marked 记录 = 加这个记录之前就校准过的老数据，按已校准算，别让人白标一遍
-    const marked = JSON.parse(localStorage.getItem(LS.marked) || 'null');
-    return !marked || LINES.every((l) => marked.includes(l.id));
-  };
-
   /** 登录用户：这首歌的时间轴校准结果跟云端对一次。
       云端有 → 云端说了算（换设备/浏览器登录进来看到同一份校准结果）；
       云端还没有、本地倒是标过 → 第一次登录，把本地这份传上去。 */
@@ -232,7 +221,6 @@
       loadTimes();
       render();
       renderSeekMarks();
-      $('#syncBanner').classList.toggle('hidden', isCalibrated());
     } else {
       const localTimes = JSON.parse(localStorage.getItem(LS.times) || 'null');
       if (localTimes && Object.keys(localTimes).length) {
@@ -1006,9 +994,7 @@
     localStorage.setItem(LS.marked, JSON.stringify(markedArr));
     if (window.Sync) window.Sync.pushTimelineCalib(SONG.id, SONG.youtubeId, timesMap, markedArr);
     closeCalib();
-    // 全部标完了才把提示条收掉；标了一半就留着，提醒还得接着标
     const left = LINES.length - LINES.filter((l) => marked.has(l.id)).length;
-    $('#syncBanner').classList.toggle('hidden', isCalibrated());
     renderSeekMarks();          // 刻度按新时间轴重画
     state.activeIdx = -1;
     setActive(indexAt(Player.getTime()));
@@ -1334,7 +1320,6 @@
       $('#voiceBanner').classList.add('hidden');
       sessionStorage.setItem('tsl.voiceBannerHidden', '1');
     });
-    $('#syncBannerClose').addEventListener('click', () => $('#syncBanner').classList.add('hidden'));
 
     // 校准
     $('#calibTap').addEventListener('click', calibMark);
@@ -1570,8 +1555,6 @@
     initKtvInteractions();
     applyPins();
     watchStickyLayout();
-
-    if (!isCalibrated()) $('#syncBanner').classList.remove('hidden');
 
     syncProgressFromCloud();   // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
 
