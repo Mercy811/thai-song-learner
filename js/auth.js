@@ -1,5 +1,5 @@
 /**
- * Auth —— 登录注册（邮箱 + 密码），基于 Supabase Auth。
+ * Auth —— 登录注册（邮箱 + 密码，以及 Google 一键登录），基于 Supabase Auth。
  *
  * js/config.js 里没填真的 Supabase 项目信息时，整个模块自动降级：
  * 不报错，登录入口点了给个提示，网站其它功能（游客模式）完全不受影响。
@@ -39,6 +39,14 @@ window.Auth = (() => {
   async function signOut() {
     if (!client) return;
     await client.auth.signOut();
+  }
+  async function signInWithGoogle() {
+    if (!client) throw new Error('还没配置 Supabase，登录注册暂时用不了');
+    const { error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.href },
+    });
+    if (error) throw error;
   }
 
   /* ════════ 登录注册面板 ════════ */
@@ -88,6 +96,16 @@ window.Auth = (() => {
     $('#authSwitch')?.addEventListener('click', () => {
       mode = mode === 'signin' ? 'signup' : 'signin';
       renderModal();
+    });
+
+    $('#authGoogle')?.addEventListener('click', async () => {
+      const errEl = $('#authError');
+      errEl.textContent = '';
+      try {
+        await signInWithGoogle();
+      } catch (err) {
+        errEl.textContent = err.message || '出错了，再试一次';
+      }
     });
 
     $('#authForm')?.addEventListener('submit', async (e) => {
