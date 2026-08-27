@@ -1264,12 +1264,8 @@ body[data-page="science"] .drawer-item[data-page="science"] .drawer-item-text b 
   width: 11px; height: 11px; display: grid; place-items: center; border-radius: 3px;
   background: var(--line-soft); border: 1px solid rgba(0,0,0,.025);
 }
-.heatmap-grid i[data-completed]::after, .heatmap-legend i[data-completed]::after {
-  content: '✓'; color: #187456; font: 700 10px/1 sans-serif;
-}
+.heatmap-grid i[data-completed], .heatmap-legend i[data-completed] { background: #187456; }
 .heatmap-grid i[data-future] { opacity: .3; }
-:root[data-theme="dark"] .heatmap-grid i[data-completed]::after,
-:root[data-theme="dark"] .heatmap-legend i[data-completed]::after { color: #70d9b3; }
 .heatmap-legend { display: flex; justify-content: flex-end; align-items: center; gap: 5px; margin-top: 9px; color: var(--text-3); font-size: 10px; }
 
 /* 功能卡：真实存在的六种学习方式 */
