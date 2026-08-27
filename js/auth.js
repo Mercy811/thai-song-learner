@@ -42,11 +42,21 @@ window.Auth = (() => {
   }
   async function signInWithGoogle() {
     if (!client) throw new Error('还没配置 Supabase，登录注册暂时用不了');
+    // OAuth 令牌会被 Supabase 放在 URL fragment（#access_token=...）里。
+    // 不能用完整的 location.href 作为下次回调地址，否则会把旧令牌嵌进新地址，
+    // 变成 ##access_token=...#access_token=...。保留 ?song=... 这类页面状态即可。
+    const redirectTo = `${window.location.origin}${window.location.pathname}${window.location.search}`;
     const { error } = await client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href },
+      options: { redirectTo },
     });
     if (error) throw error;
+  }
+
+  function clearAuthFragment() {
+    const hash = window.location.hash;
+    if (!/(?:access_token|refresh_token|error(?:_description)?)=/.test(hash)) return;
+    history.replaceState(null, document.title, `${window.location.pathname}${window.location.search}`);
   }
 
   /* ════════ 登录注册面板 ════════ */
@@ -145,6 +155,8 @@ window.Auth = (() => {
       user = session?.user || null;
       updateAccountBtn();
       notify();
+      // createClient 已在这个回调前从 fragment 恢复 session，现在可以安全清掉地址栏里的令牌。
+      clearAuthFragment();
     });
   }
 
