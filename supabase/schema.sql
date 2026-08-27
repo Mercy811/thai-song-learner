@@ -175,6 +175,7 @@ create table if not exists word_overrides (
   updated_by  uuid references auth.users(id) on delete restrict not null,
   updated_at  timestamptz not null default now()
 );
+create index if not exists word_overrides_updated_by_idx on word_overrides (updated_by);
 alter table word_overrides enable row level security;
 
 revoke all on table word_overrides from anon, authenticated;
