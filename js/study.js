@@ -16,12 +16,17 @@ window.Study = (() => {
 
   const LS_OPTS = 'tsl.study.opts';
   const ROUND = 10;                 // 一轮多少题
+  const DAILY_ROUND = 6;
+  const LS_DAILY = 'tsl.daily';
   const RECENT = 6;                 // 最近考过的几个词不重复出
 
   // init() 现在可能被叫不止一次（记忆课那边每换一节课就重新 init 一次
   // 换上那节课的词），事件监听和 Player.tick 订阅只该挂一次，不然会重复触发
   let bound = false;
   let tickWatched = false;
+  let dailyInitialized = false;
+  let lastActivity = Date.now();
+  let dailyPushTimer = null;
 
   const state = {
     on: false,
@@ -36,6 +41,81 @@ window.Study = (() => {
   };
 
   const ttsRate = () => parseFloat(localStorage.getItem('tsl.ttsRate')) || 0.7;
+
+  const dayKey = (d = new Date()) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+  function loadDaily() {
+    try { return JSON.parse(localStorage.getItem(LS_DAILY) || '{}') || {}; }
+    catch { return {}; }
+  }
+  function saveDaily(days, push = true) {
+    try { localStorage.setItem(LS_DAILY, JSON.stringify(days)); } catch { /* 无痕模式 */ }
+    if (push && window.Auth?.isLoggedIn() && window.Sync) {
+      clearTimeout(dailyPushTimer);
+      dailyPushTimer = setTimeout(() => Sync.pushDailyActivity(days), 700);
+    }
+  }
+  function mergeDaily(local, cloud) {
+    const merged = { ...local };
+    Object.entries(cloud || {}).forEach(([day, remote]) => {
+      const here = merged[day] || {};
+      merged[day] = {
+        ...here, ...remote,
+        seconds: Math.max(here.seconds || 0, remote.seconds || 0),
+        completed: !!(here.completed || remote.completed),
+        completedAt: Math.max(here.completedAt || 0, remote.completedAt || 0) || undefined,
+      };
+    });
+    return merged;
+  }
+  async function syncDailyFromCloud(user) {
+    if (!user || !window.Sync) { renderDaily(); return; }
+    const local = loadDaily();
+    const cloud = await Sync.pullDailyActivity();
+    // 首次登录会把游客期间的本地记录带进账号；已有云端记录则逐日安全合并。
+    const merged = mergeDaily(local, cloud || {});
+    saveDaily(merged, false);
+    await Sync.pushDailyActivity(merged);
+    renderDaily();
+  }
+  function dailyStats() {
+    const data = loadDaily();
+    const today = dayKey();
+    let streak = 0;
+    const cursor = new Date();
+    if (!data[today]?.completed) cursor.setDate(cursor.getDate() - 1);
+    while (data[dayKey(cursor)]?.completed) { streak++; cursor.setDate(cursor.getDate() - 1); }
+    let week = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      if (data[dayKey(d)]?.completed) week++;
+    }
+    return { data, today, entry: data[today] || {}, streak, week };
+  }
+  function renderDaily() {
+    if (!$('#dailyCard')) return;
+    const d = dailyStats();
+    const seconds = d.entry.seconds || 0;
+    $('#dailyStreak').textContent = d.streak;
+    $('#dailyMinutes').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
+    $('#dailyWeek').textContent = `本周 ${d.week} / 7 天`;
+    $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '用 2 分钟，复习 6 个词';
+    $('#dailyStart').textContent = d.entry.completed ? '再练一轮' : '开始今日任务';
+    $('#dailyCard').classList.toggle('completed', !!d.entry.completed);
+  }
+  function addStudySecond() {
+    if (document.hidden || Date.now() - lastActivity > 60000) return;
+    const d = dailyStats();
+    const entry = d.data[d.today] || (d.data[d.today] = {});
+    entry.seconds = (entry.seconds || 0) + 1;
+    entry.updatedAt = Date.now();
+    saveDaily(d.data, entry.seconds % 10 === 0);
+    if (entry.seconds % 10 === 0) renderDaily();
+  }
 
   /* ── 播放原句要用的东西 ──
      SONG 里每句的 start 摊平存一份，用来算「这句唱到哪儿结束」（= 下一句的开头）。
@@ -214,8 +294,8 @@ window.Study = (() => {
 
   /* ════════ 测验 ════════ */
 
-  function startRound() {
-    state.quiz = { step: 0, right: 0, wrong: 0, streak: 0, best: 0, recent: [], q: null, answered: false, missed: [] };
+  function startRound(daily = false) {
+    state.quiz = { step: 0, total: daily ? DAILY_ROUND : ROUND, daily, right: 0, wrong: 0, streak: 0, best: 0, recent: [], q: null, answered: false, missed: [] };
     state.page = 'quiz';
     applyPage();
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -224,7 +304,7 @@ window.Study = (() => {
 
   function nextQuestion() {
     const q = state.quiz;
-    if (q.step >= ROUND) return finishRound();
+    if (q.step >= q.total) return finishRound();
 
     const th = Vocab.pick(q.recent);
     if (!th) return finishRound();
@@ -245,7 +325,7 @@ window.Study = (() => {
     $('#quizDone').classList.add('hidden');
     $('#quizCard').classList.remove('hidden');
     $('#quizStep').textContent = state.quiz.step;
-    $('#quizTotal').textContent = ROUND;
+    $('#quizTotal').textContent = state.quiz.total;
     $('#quizRight').textContent = state.quiz.right;
     $('#quizWrong').textContent = state.quiz.wrong;
     $('#quizStreak').textContent = state.quiz.streak;
@@ -313,7 +393,14 @@ window.Study = (() => {
 
     $('#quizCard').classList.add('hidden');
     $('#quizDone').classList.remove('hidden');
+    if (q.daily) {
+      const d = dailyStats();
+      const entry = d.data[d.today] || (d.data[d.today] = {});
+      Object.assign(entry, { completed: true, completedAt: Date.now(), right: q.right, total: q.step });
+      saveDaily(d.data);
+    }
     $('#quizDone').innerHTML = `
+      ${q.daily ? '<div class="qd-daily">🔥 今日任务完成，打卡成功</div>' : ''}
       <div class="qd-score"><b>${q.right}</b> / ${q.step}</div>
       <div class="qd-word">${esc(word)}　正确率 ${pct}%${q.best > 1 ? `　最高连对 ${q.best}` : ''}</div>
       ${q.missed.length ? `
@@ -331,6 +418,7 @@ window.Study = (() => {
         <button class="btn ghost" id="quizToList">看单词表</button>
       </div>`;
     renderHead();
+    renderDaily();
   }
 
   /* ════════ 页面切换 ════════ */
@@ -412,7 +500,8 @@ window.Study = (() => {
     $('#studyFilter').addEventListener('change', (e) => { state.filter = e.target.value; saveOpts(); renderList(); });
     $('#studyMask').addEventListener('change', (e) => { state.mask = e.target.checked; saveOpts(); renderList(); });
 
-    $('#studyStart').addEventListener('click', () => { stopLinePlay(true); startRound(); });
+    $('#dailyStart').addEventListener('click', () => { stopLinePlay(true); startRound(true); });
+    $('#studyStart').addEventListener('click', () => { stopLinePlay(true); startRound(false); });
     $('#studyBattle2p').addEventListener('click', startBattle);
     $('#quizBack').addEventListener('click', () => { stopLinePlay(true); state.page = 'list'; state.quiz = null; applyPage(); });
 
@@ -523,6 +612,14 @@ window.Study = (() => {
     bind();
     watchLineEnd();
     renderList();
+    renderDaily();
+    if (!dailyInitialized) {
+      dailyInitialized = true;
+      ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach((eventName) =>
+        document.addEventListener(eventName, () => { lastActivity = Date.now(); }, { passive: true }));
+      setInterval(addStudySecond, 1000);
+      if (window.Auth) Auth.onChange(syncDailyFromCloud);
+    }
   }
 
   // 登录以后云端数据是异步拉回来的，回来的时候如果单词表正开着就重新画一遍，

@@ -78,11 +78,18 @@ window.Sync = (() => {
   const pushLessonProgress = (done, wordStatus) =>
     pushRow('lesson_progress', { done, word_status: wordStatus }, 'user_id');
 
+  /* ── 每日学习：打卡、学习秒数、正确率（一个用户一行） ── */
+  const pullDailyActivity = () =>
+    pullRow('daily_activity', {}, 'days').then((d) => (d ? d.days : null));
+  const pushDailyActivity = (days) =>
+    pushRow('daily_activity', { days }, 'user_id');
+
   return {
     pullVocabProgress, pushVocabProgress,
     pullLineDone, pushLineDone,
     pullTimelineCalib, pushTimelineCalib,
     pullFreqLearned, pushFreqLearned,
     pullLessonProgress, pushLessonProgress,
+    pullDailyActivity, pushDailyActivity,
   };
 })();

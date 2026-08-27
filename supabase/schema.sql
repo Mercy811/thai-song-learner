@@ -113,3 +113,34 @@ create policy "用户只能写自己的记忆课进度"
 drop policy if exists "用户只能改自己的记忆课进度" on lesson_progress;
 create policy "用户只能改自己的记忆课进度"
   on lesson_progress for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- ════════ 每日学习记录：打卡 + 每天学习时长（每个用户一行） ════════
+create table if not exists daily_activity (
+  user_id    uuid references auth.users(id) on delete cascade primary key,
+  days       jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table daily_activity enable row level security;
+
+-- 新版项目不会自动把新表暴露给 Data API；这里只开放前端同步实际需要的权限。
+revoke all on table daily_activity from anon, authenticated;
+grant select, insert, update on table daily_activity to authenticated;
+
+drop policy if exists "用户只读自己的每日记录" on daily_activity;
+create policy "用户只读自己的每日记录"
+  on daily_activity for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+drop policy if exists "用户只能写自己的每日记录" on daily_activity;
+create policy "用户只能写自己的每日记录"
+  on daily_activity for insert
+  to authenticated
+  with check ((select auth.uid()) = user_id);
+
+drop policy if exists "用户只能改自己的每日记录" on daily_activity;
+create policy "用户只能改自己的每日记录"
+  on daily_activity for update
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);

@@ -21,6 +21,9 @@ window.I18n = (() => {
     '🔊 整句': '🔊 Line', '▶ 原曲': '▶ Song', '🔁 循环': '🔁 Loop', '🎙 跟读': '🎙 Record', '○ 掌握': '○ Master', '✓ 已掌握': '✓ Mastered',
     '个词已掌握 · 整体进度 ': 'words mastered · Overall progress ', '测验正确率 ': 'Quiz accuracy ', '还没开始测验': 'Not started yet',
     '🎯 开始测验': '🎯 Start quiz', '⚔️ 双人对战': '⚔️ Two-player battle', '📋 复制单词表': '📋 Copy vocabulary', '↺ 重置进度': '↺ Reset progress',
+    '今日学习': 'TODAY', '用 2 分钟，复习 6 个词': 'Review 6 words in 2 minutes', '开始今日任务': 'Start today’s lesson',
+    '今天已打卡，明天继续！': 'Today complete — see you tomorrow!', '再练一轮': 'Practice again',
+    '🔥 今日任务完成，打卡成功': '🔥 Daily lesson complete', '游客': 'Guest', '账户': 'Account',
     '排序': 'Sort', '歌词顺序': 'Song order', '最不熟的在前': 'Weakest first', '出现最多的在前': 'Most frequent first',
     '只看': 'Filter', '全部': 'All', '还没掌握': 'Not mastered', '还没学过': 'New', '答错过的': 'Answered incorrectly', '遮住意思（自测）': 'Hide meanings (self-test)',
     '← 单词表': '← Vocabulary', '它是什么意思？': 'What does it mean?', '下一个 →': 'Next →', '再听一遍': 'Listen again', '🔊 听发音': '🔊 Listen',
@@ -48,7 +51,11 @@ window.I18n = (() => {
       .replace(/^(\d+) 个词$/, '$1 words')
       .replace(/^第 (\d+) \/ (\d+) 题$/, 'Question $1 of $2')
       .replace(/^第 (\d+) 句$/, 'Line $1')
-      .replace(/^(\d+) 次$/, '$1 times');
+      .replace(/^(\d+) 次$/, '$1 times')
+      .replace(/^🔥 连续 (\d+) 天$/, '🔥 $1 day streak')
+      .replace(/^⏱ 今天 (\d+) 秒$/, '⏱ Today $1 sec')
+      .replace(/^⏱ 今天 (\d+) 分钟$/, '⏱ Today $1 min')
+      .replace(/^本周 (\d+) \/ 7 天$/, '$1 / 7 days this week');
   }
 
   function translateElement(root) {
@@ -122,4 +129,3 @@ window.I18n = (() => {
 
   return { init, apply, setLanguage, localize, t: translateText, get language() { return language; } };
 })();
-

@@ -218,6 +218,7 @@ window.Vocab = (() => {
       let x = Math.pow(MAX_LV + 1 - s.lv, 2);        // 0 级 36 分，5 级 1 分
       if (s.r + s.w === 0) x *= 1.3;                 // 还没见过的先安排上
       if (s.streak === 0 && s.w > 0) x *= 1.5;       // 上次刚答错的多考几遍
+      x *= 1 + Math.min(1, (w.count - 1) * 0.18);     // 歌词里反复出现的高频词略微优先
       return x;
     });
     const total = weights.reduce((a, b) => a + b, 0);

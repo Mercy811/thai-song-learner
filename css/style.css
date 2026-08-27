@@ -193,6 +193,21 @@ body {
 
 .drawer-account { padding: 12px 16px; border-bottom: 1px solid var(--line); }
 .drawer-account-btn { width: 100%; text-align: center; }
+.account-chip {
+  display: inline-flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 5px 10px 5px 5px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--card); color: var(--text); font: inherit; font-size: 13px;
+  cursor: pointer; box-shadow: 0 1px 2px rgba(43,38,34,.06);
+}
+.account-chip:hover { background: var(--card-2); border-color: var(--text-3); }
+.account-avatar {
+  width: 28px; height: 28px; flex: none; display: grid; place-items: center;
+  overflow: hidden; border-radius: 50%; background: var(--accent-soft); font-size: 15px;
+}
+.account-avatar img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.account-chip.logged-in .account-avatar { box-shadow: 0 0 0 2px var(--accent-2); }
+.account-name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.drawer-account-btn { justify-content: flex-start; border-radius: 12px; padding: 7px; }
 
 .drawer-item {
   display: flex; align-items: center; gap: 12px; padding: 14px 16px;
@@ -1045,6 +1060,8 @@ body[data-page="science"] .drawer-item[data-page="science"] .drawer-item-text b 
 .brs-actions { margin-top: 20px; display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
 
 @media (max-width: 720px) {
+  .topbar-actions .account-name { display: none; }
+  .topbar-actions .account-chip { padding-right: 5px; }
   .battle-setup { padding: 18px 15px 16px; }
   .bs-vs { flex-wrap: wrap; gap: 8px; }
   .bs-vs-sep { width: 100%; padding: 0; text-align: center; }
@@ -2048,6 +2065,22 @@ body.mode-study .foot { display: none; }
 }
 
 /* ── 一轮结束 ───────────────────────── */
+.daily-card {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
+  padding: 15px 17px; border-radius: 16px; color: #fff;
+  background: linear-gradient(120deg, #c85e35, #df8b3f);
+  box-shadow: 0 8px 24px rgba(194,100,58,.2);
+}
+.daily-card.completed { background: linear-gradient(120deg, #287b6c, #43a783); }
+.daily-flame { font-size: 32px; line-height: 1; }
+.daily-copy { flex: 1; min-width: 0; }
+.daily-eyebrow { font-size: 11px; font-weight: 700; opacity: .8; letter-spacing: .08em; }
+.daily-title { font-size: 18px; font-weight: 750; line-height: 1.35; }
+.daily-meta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 3px; font-size: 12px; opacity: .92; }
+.daily-start { flex: none; background: #fff; color: #994621; border-color: rgba(255,255,255,.7); }
+.daily-card.completed .daily-start { color: #176151; }
+.daily-start:hover { filter: brightness(.96); }
+.qd-daily { margin-bottom: 10px; color: var(--accent); font-weight: 750; }
 .quiz-done {
   background: var(--card); border: 1px solid var(--line);
   border-radius: var(--radius); box-shadow: var(--shadow);
@@ -2096,6 +2129,9 @@ body.mode-study .foot { display: none; }
 
 /* ── 手机 ───────────────────────────── */
 @media (max-width: 720px) {
+  .daily-card { align-items: flex-start; flex-wrap: wrap; }
+  .daily-flame { font-size: 26px; }
+  .daily-start { width: 100%; }
   .study, .freq { padding: 14px 12px 56px; }
   .study-head { padding: 15px 15px 13px; }
   /* 三个按钮：开始测验独占一行，另外两个平分下面一行，谁都不会被挤成两行字 */

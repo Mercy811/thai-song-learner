@@ -25,7 +25,10 @@
     <button class="drawer-close" id="drawerClose" aria-label="关闭导航">✕</button>
   </div>
   <div class="drawer-account">
-    <button class="btn ghost drawer-account-btn" id="btnAccount">👤 登录 / 注册</button>
+    <button class="account-chip drawer-account-btn" id="btnAccount" data-account>
+      <span class="account-avatar" data-account-avatar>👤</span>
+      <span class="account-name" data-account-name>游客</span>
+    </button>
   </div>
   <a class="drawer-item" data-page="home" href="?">
     <span class="drawer-item-icon">🏠</span>
@@ -53,6 +56,10 @@
       <p class="sub"><span id="songTitleTh"></span><span id="songTitleSep"> · </span><span id="songArtist"></span></p>
     </div>
     <div class="topbar-actions">
+      <button class="account-chip" data-account aria-label="账户">
+        <span class="account-avatar" data-account-avatar>👤</span>
+        <span class="account-name" data-account-name>游客</span>
+      </button>
       <button id="btnHome" class="icon-btn" title="回首页看所有歌">🏠 首页</button>
       <label class="language-picker" title="语言">
         <span aria-hidden="true">🌐</span>
@@ -94,6 +101,10 @@
         <a href="?page=science">覆盖率曲线</a>
       </nav>
       <div class="home-topnav-actions">
+        <button class="account-chip home-account" data-account aria-label="账户">
+          <span class="account-avatar" data-account-avatar>👤</span>
+          <span class="account-name" data-account-name>游客</span>
+        </button>
         <button id="btnThemeHome" class="icon-btn home-theme" title="切换深浅色">◐</button>
         <button class="btn primary home-topnav-cta" id="btnHomeStart">开始学习 →</button>
       </div>
@@ -416,6 +427,19 @@
 
   <!-- 总览：掌握到什么程度了 -->
   <section class="study-head" id="studyHead">
+    <div class="daily-card" id="dailyCard">
+      <div class="daily-flame" aria-hidden="true">🔥</div>
+      <div class="daily-copy">
+        <div class="daily-eyebrow">今日学习</div>
+        <div class="daily-title" id="dailyTitle">用 2 分钟，复习 6 个词</div>
+        <div class="daily-meta">
+          <span>🔥 连续 <b id="dailyStreak">0</b> 天</span>
+          <span>⏱ 今天 <b id="dailyMinutes">0 秒</b></span>
+          <span id="dailyWeek">本周 0 / 7 天</span>
+        </div>
+      </div>
+      <button class="btn primary daily-start" id="dailyStart">开始今日任务</button>
+    </div>
     <div class="study-head-row">
       <div class="study-stat">
         <div class="study-stat-big"><b id="studyStatMastered">0</b> / <span id="studyStatTotal">0</span></div>

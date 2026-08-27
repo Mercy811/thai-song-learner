@@ -22,7 +22,10 @@ window.Auth = (() => {
   function isLoggedIn() { return !!user; }
   function currentUser() { return user; }
   /** 登录状态变化（登录/登出/刚恢复 session）时会被调用一次，给 vocab.js 这类模块订阅用 */
-  function onChange(fn) { listeners.push(fn); }
+  function onChange(fn) {
+    listeners.push(fn);
+    if (user) queueMicrotask(() => fn(user));
+  }
 
   async function signUp(email, password) {
     if (!client) throw new Error('还没配置 Supabase，登录注册暂时用不了');
@@ -81,10 +84,34 @@ window.Auth = (() => {
     $('#authEmail').focus();
   }
 
+  function profileOf(u) {
+    const meta = u?.user_metadata || {};
+    return {
+      name: meta.full_name || meta.name || u?.email?.split('@')[0] || '用户',
+      avatar: meta.avatar_url || meta.picture || '',
+    };
+  }
+
   function updateAccountBtn() {
-    const btn = $('#btnAccount');
-    if (!btn) return;
-    btn.textContent = user ? `👤 ${user.email} · 退出` : '👤 登录 / 注册';
+    const profile = profileOf(user);
+    document.querySelectorAll('[data-account]').forEach((btn) => {
+      btn.classList.toggle('logged-in', !!user);
+      btn.title = user ? `${profile.name} · 点击退出` : '游客 · 点击登录';
+      const name = btn.querySelector('[data-account-name]');
+      const avatar = btn.querySelector('[data-account-avatar]');
+      if (name) name.textContent = user ? profile.name : '游客';
+      if (avatar) {
+        avatar.textContent = '';
+        if (user && profile.avatar) {
+          const img = document.createElement('img');
+          img.src = profile.avatar;
+          img.alt = `${profile.name} 的头像`;
+          img.referrerPolicy = 'no-referrer';
+          img.addEventListener('error', () => { avatar.textContent = user ? '👤' : '🙂'; }, { once: true });
+          avatar.appendChild(img);
+        } else avatar.textContent = user ? '👤' : '🙂';
+      }
+    });
   }
 
   function bind() {
@@ -95,13 +122,11 @@ window.Auth = (() => {
     modal?.querySelector('[data-close]')?.addEventListener('click', () => modal.classList.add('hidden'));
     modal?.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
 
-    $('#btnAccount')?.addEventListener('click', () => {
+    document.querySelectorAll('[data-account]').forEach((btn) => btn.addEventListener('click', () => {
       if (user) {
-        if (confirm(`退出 ${user.email} 的登录？`)) signOut();
-      } else {
-        openModal();
-      }
-    });
+        if (confirm(`退出 ${profileOf(user).name} 的登录？`)) signOut();
+      } else openModal();
+    }));
 
     $('#authSwitch')?.addEventListener('click', () => {
       mode = mode === 'signin' ? 'signup' : 'signin';
