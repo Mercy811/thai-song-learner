@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>泰语歌逐句跟读</title>
-<meta name="description" content="逐句、逐词学泰语歌：泰文 + 罗马音 + 中文谐音 + 中文意思，每个词点一下就能听发音。" />
+<title>Learn Thai Through Songs</title>
+<meta name="description" content="Learn Thai songs line by line and word by word with romanization, meanings, and pronunciation." />
 <meta name="theme-color" content="#f7f3ee" />
+<script>document.documentElement.dataset.i18nPending = '1';</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -63,7 +64,7 @@
       <button id="btnHome" class="icon-btn" title="回首页看所有歌">🏠 首页</button>
       <label class="language-picker" title="语言">
         <span aria-hidden="true">🌐</span>
-        <select id="languageSelect" aria-label="语言">
+        <select id="languageSelect" data-language-select aria-label="语言">
           <option value="zh">中文</option>
           <option value="en">English</option>
         </select>
@@ -105,6 +106,10 @@
           <span class="account-avatar" data-account-avatar>👤</span>
           <span class="account-name" data-account-name>游客</span>
         </button>
+        <label class="language-picker home-language" title="语言">
+          <span aria-hidden="true">🌐</span>
+          <select data-language-select aria-label="语言"><option value="en">English</option><option value="zh">中文</option></select>
+        </label>
         <button id="btnThemeHome" class="icon-btn home-theme" title="切换深浅色">◐</button>
         <button class="btn primary home-topnav-cta" id="btnHomeStart">开始学习 →</button>
       </div>
@@ -193,7 +198,7 @@
      不挂在某首歌的模式栏下面——靠 URL 上的 ?page=freq 进来。 -->
 <main class="page freqpage hidden" id="freqPageView">
   <div class="page-hero">
-    <button id="btnThemeFreq" class="icon-btn page-hero-theme" title="切换深浅色">◐</button>
+    <div class="page-hero-actions"><label class="language-picker" title="语言"><span aria-hidden="true">🌐</span><select data-language-select aria-label="语言"><option value="en">English</option><option value="zh">中文</option></select></label><button id="btnThemeFreq" class="icon-btn" title="切换深浅色">◐</button></div>
     <h1>📊 词频总表</h1>
     <p>全部歌曲的逐词卡片摊平去重，按出现次数从高到低排——从最常见的词学起，覆盖面最快</p>
   </div>
@@ -253,7 +258,7 @@
      内容在 js/lessons-data.js 里，渲染 + 朗读播放逻辑在 js/lessons.js。 -->
 <main class="page lessonspage hidden" id="lessonsPageView">
   <div class="page-hero">
-    <button id="btnThemeLessons" class="icon-btn page-hero-theme" title="切换深浅色">◐</button>
+    <div class="page-hero-actions"><label class="language-picker" title="语言"><span aria-hidden="true">🌐</span><select data-language-select aria-label="语言"><option value="en">English</option><option value="zh">中文</option></select></label><button id="btnThemeLessons" class="icon-btn" title="切换深浅色">◐</button></div>
     <h1>🎓 记忆课</h1>
     <p>库里反复出现的词，按主题串成 7 节课的小故事——先认几个「基础词」，再看它们怎么拼成歌词里那些长句子。每节课都能整节朗读，洗澡、走路、开车的时候用耳朵学</p>
   </div>
@@ -305,7 +310,7 @@
      同样跟具体某首歌无关，独立页面——靠 URL 上的 ?page=science 进来。 -->
 <main class="page sciencepage hidden" id="sciencePageView">
   <div class="page-hero">
-    <button id="btnThemeScience" class="icon-btn page-hero-theme" title="切换深浅色">◐</button>
+    <div class="page-hero-actions"><label class="language-picker" title="语言"><span aria-hidden="true">🌐</span><select data-language-select aria-label="语言"><option value="en">English</option><option value="zh">中文</option></select></label><button id="btnThemeScience" class="icon-btn" title="切换深浅色">◐</button></div>
     <h1>📈 词频覆盖率曲线</h1>
     <p>这张图叫「累积覆盖率曲线」——学多少个高频词，能看懂库里歌词的百分之多少？鼠标移到曲线上任意一点都能看数字</p>
   </div>
@@ -869,6 +874,8 @@
 </div>
 
 <script src="js/config.js"></script>
+<script src="js/i18n.js?v=20260827b"></script>
+<script>I18n.init();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js?v=20260827"></script>
 <script src="js/sync.js?v=20260827"></script>
@@ -878,7 +885,6 @@
 <script src="songs/rak-nan-nan.js"></script>
 <script src="songs/enemies-with-benefits.js"></script>
 <script src="songs/chop-tua-eng-tawn-yu-kap-thoe.js"></script>
-<script src="js/i18n.js?v=20260827"></script>
 <script src="js/chords.js"></script>
 <script src="js/distractors.js"></script>
 <script src="js/vocab.js?v=20260827"></script>
@@ -893,7 +899,7 @@
 <script src="js/player.js"></script>
 <script src="js/recorder.js"></script>
 <script src="js/app.js?v=20260827"></script>
-<script>I18n.init();</script>
+<script>I18n.apply();</script>
 <script>
   window.va = window.va || function () {
     (window.vaq = window.vaq || []).push(arguments);

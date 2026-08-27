@@ -57,6 +57,7 @@
 }
 
 * { box-sizing: border-box; }
+html[data-i18n-pending] body { visibility: hidden; }
 
 html { -webkit-text-size-adjust: 100%; }
 
@@ -126,6 +127,11 @@ body {
   background-position: calc(100% - 5px) 55%, 100% 55%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .language-picker select:focus { outline: none; }
+.page-hero-actions {
+  position: absolute; top: 18px; right: 20px; display: flex; align-items: center; gap: 8px;
+}
+.page-hero-actions .icon-btn { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.22); color: inherit; }
+.page-hero-actions .language-picker { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.22); color: inherit; }
 
 /* 练习 / KTV 模式切换 */
 .mode-toggle {
@@ -1060,6 +1066,8 @@ body[data-page="science"] .drawer-item[data-page="science"] .drawer-item-text b 
 .brs-actions { margin-top: 20px; display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
 
 @media (max-width: 720px) {
+  .home-language { padding-inline: 8px; }
+  .page-hero-actions { top: 12px; right: 12px; }
   .topbar-actions .account-name { display: none; }
   .topbar-actions .account-chip { padding-right: 5px; }
   .battle-setup { padding: 18px 15px 16px; }

@@ -132,13 +132,14 @@ window.WordFreq = (() => {
   /* ════════ 渲染 ════════ */
 
   function rowHtml(w) {
+    const english = window.I18n?.language === 'en';
     const barPct = Math.max(4, Math.round((w.count / maxCount) * 100));
     const isLearned = learned.has(w.th);
     const linesHtml = w.lines.map((l) => `
       <div class="frow-line">
         <button class="frow-line-song" data-song="${esc(l.songId)}" title="跳去《${esc(songTitle[l.songId] || l.songId)}》">${esc(songTitle[l.songId] || l.songId)}</button>
         <div class="frow-line-th">${esc(l.th)}</div>
-        ${l.cn ? `<div class="frow-line-cn">${esc(l.cn)}</div>` : ''}
+        ${l.cn ? `<div class="frow-line-cn">${esc(window.I18n ? I18n.t(l.cn) : l.cn)}</div>` : ''}
       </div>`).join('');
     return `
       <div class="frow"${isLearned ? ' data-learned="1"' : ''} data-th="${esc(w.th)}">
@@ -146,9 +147,9 @@ window.WordFreq = (() => {
         <div class="wrow-word">
           <button class="wrow-th${w.lang === 'en' ? ' en' : ''}" data-act="speak" title="点一下听发音">${esc(w.th)}</button>
           ${w.ro ? `<span class="wrow-ro">${esc(w.ro)}</span>` : ''}
-          ${w.cn ? `<span class="wrow-cn">${esc(w.cn)}</span>` : ''}
+          ${w.cn && !english ? `<span class="wrow-cn">${esc(w.cn)}</span>` : ''}
         </div>
-        <div class="wrow-mean"><span>${esc(w.mean)}</span></div>
+        <div class="wrow-mean"><span>${esc(window.I18n ? I18n.t(w.mean) : w.mean)}</span></div>
         <div class="frow-count">
           <b>${w.count}</b><span> 次</span>
           <div class="frow-bar"><i style="width:${barPct}%"></i></div>
@@ -277,6 +278,7 @@ window.WordFreq = (() => {
     renderHead();
     bind();
     render();
+    window.addEventListener('languagechange', () => { fillSongFilter(); render(); });
     syncLearnedFromCloud();   // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
   }
 

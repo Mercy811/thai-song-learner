@@ -21,6 +21,23 @@ window.Lessons = (() => {
 
   const $  = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const isEnglish = () => window.I18n?.language === 'en';
+  const tr = (s) => window.I18n ? I18n.t(s || '') : (s || '');
+  const LESSON_EN = {
+    cast: ['You, Me, and “To Be” — Meet Every Song’s Cast', '14 words · Pronouns and linking words'],
+    heart: ['Inside the Heart — Feelings, Truth, and Understanding', '13 words · Feelings and understanding'],
+    love: ['Love and Like — Two Verbs, Seventeen Expressions', '17 words · Combinations with รัก and ชอบ'],
+    together: ['Staying Close — Together, With You, Beside Me', '16 words · The อยู่ word family'],
+    forever: ['Time and Forever — Today, From Now On, Always', 'Time expressions used across the song library'],
+    refuse: ['Commands and Refusal — Must, Don’t, and Can’t', 'Commands, negation, and intention'],
+    promise: ['Honest Words — Truth, Promises, and Trust', 'Phrases for speaking from the heart'],
+  };
+  function lessonTitle(l) { return isEnglish() && LESSON_EN[l.id] ? LESSON_EN[l.id][0] : l.title; }
+  function lessonSubtitle(l) { return isEnglish() && LESSON_EN[l.id] ? LESSON_EN[l.id][1] : l.subtitle; }
+  function englishHook(b) {
+    const meaning = tr(b.mean);
+    return `${b.th}${b.ro ? ` (${b.ro})` : ''} means “${meaning}”. Listen to the Thai, then repeat it aloud.`;
+  }
 
   const LS_DONE = 'tsl.lessonsDone';
   const LS_RATE = 'tsl.lessonsRate';
@@ -138,9 +155,9 @@ window.Lessons = (() => {
       <button class="lesson-card${done[l.id] ? ' done' : ''}" data-idx="${i}">
         ${done[l.id] ? '<span class="lesson-card-check">✓</span>' : ''}
         <span class="lesson-card-emoji">${l.emoji}</span>
-        <span class="lesson-card-title">${esc(l.title)}</span>
-        <span class="lesson-card-sub">${esc(l.subtitle)}</span>
-        <span class="lesson-card-meta">🎧 约 ${l.minutes} 分钟</span>
+        <span class="lesson-card-title">${esc(lessonTitle(l))}</span>
+        <span class="lesson-card-sub">${esc(lessonSubtitle(l))}</span>
+        <span class="lesson-card-meta">${isEnglish() ? `🎧 About ${l.minutes} min` : `🎧 约 ${l.minutes} 分钟`}</span>
       </button>`).join('');
   }
 
@@ -148,10 +165,11 @@ window.Lessons = (() => {
 
   function blockHtml(b, bi) {
     if (b.type === 'p') {
+      if (isEnglish()) return '';
       return `<p class="lesson-p" data-bi="${bi}" data-act="speak-p" title="点一下听这段">${esc(b.text)}</p>`;
     }
     const roLine = b.ro ? `<span class="lesson-word-ro">${esc(b.ro)}</span>` : '';
-    const tagLine = b.tag ? `<div class="lesson-word-tag">🎵 出自《${esc(b.tag)}》</div>` : '';
+    const tagLine = b.tag ? `<div class="lesson-word-tag">${isEnglish() ? `🎵 From “${esc(tr(b.tag))}”` : `🎵 出自《${esc(b.tag)}》`}</div>` : '';
     const st = getWordStatus(bi);
     const cardCls = st === 'known' ? ' is-known' : st === 'unknown' ? ' is-unknown' : '';
     return `
@@ -159,9 +177,9 @@ window.Lessons = (() => {
         <div class="lesson-word-head">
           <button class="lesson-word-th" data-act="speak-th" data-bi="${bi}" title="点一下听泰语真人发音">${esc(b.th)}</button>
           ${roLine}
-          <span class="lesson-word-mean" data-act="speak-zh" data-bi="${bi}" title="点一下听中文讲解">${esc(b.mean)}</span>
+          <span class="lesson-word-mean" data-act="speak-zh" data-bi="${bi}" title="${isEnglish() ? 'Hear the explanation' : '点一下听中文讲解'}">${esc(tr(b.mean))}</span>
         </div>
-        <div class="lesson-word-hook" data-act="speak-zh" data-bi="${bi}" title="点一下听中文讲解">${esc(b.hook)}</div>
+        <div class="lesson-word-hook" data-act="speak-zh" data-bi="${bi}" title="${isEnglish() ? 'Hear the explanation' : '点一下听中文讲解'}">${esc(isEnglish() ? englishHook(b) : b.hook)}</div>
         ${tagLine}
         <div class="lesson-word-status">
           <button class="lw-status-btn lw-known${st === 'known' ? ' active' : ''}" data-act="mark-known" data-bi="${bi}" title="标记为已经学过了">✓ 学过</button>
@@ -200,8 +218,8 @@ window.Lessons = (() => {
 
   function renderArticle() {
     const l = curLesson;
-    $('#lessonArticleTitle').textContent = `${l.emoji} ${l.title}`;
-    $('#lessonArticleSub').textContent = l.subtitle;
+    $('#lessonArticleTitle').textContent = `${l.emoji} ${lessonTitle(l)}`;
+    $('#lessonArticleSub').textContent = lessonSubtitle(l);
     $('#lessonBlocks').innerHTML = l.blocks.map(blockHtml).join('');
     updateDoneBtn();
     const filterSel = $('#lessonPlayFilter');
@@ -245,10 +263,12 @@ window.Lessons = (() => {
     queue = [];
     curLesson.blocks.forEach((b, bi) => {
       if (b.type === 'p') {
-        queue.push({ bi, kind: 'p', lang: 'zh', text: b.text, src: audioSrc(curLesson.id, bi, 'p') });
+        if (!isEnglish()) queue.push({ bi, kind: 'p', lang: 'zh', text: b.text, src: audioSrc(curLesson.id, bi, 'p') });
       } else {
         if (b.th) queue.push({ bi, kind: 'th', lang: 'th', text: b.th, isTh: true, src: audioSrc(curLesson.id, bi, 'th') });
-        if (b.hook) queue.push({ bi, kind: 'hook', lang: 'zh', text: b.hook, src: audioSrc(curLesson.id, bi, 'hook') });
+        if (b.hook) queue.push(isEnglish()
+          ? { bi, kind: 'hook', lang: 'en', text: englishHook(b), src: '' }
+          : { bi, kind: 'hook', lang: 'zh', text: b.hook, src: audioSrc(curLesson.id, bi, 'hook') });
       }
     });
     buildPlayQueue();
@@ -300,6 +320,7 @@ window.Lessons = (() => {
   }
 
   function playItem(item, onDone) {
+    if (!item.src) { fallbackSpeak(item, onDone); return; }
     player.onended = null;
     player.onerror = null;
     player.pause();
@@ -382,11 +403,11 @@ window.Lessons = (() => {
       .map((b, i) => ({
         id: `${lesson.id}-${i}`,
         th: b.th,
-        cn: b.hook || b.mean,
+        cn: isEnglish() ? englishHook(b) : (b.hook || b.mean),
         start: undefined,
-        words: [{ th: b.th, ro: b.ro, cn: b.cn, mean: b.mean, lang: 'th' }],
+        words: [{ th: b.th, ro: b.ro, cn: b.cn, mean: tr(b.mean), lang: 'th' }],
       }));
-    return { id: 'lesson-' + lesson.id, timeline: false, sections: [{ name: lesson.title, lines }] };
+    return { id: 'lesson-' + lesson.id, timeline: false, sections: [{ name: lessonTitle(lesson), lines }] };
   }
 
   function openStudy() {
@@ -503,6 +524,10 @@ window.Lessons = (() => {
     loadPlayFilter();
     bind();
     renderList();
+    window.addEventListener('languagechange', () => {
+      renderList();
+      if (curLesson) { renderArticle(); buildQueue(); }
+    });
     syncProgressFromCloud();   // 异步，不等——先用本地数据把界面画出来，云端数据回来了再补
   }
 
