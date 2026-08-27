@@ -200,6 +200,24 @@ anon key 是设计成可以公开的（真正的权限控制在上面那段 SQL 
 
 接了云端同步的数据：单词掌握程度、歌词句子「已掌握」打勾、时间轴校准结果、词频总表「记住了」标记、记忆课进度（哪几课学完了 + 单词卡「学过/没学过」）。逻辑都在 [`js/sync.js`](js/sync.js) 里，对应 Supabase 里的五张表（见 [`supabase/schema.sql`](supabase/schema.sql)）。
 
+### 管理员清理词频表
+
+管理员修改不会直接改 `songs/*.js`，而是保存到 Supabase 的 `word_overrides` 全局修订表。所有访客都会读取这层修订，所以修改意思、罗马音、中文谐音或隐藏一个词后，词频总表和每首歌的单词表都会同步生效；点「恢复原始数据」会删掉修订，重新使用歌曲文件里的内容。
+
+管理员身份保存在 `admin_users` 表，以 Supabase Auth 用户 UUID 为准。给 `xinyiye811@gmail.com` 开通的方法：
+
+1. 先在网站上用这个 Google 账号成功登录至少一次，让账号出现在 Supabase Auth → Users。
+2. 到 Supabase SQL Editor 重新执行最新版 [`supabase/schema.sql`](supabase/schema.sql)。文件末尾会按邮箱找到这个账号的 UUID 并写入 `admin_users`。
+3. 回到网站退出再登录，进入「词频总表」，顶部会出现“管理员模式”，每个词旁边会出现“编辑”。
+
+若以后要增加另一位管理员，在 SQL Editor 执行：
+
+```sql
+insert into admin_users (user_id, email)
+select id, email from auth.users where lower(email) = lower('另一位管理员@example.com')
+on conflict (user_id) do update set email = excluded.email;
+```
+
 朗读语速、选的音色、深浅色、固定栏这些留在本地不同步——它们是「这台设备」的偏好，不是「我学到哪了」，换设备本来就该各自设置。
 
 ## 部署（不用 GitHub Pages 的话）

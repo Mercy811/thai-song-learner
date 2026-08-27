@@ -220,6 +220,7 @@
           <div class="study-stat-sub">总出现 <span id="freqStatOcc">0</span> 次 · 从最常见的词学起，覆盖面最快</div>
         </div>
         <div class="study-actions">
+          <span class="admin-badge hidden" id="freqAdminBadge">管理员模式</span>
           <button class="btn ghost" id="freqCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制词表</button>
         </div>
       </div>
@@ -260,6 +261,28 @@
     <p class="study-hint">这份表把库里所有歌的逐词卡片按泰语文本去重、按出现次数排好——副歌重复几遍就算几次出现。点泰语听发音，点歌名跳去那首歌。</p>
   </div>
 </main>
+
+<div class="modal hidden" id="wordAdminModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>编辑全局词汇</h2>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <form class="modal-body admin-word-form" id="wordAdminForm">
+      <p class="admin-word-source">原始词：<b id="adminOriginalTh"></b></p>
+      <label>泰语<input id="adminWordTh" required></label>
+      <label>罗马音<input id="adminWordRo"></label>
+      <label>中文谐音<input id="adminWordCn"></label>
+      <label>意思<input id="adminWordMean"></label>
+      <label class="admin-hide-check"><input type="checkbox" id="adminWordHidden"> 从所有用户的词频表和每首歌单词表中隐藏</label>
+      <p class="auth-error" id="adminWordError" role="alert"></p>
+      <div class="admin-word-actions">
+        <button class="btn ghost" type="button" id="adminWordReset">恢复原始数据</button>
+        <button class="btn primary" type="submit" id="adminWordSave">保存给所有用户</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 <!-- ══ 记忆课：把常出现的词按主题串成故事讲一遍，能听着学 ══
      跟具体某首歌无关，独立页面——靠 URL 上的 ?page=lessons 进来。
@@ -887,6 +910,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js?v=20260827"></script>
 <script src="js/sync.js?v=20260827"></script>
+<script src="js/admin.js?v=20260827"></script>
 <script src="songs/hua-jai-sang-hai-rak-thoe.js"></script>
 <script src="songs/safe-near-me.js"></script>
 <script src="songs/dont-wanna-but-i-do.js"></script>

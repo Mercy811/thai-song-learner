@@ -35,8 +35,10 @@ window.Vocab = (() => {
     song.sections.forEach((sec) => {
       sec.lines.forEach((line) => {
         const i = n++;
-        (line.words || []).forEach((w) => {
+        (line.words || []).forEach((raw) => {
+          const w = window.WordAdmin ? WordAdmin.apply({ ...raw, originalTh: raw.th }) : raw;
           if (!w.th) return;
+          if (w.hidden) return;
           let e = byTh.get(w.th);
           if (!e) {
             e = {
@@ -255,6 +257,11 @@ window.Vocab = (() => {
 
   // 登录状态变化（刚登录、换了账号、退出）时，当前这首歌也跟着重新对一次云端
   if (window.Auth) window.Auth.onChange(() => syncFromCloud());
+  if (window.WordAdmin) window.WordAdmin.onChange(() => {
+    if (!song) return;
+    build(); load();
+    if (onUpdateCb) onUpdateCb();
+  });
 
   return {
     init, list: () => words, get: (th) => byTh.get(th),

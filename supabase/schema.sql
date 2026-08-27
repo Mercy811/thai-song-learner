@@ -144,3 +144,78 @@ create policy "用户只能改自己的每日记录"
   to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
+
+-- ════════ 管理员 + 全站词汇修订 ════════
+-- 管理员按 auth.users 的 UUID 授权，不在浏览器里用邮箱做权限判断。
+create table if not exists admin_users (
+  user_id    uuid references auth.users(id) on delete cascade primary key,
+  email      text not null,
+  created_at timestamptz not null default now()
+);
+alter table admin_users enable row level security;
+
+revoke all on table admin_users from anon, authenticated;
+grant select on table admin_users to authenticated;
+
+drop policy if exists "管理员只能确认自己的身份" on admin_users;
+create policy "管理员只能确认自己的身份"
+  on admin_users for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+-- 原始词仍来自 songs/*.js；这里只存管理员对某个泰语词做的全局覆盖。
+-- original_th 是原始键，th/ro/cn/mean 是覆盖后的显示内容，hidden=true 表示全站隐藏。
+create table if not exists word_overrides (
+  original_th text primary key,
+  th          text not null,
+  ro          text not null default '',
+  cn          text not null default '',
+  mean        text not null default '',
+  hidden      boolean not null default false,
+  updated_by  uuid references auth.users(id) on delete restrict not null,
+  updated_at  timestamptz not null default now()
+);
+alter table word_overrides enable row level security;
+
+revoke all on table word_overrides from anon, authenticated;
+grant select on table word_overrides to anon, authenticated;
+grant insert, update, delete on table word_overrides to authenticated;
+
+drop policy if exists "所有人可读词汇修订" on word_overrides;
+create policy "所有人可读词汇修订"
+  on word_overrides for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "管理员可新增词汇修订" on word_overrides;
+create policy "管理员可新增词汇修订"
+  on word_overrides for insert
+  to authenticated
+  with check (
+    updated_by = (select auth.uid())
+    and exists (select 1 from admin_users where user_id = (select auth.uid()))
+  );
+
+drop policy if exists "管理员可修改词汇修订" on word_overrides;
+create policy "管理员可修改词汇修订"
+  on word_overrides for update
+  to authenticated
+  using (exists (select 1 from admin_users where user_id = (select auth.uid())))
+  with check (
+    updated_by = (select auth.uid())
+    and exists (select 1 from admin_users where user_id = (select auth.uid()))
+  );
+
+drop policy if exists "管理员可删除词汇修订" on word_overrides;
+create policy "管理员可删除词汇修订"
+  on word_overrides for delete
+  to authenticated
+  using (exists (select 1 from admin_users where user_id = (select auth.uid())));
+
+-- 先用 xinyiye811@gmail.com 完成至少一次 Google 登录，再执行/重跑本文件。
+-- 这条语句会把当时 Supabase Auth 中对应的 UUID 加入管理员名单。
+insert into admin_users (user_id, email)
+select id, email
+from auth.users
+where lower(email) = 'xinyiye811@gmail.com'
+on conflict (user_id) do update set email = excluded.email;
