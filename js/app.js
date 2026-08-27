@@ -1087,6 +1087,7 @@
     $('#lyrics').classList.add('hidden');
     $('.foot').classList.add('hidden');
     $('#homeView').classList.remove('hidden');
+    Study.initDaily();
 
     const lastId = localStorage.getItem(LS_SONG);
     const ids = Object.keys(window.SONGS || {});

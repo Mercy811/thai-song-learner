@@ -97,15 +97,70 @@ window.Study = (() => {
     return { data, today, entry: data[today] || {}, streak, week };
   }
   function renderDaily() {
-    if (!$('#dailyCard')) return;
     const d = dailyStats();
     const seconds = d.entry.seconds || 0;
-    $('#dailyStreak').textContent = d.streak;
-    $('#dailyMinutes').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
-    $('#dailyWeek').textContent = `本周 ${d.week} / 7 天`;
-    $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '用 2 分钟，复习 6 个词';
-    $('#dailyStart').textContent = d.entry.completed ? '再练一轮' : '开始今日任务';
-    $('#dailyCard').classList.toggle('completed', !!d.entry.completed);
+    if ($('#dailyCard')) {
+      $('#dailyStreak').textContent = d.streak;
+      $('#dailyMinutes').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
+      $('#dailyWeek').textContent = `本周 ${d.week} / 7 天`;
+      $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '用 2 分钟，复习 6 个词';
+      $('#dailyStart').textContent = d.entry.completed ? '再练一轮' : '开始今日任务';
+      $('#dailyCard').classList.toggle('completed', !!d.entry.completed);
+    }
+    renderHomeHeatmap(d);
+  }
+  function heatLevel(entry) {
+    if (!entry) return 0;
+    const seconds = entry.seconds || 0;
+    if (entry.completed || seconds >= 300) return 4;
+    if (seconds >= 120) return 3;
+    if (seconds >= 60) return 2;
+    return seconds > 0 ? 1 : 0;
+  }
+  function renderHomeHeatmap(d) {
+    const root = $('#homeHeatmap');
+    if (!root) return;
+    const seconds = d.entry.seconds || 0;
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    const start = new Date(today);
+    start.setDate(start.getDate() - 364);
+    start.setDate(start.getDate() - start.getDay());
+    const end = new Date(today);
+    end.setDate(end.getDate() + (6 - end.getDay()));
+    const cells = [];
+    const monthLabels = [];
+    let lastMonth = -1;
+    let yearDays = 0;
+    let column = 0;
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const key = dayKey(cursor);
+      const entry = d.data[key];
+      const level = cursor <= today ? heatLevel(entry) : 0;
+      if (entry?.completed && cursor.getFullYear() === today.getFullYear()) yearDays++;
+      if (cursor.getDay() === 0) {
+        column++;
+        if (cursor.getMonth() !== lastMonth) {
+          monthLabels.push(`<span style="grid-column:${column}">${cursor.toLocaleDateString('zh-CN', { month: 'short' })}</span>`);
+          lastMonth = cursor.getMonth();
+        }
+      }
+      const mins = Math.round((entry?.seconds || 0) / 60);
+      const future = cursor > today;
+      const label = `${key}：${entry?.completed ? '已打卡' : '未打卡'}${entry?.seconds ? `，学习 ${mins || 1} 分钟` : ''}`;
+      cells.push(`<i data-level="${level}"${key === d.today ? ' data-today' : ''}${future ? ' data-future' : ''} title="${label}" aria-label="${label}"></i>`);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    root.innerHTML = cells.join('');
+    $('#homeHeatmapMonths').innerHTML = monthLabels.join('');
+    $('#homeStreakDays').textContent = d.streak;
+    $('#homeYearDays').textContent = yearDays;
+    $('#homeTodayTime').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
+    $('#homeStreakMessage').textContent = d.entry.completed
+      ? `今天已经点亮，连续第 ${d.streak} 天！`
+      : d.streak ? `连续 ${d.streak} 天，今天也别断掉。` : '今天还没打卡，花两分钟点亮它吧。';
+    $('#homeDailyStart').textContent = d.entry.completed ? '今天再练一轮 →' : '完成今日任务 →';
   }
   function addStudySecond() {
     if (document.hidden || Date.now() - lastActivity > 60000) return;
@@ -612,6 +667,11 @@ window.Study = (() => {
     bind();
     watchLineEnd();
     renderList();
+    initDaily();
+  }
+
+  // 首页不会初始化某一首歌的 Vocab / Battle，但每日足迹和云端同步仍然要启动。
+  function initDaily() {
     renderDaily();
     if (!dailyInitialized) {
       dailyInitialized = true;
@@ -619,6 +679,11 @@ window.Study = (() => {
         document.addEventListener(eventName, () => { lastActivity = Date.now(); }, { passive: true }));
       setInterval(addStudySecond, 1000);
       if (window.Auth) Auth.onChange(syncDailyFromCloud);
+      $('#homeDailyStart')?.addEventListener('click', () => {
+        localStorage.setItem('tsl.mode', 'study');
+        const songId = localStorage.getItem('tsl.song') || Object.keys(window.SONGS || {})[0];
+        location.href = `?song=${encodeURIComponent(songId)}`;
+      });
     }
   }
 
@@ -626,5 +691,5 @@ window.Study = (() => {
   // 不然界面会一直停在刚打开页面那一刻的本地数据上
   if (window.Vocab) Vocab.onUpdate(() => { if (state.on && state.page === 'list') { renderHead(); renderList(); } });
 
-  return { init, setActive, isOn: () => state.on, note };
+  return { init, initDaily, setActive, isOn: () => state.on, note };
 })();
