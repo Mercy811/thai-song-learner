@@ -273,7 +273,7 @@ window.SONGS = window.SONGS || {};
     id: 'dont-wanna-but-i-do',
     title: "Don't Wanna, But I Do",
     titleTh: 'งั้นรักละ',
-    titleCn: '不想说，但我是（那就爱了吧）',
+    titleCn: '不想说，但我还是说了（那就爱了吧）',
     artist: 'Jan, Jingjing',
     album: 'Ost. ลัลล์ไม่ชอบไวน์ (Enemies With Benefits)',
     youtubeId: 'xWvhq6bsde8',
