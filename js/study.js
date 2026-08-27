@@ -109,14 +109,6 @@ window.Study = (() => {
     }
     renderHomeHeatmap(d);
   }
-  function heatLevel(entry) {
-    if (!entry) return 0;
-    const seconds = entry.seconds || 0;
-    if (entry.completed || seconds >= 300) return 4;
-    if (seconds >= 120) return 3;
-    if (seconds >= 60) return 2;
-    return seconds > 0 ? 1 : 0;
-  }
   function renderHomeHeatmap(d) {
     const root = $('#homeHeatmap');
     if (!root) return;
@@ -137,7 +129,7 @@ window.Study = (() => {
     while (cursor <= end) {
       const key = dayKey(cursor);
       const entry = d.data[key];
-      const level = cursor <= today ? heatLevel(entry) : 0;
+      const completed = cursor <= today && !!entry?.completed;
       if (entry?.completed && cursor.getFullYear() === today.getFullYear()) yearDays++;
       if (cursor.getDay() === 0) {
         column++;
@@ -146,10 +138,9 @@ window.Study = (() => {
           lastMonth = cursor.getMonth();
         }
       }
-      const mins = Math.round((entry?.seconds || 0) / 60);
       const future = cursor > today;
-      const label = `${key}：${entry?.completed ? '已打卡' : '未打卡'}${entry?.seconds ? `，学习 ${mins || 1} 分钟` : ''}`;
-      cells.push(`<i data-level="${level}"${key === d.today ? ' data-today' : ''}${future ? ' data-future' : ''} title="${label}" aria-label="${label}"></i>`);
+      const label = `${key}：${completed ? '已完成' : '未完成'}`;
+      cells.push(`<i${completed ? ' data-completed' : ''}${future ? ' data-future' : ''} title="${label}" aria-label="${label}"></i>`);
       cursor.setDate(cursor.getDate() + 1);
     }
     root.innerHTML = cells.join('');
@@ -158,8 +149,8 @@ window.Study = (() => {
     $('#homeYearDays').textContent = yearDays;
     $('#homeTodayTime').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
     $('#homeStreakMessage').textContent = d.entry.completed
-      ? `今天已经点亮，连续第 ${d.streak} 天！`
-      : d.streak ? `连续 ${d.streak} 天，今天也别断掉。` : '今天还没打卡，花两分钟点亮它吧。';
+      ? `今天已经完成，连续第 ${d.streak} 天！`
+      : d.streak ? `连续 ${d.streak} 天，今天也别断掉。` : '今天还没完成，完成今日任务即可打卡。';
     $('#homeDailyStart').textContent = d.entry.completed ? '今天再练一轮 →' : '完成今日任务 →';
   }
   function addStudySecond() {

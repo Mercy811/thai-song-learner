@@ -1261,19 +1261,15 @@ body[data-page="science"] .drawer-item[data-page="science"] .drawer-item-text b 
   grid-auto-columns: 11px; gap: 5px;
 }
 .heatmap-grid i, .heatmap-legend i {
-  width: 11px; height: 11px; display: block; border-radius: 3px;
+  width: 11px; height: 11px; display: grid; place-items: center; border-radius: 3px;
   background: var(--line-soft); border: 1px solid rgba(0,0,0,.025);
 }
-.heatmap-grid i[data-level="1"], .heatmap-legend i[data-level="1"] { background: #d8eee8; }
-.heatmap-grid i[data-level="2"], .heatmap-legend i[data-level="2"] { background: #8ed5c1; }
-.heatmap-grid i[data-level="3"], .heatmap-legend i[data-level="3"] { background: #43aa86; }
-.heatmap-grid i[data-level="4"], .heatmap-legend i[data-level="4"] { background: #187456; }
-.heatmap-grid i[data-today] { outline: 2px solid var(--accent); outline-offset: 1px; }
+.heatmap-grid i[data-completed]::after, .heatmap-legend i[data-completed]::after {
+  content: '✓'; color: #187456; font: 700 10px/1 sans-serif;
+}
 .heatmap-grid i[data-future] { opacity: .3; }
-:root[data-theme="dark"] .heatmap-grid i[data-level="1"], :root[data-theme="dark"] .heatmap-legend i[data-level="1"] { background: #294b42; }
-:root[data-theme="dark"] .heatmap-grid i[data-level="2"], :root[data-theme="dark"] .heatmap-legend i[data-level="2"] { background: #34705f; }
-:root[data-theme="dark"] .heatmap-grid i[data-level="3"], :root[data-theme="dark"] .heatmap-legend i[data-level="3"] { background: #43aa86; }
-:root[data-theme="dark"] .heatmap-grid i[data-level="4"], :root[data-theme="dark"] .heatmap-legend i[data-level="4"] { background: #70d9b3; }
+:root[data-theme="dark"] .heatmap-grid i[data-completed]::after,
+:root[data-theme="dark"] .heatmap-legend i[data-completed]::after { color: #70d9b3; }
 .heatmap-legend { display: flex; justify-content: flex-end; align-items: center; gap: 5px; margin-top: 9px; color: var(--text-3); font-size: 10px; }
 
 /* 功能卡：真实存在的六种学习方式 */
