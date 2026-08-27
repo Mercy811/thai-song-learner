@@ -1189,22 +1189,37 @@ body[data-page="science"] .drawer-item[data-page="science"] .drawer-item-text b 
   font-family: var(--display-font); font-style: italic;
 }
 
-.home-hero-form {
-  display: flex; gap: 10px; justify-content: center; margin: 26px auto 0; max-width: 520px;
-}
-.home-search {
-  flex: 1; min-width: 0; padding: 13px 18px; border-radius: 999px;
-  border: 1px solid var(--home-line); background: var(--home-card); color: var(--text);
-  font-size: 14.5px; font-family: inherit;
-}
-.home-search:focus { outline: none; border-color: var(--hl-edge); }
-.home-search::placeholder { color: var(--text-3); }
-.home-cta-btn {
-  flex: none; border-radius: 999px; padding: 13px 22px; font-size: 14px; font-weight: 700;
-  white-space: nowrap;
-}
 .home-hero-meta { margin: 16px 0 0; font-size: 13px; color: var(--text-3); }
 .home-hero-meta b { color: var(--text-2); }
+
+.home-request {
+  max-width: 760px; margin: 14px auto 30px; padding: 18px;
+  border: 1px solid var(--home-line); border-radius: 18px;
+  background: var(--home-card); box-shadow: var(--shadow);
+}
+.home-request-label {
+  display: block; margin: 0 0 12px; color: var(--text-2); font-size: 14px; line-height: 1.55;
+}
+.home-request-fields { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.home-request textarea, .home-request input[type="email"] {
+  min-width: 0; border: 1px solid var(--home-line); border-radius: 12px;
+  background: var(--card-2); color: var(--text); font: inherit; font-size: 14px;
+}
+.home-request textarea {
+  grid-column: 1 / -1; width: 100%; padding: 12px 14px; resize: vertical; line-height: 1.55;
+}
+.home-request input[type="email"] { padding: 11px 14px; }
+.home-request textarea:focus, .home-request input[type="email"]:focus {
+  outline: none; border-color: var(--hl-edge); background: var(--home-card);
+}
+.home-request textarea::placeholder, .home-request input::placeholder { color: var(--text-3); }
+.home-request-submit { align-self: stretch; border-radius: 12px; padding-inline: 20px; }
+.home-request-submit:disabled { opacity: .62; cursor: wait; }
+.home-request-note, .home-request-status { margin: 9px 2px 0; color: var(--text-3); font-size: 11.5px; }
+.home-request-status { min-height: 1.4em; font-weight: 600; }
+.home-request-status.success { color: #2f7a4d; }
+.home-request-status.error { color: #b34838; }
+.home-request-honey { position: absolute !important; left: -10000px !important; opacity: 0 !important; }
 
 /* 首页学习足迹：GitHub contribution graph 风格，数据来自每日任务 */
 .home-streak {
@@ -1336,8 +1351,10 @@ a.home-feature-card:hover { transform: translateY(-3px); border-color: var(--hl-
   .home-topnav-inner { padding: 14px 16px 14px 62px; gap: 10px; }
   .home-topnav-cta { display: none; }
   .home-hero { padding: 28px 16px 32px; }
-  .home-hero-form { flex-direction: column; }
   .home-library { padding: 4px 14px 44px; }
+  .home-request-fields { grid-template-columns: 1fr; }
+  .home-request textarea { grid-column: auto; }
+  .home-request-submit { min-height: 44px; }
   .home-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 }
 

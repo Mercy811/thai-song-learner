@@ -1095,8 +1095,7 @@
     $('#homeGrid').innerHTML = ids.map((id) => {
       const s = window.SONGS[id];
       const by = [s.artist, s.album].filter(Boolean).join(' · ');
-      return `<a class="home-card" href="?song=${encodeURIComponent(id)}" data-song="${esc(id)}"
-                 data-search="${esc([s.titleTh, s.titleCn, s.title, s.artist].filter(Boolean).join(' ').toLowerCase())}">
+      return `<a class="home-card" href="?song=${encodeURIComponent(id)}" data-song="${esc(id)}">
         <span class="home-card-thumb">
           <img src="https://img.youtube.com/vi/${esc(s.youtubeId)}/hqdefault.jpg" alt="" loading="lazy">
           <span class="home-card-play">▶</span>
@@ -1120,29 +1119,39 @@
 
     $('#btnThemeHome').addEventListener('click', toggleTheme);
 
-    // 顶栏 / 主视觉的「开始学习」都是同一个目的地：接着上次学的歌，没有就跳去挑歌区
+    // 顶栏的「开始学习」会接着上次学的歌，没有就跳去挑歌区
     const goStart = () => {
       if (lastId && window.SONGS[lastId]) { location.href = `?song=${encodeURIComponent(lastId)}`; return; }
       $('#homeLibrary').scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     $('#btnHomeStart').addEventListener('click', goStart);
-    $('#homeCtaBtn').addEventListener('click', () => {
-      const q = $('#homeSearch').value.trim();
-      if (!q) { goStart(); return; }
-      const firstMatch = $('#homeGrid').querySelector('.home-card:not(.hidden)');
-      if (firstMatch) { localStorage.setItem(LS_SONG, firstMatch.dataset.song); location.href = firstMatch.getAttribute('href'); }
-    });
 
-    // 搜索框：按歌名 / 歌手实时过滤下面的曲库网格
-    $('#homeSearch').addEventListener('input', () => {
-      const q = $('#homeSearch').value.trim().toLowerCase();
-      let shown = 0;
-      $('#homeGrid').querySelectorAll('.home-card').forEach((card) => {
-        const hit = !q || card.dataset.search.includes(q);
-        card.classList.toggle('hidden', !hit);
-        if (hit) shown++;
-      });
-      $('#homeEmpty').classList.toggle('hidden', shown > 0);
+    // 静态网站没有自己的邮件服务器，交给 FormSubmit 转发到站长邮箱。
+    const requestForm = $('#homeRequestForm');
+    requestForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const submit = requestForm.querySelector('[type="submit"]');
+      const status = $('#homeRequestStatus');
+      submit.disabled = true;
+      status.className = 'home-request-status';
+      status.textContent = I18n.t('正在发送…');
+
+      try {
+        const response = await fetch('https://formsubmit.co/ajax/xinyiye811@gmail.com', {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: new FormData(requestForm),
+        });
+        if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+        requestForm.reset();
+        status.classList.add('success');
+        status.textContent = I18n.t('已发送，谢谢你的留言！');
+      } catch (error) {
+        status.classList.add('error');
+        status.textContent = I18n.t('没能发送。请稍后再试，或发邮件到 xinyiye811@gmail.com。');
+      } finally {
+        submit.disabled = false;
+      }
     });
 
     // 顶部小字：歌曲数 + 去重后的泰语词总数
