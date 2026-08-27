@@ -54,6 +54,13 @@
     </div>
     <div class="topbar-actions">
       <button id="btnHome" class="icon-btn" title="回首页看所有歌">🏠 首页</button>
+      <label class="language-picker" title="语言">
+        <span aria-hidden="true">🌐</span>
+        <select id="languageSelect" aria-label="语言">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+        </select>
+      </label>
       <button id="btnSong" class="icon-btn" title="换一首歌">🎵 选歌</button>
       <!-- 只有 KTV 靠时间轴，没时间轴的歌单独把它收起来就行；
            练习和单词模式哪首歌都能用 -->
@@ -822,6 +829,7 @@
 <script src="songs/rak-nan-nan.js"></script>
 <script src="songs/enemies-with-benefits.js"></script>
 <script src="songs/chop-tua-eng-tawn-yu-kap-thoe.js"></script>
+<script src="js/i18n.js"></script>
 <script src="js/chords.js"></script>
 <script src="js/distractors.js"></script>
 <script src="js/vocab.js"></script>
@@ -836,6 +844,7 @@
 <script src="js/player.js"></script>
 <script src="js/recorder.js"></script>
 <script src="js/app.js"></script>
+<script>I18n.init();</script>
 <script>
   window.va = window.va || function () {
     (window.vaq = window.vaq || []).push(arguments);
