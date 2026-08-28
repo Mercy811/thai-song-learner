@@ -103,7 +103,7 @@ window.Study = (() => {
       $('#dailyStreak').textContent = d.streak;
       $('#dailyMinutes').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
       $('#dailyWeek').textContent = `本周 ${d.week} / 7 天`;
-      $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '用 2 分钟，复习 6 个词';
+      $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '学完下一句歌词';
       $('#dailyStart').textContent = d.entry.completed ? '再练一轮' : '开始今日任务';
       $('#dailyCard').classList.toggle('completed', !!d.entry.completed);
     }
@@ -168,6 +168,18 @@ window.Study = (() => {
      没时间轴的歌（timeline: false）这份是空的，🎵 会退回朗读整句。 */
   let hasTimeline = true;
   let lineStarts = [];
+  let songId = '';
+  let lessonLines = [];
+  let lineProgress = new Set();
+
+  const lineProgressKey = () => `tsl.lines.${songId}`;
+  function loadLineProgress() {
+    try { lineProgress = new Set(JSON.parse(localStorage.getItem(lineProgressKey()) || '[]')); }
+    catch { lineProgress = new Set(); }
+  }
+  function saveLineProgress() {
+    try { localStorage.setItem(lineProgressKey(), JSON.stringify([...lineProgress])); } catch { /* 无痕模式 */ }
+  }
 
   function lineEndOf(idx) {
     const next = lineStarts[idx + 1];
@@ -276,6 +288,25 @@ window.Study = (() => {
     $('#studyLegend').innerHTML = s.byLevel.map((n, lv) =>
       `<span class="lg${n ? '' : ' off'}"><i data-lv="${lv}"></i>${esc(lv === 0 ? '生疏 / 没学过' : Vocab.LEVELS[lv])} ${n}</span>`
     ).join('');
+
+    renderLineJourney();
+  }
+
+  function renderLineJourney() {
+    const root = $('#lineJourney');
+    if (!root || !lessonLines.length) return;
+    const done = lessonLines.filter((line) => lineProgress.has(line.idx)).length;
+    const pct = Math.round(done / lessonLines.length * 100);
+    const next = lessonLines.find((line) => !lineProgress.has(line.idx));
+    root.innerHTML = `
+      <div class="journey-head">
+        <div><b>歌词闯关</b><span>按时间顺序，一句一句学</span></div>
+        <strong>${done} / ${lessonLines.length} 句 · ${pct}%</strong>
+      </div>
+      <div class="journey-track" style="--journey:${pct}%"><i></i></div>
+      <div class="journey-nodes">
+        ${lessonLines.map((line) => `<button class="journey-node${lineProgress.has(line.idx) ? ' done' : line === next ? ' current' : ''}" data-line="${line.idx}" title="第 ${line.idx + 1} 句：${esc(line.th)}"><span>${lineProgress.has(line.idx) ? '★' : line.idx + 1}</span></button>`).join('')}
+      </div>`;
   }
 
   /* ════════ 单词表 ════════ */
@@ -362,7 +393,16 @@ window.Study = (() => {
   /* ════════ 测验 ════════ */
 
   function startRound(daily = false) {
-    state.quiz = { step: 0, total: daily ? DAILY_ROUND : ROUND, daily, right: 0, wrong: 0, streak: 0, best: 0, recent: [], q: null, answered: false, missed: [] };
+    const firstIncomplete = lessonLines.find((line) => !lineProgress.has(line.idx)) || lessonLines[0];
+    if (!firstIncomplete) return note('这首歌还没有可学习的逐词歌词');
+    startLine(firstIncomplete.idx, daily);
+  }
+
+  function startLine(lineIdx, daily = false) {
+    const line = lessonLines.find((item) => item.idx === lineIdx);
+    if (!line) return;
+    const words = line.words.map((raw) => Vocab.get(raw.th)).filter((w) => w && w.mean);
+    state.quiz = { step: 0, total: words.length, daily, right: 0, wrong: 0, streak: 0, best: 0, q: null, answered: false, missed: [], line, words, phase: 'words', placed: [], bank: [] };
     state.page = 'quiz';
     applyPage();
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -371,12 +411,10 @@ window.Study = (() => {
 
   function nextQuestion() {
     const q = state.quiz;
-    if (q.step >= q.total) return finishRound();
-
-    const th = Vocab.pick(q.recent);
-    if (!th) return finishRound();
-    q.recent = [th, ...q.recent].slice(0, RECENT);
-    q.q = Vocab.makeQuestion(th);
+    if (q.step >= q.total) return startSentence();
+    const word = q.words[q.step];
+    if (!word) return startSentence();
+    q.q = Vocab.makeQuestion(word.th);
     q.answered = false;
     q.step++;
 
@@ -390,9 +428,9 @@ window.Study = (() => {
     const st = Vocab.stat(w.th);
 
     $('#quizDone').classList.add('hidden');
+    $('#sentenceCard').classList.add('hidden');
     $('#quizCard').classList.remove('hidden');
-    $('#quizStep').textContent = state.quiz.step;
-    $('#quizTotal').textContent = state.quiz.total;
+    renderQuizProgress();
     $('#quizRight').textContent = state.quiz.right;
     $('#quizWrong').textContent = state.quiz.wrong;
     $('#quizStreak').textContent = state.quiz.streak;
@@ -430,6 +468,8 @@ window.Study = (() => {
     $('#quizFeedback').className = 'quiz-feedback hidden';
     $('#quizFeedback').innerHTML = '';
     $('#quizNext').classList.add('hidden');
+    $('#quizNext').textContent = state.quiz.step === state.quiz.total ? '组装这句话 →' : '下一个词 →';
+    renderStudyHint();
   }
 
   function answer(mean, btn) {
@@ -454,8 +494,8 @@ window.Study = (() => {
     $('#quizWrong').textContent = q.wrong;
     $('#quizStreak').textContent = q.streak;
 
-    // 答完给这个词在歌里的原句，顺便记住它是怎么用的
-    const line = w.lines[0];
+    // 答完显示正在学习的歌词句，所有词完成后进入组句题。
+    const line = q.line;
     const fb = $('#quizFeedback');
     fb.className = 'quiz-feedback ' + (ok ? 'ok' : 'bad');
     fb.innerHTML = `
@@ -471,11 +511,65 @@ window.Study = (() => {
     $('#quizNext').focus();     // 对错都停在这儿等人点「下一题」，顺手能直接敲回车
   }
 
+  function startSentence() {
+    const q = state.quiz;
+    $('#quizCard').classList.add('hidden');
+    $('#quizDone').classList.add('hidden');
+    $('#sentenceCard').classList.remove('hidden');
+    q.phase = 'sentence';
+    q.placed = [];
+    q.bank = q.line.words.map((word, i) => ({ ...word, tokenId: i }));
+    for (let i = q.bank.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [q.bank[i], q.bank[j]] = [q.bank[j], q.bank[i]];
+    }
+    if (q.bank.length > 1 && q.bank.every((word, i) => word.tokenId === i)) q.bank.reverse();
+    renderQuizProgress();
+    $('#sentenceMeaning').textContent = lyricMeaning(q.line);
+    $('#sentenceCheck').dataset.done = '';
+    $('#sentenceCheck').textContent = '检查答案';
+    $('#sentenceFeedback').className = 'sentence-feedback hidden';
+    renderSentence();
+    renderStudyHint();
+  }
+
+  function renderQuizProgress() {
+    const q = state.quiz;
+    if (!q) return;
+    $('#quizProgress').innerHTML = isEnglishUi()
+      ? `Word <b>${q.step}</b> of ${q.total} · Lyric line ${q.line.idx + 1}`
+      : `第 <b>${q.step}</b> / ${q.total} 词 · 歌词第 ${q.line.idx + 1} 句`;
+  }
+
+  function renderSentence() {
+    const q = state.quiz;
+    const token = (word, where) => `<button class="sentence-token" data-token="${word.tokenId}" data-where="${where}"><b>${esc(word.th)}</b>${state.showRo && word.ro ? `<small>${esc(word.ro)}</small>` : ''}</button>`;
+    $('#sentenceAnswer').innerHTML = q.placed.length ? q.placed.map((w) => token(w, 'answer')).join('') : '<span>点击下面的词，组成完整歌词</span>';
+    $('#sentenceBank').innerHTML = q.bank.map((w) => token(w, 'bank')).join('');
+  }
+
+  function checkSentence() {
+    const q = state.quiz;
+    if (q.placed.length !== q.line.words.length) return note('先把所有词放进句子里');
+    const ok = q.placed.every((word, i) => word.th === q.line.words[i].th);
+    const fb = $('#sentenceFeedback');
+    fb.className = `sentence-feedback ${ok ? 'ok' : 'bad'}`;
+    if (!ok) {
+      fb.textContent = '顺序还不对，再试一次。提示：可以点击上面的词撤回。';
+      return;
+    }
+    fb.innerHTML = `<b>★ 完成第 ${q.line.idx + 1} 句！</b><span>${esc(q.line.th)}</span>`;
+    lineProgress.add(q.line.idx);
+    saveLineProgress();
+    $('#sentenceCheck').textContent = '继续下一句 →';
+    $('#sentenceCheck').dataset.done = '1';
+    renderLineJourney();
+  }
+
   function finishRound() {
     const q = state.quiz;
     const pct = q.step ? Math.round((q.right / q.step) * 100) : 0;
-    const word = pct === 100 ? '全对！' : pct >= 80 ? '不错' : pct >= 50 ? '再来一轮' : '这几个词还得练';
-
+    $('#sentenceCard').classList.add('hidden');
     $('#quizCard').classList.add('hidden');
     $('#quizDone').classList.remove('hidden');
     if (q.daily) {
@@ -486,20 +580,11 @@ window.Study = (() => {
     }
     $('#quizDone').innerHTML = `
       ${q.daily ? '<div class="qd-daily">🔥 今日任务完成，打卡成功</div>' : ''}
-      <div class="qd-score"><b>${q.right}</b> / ${q.step}</div>
-      <div class="qd-word">${esc(word)}　正确率 ${pct}%${q.best > 1 ? `　最高连对 ${q.best}` : ''}</div>
-      ${q.missed.length ? `
-        <div class="qd-missed">
-          <div class="qd-missed-h">这轮错的（已经掉了一级，下轮还会出）</div>
-          ${q.missed.map((w) => `
-            <div class="qd-miss" data-th="${esc(w.th)}">
-              <button class="qd-miss-th" data-act="speak">${esc(w.th)}</button>
-              <span class="qd-miss-ro">${esc(w.ro)}</span>
-              <span class="qd-miss-mean">${esc(w.mean)}</span>
-            </div>`).join('')}
-        </div>` : '<div class="qd-clean">这一轮一个没错 🎉</div>'}
+      <div class="qd-score">★</div>
+      <div class="qd-word">第 ${q.line.idx + 1} 句已完成 · 单词正确率 ${pct}%</div>
+      <div class="qd-clean">${esc(q.line.th)}<br>${esc(lyricMeaning(q.line))}</div>
       <div class="qd-actions">
-        <button class="btn primary" id="quizAgain">再来一轮</button>
+        <button class="btn primary" id="quizAgain">学习下一句</button>
         <button class="btn ghost" id="quizToList">看单词表</button>
       </div>`;
     renderHead();
@@ -517,14 +602,33 @@ window.Study = (() => {
     $('#studyList').classList.toggle('hidden', !solo);
     $('#studyQuiz').classList.toggle('hidden', !quiz);
     $('#studyBattle').classList.toggle('hidden', !battle);
-    $('#studyHint').innerHTML = quiz
-      ? '快捷键：<kbd>1</kbd>–<kbd>4</kbd> 选答案 · <kbd>Enter</kbd> 下一个 · <kbd>Esc</kbd> 回单词表'
-      : battle
-        ? '一道题出来两个人同时抢：比手势或者按键盘（1234 / 7890），先答对的当场加一分'
-        : '这份单词表是从歌词里的逐词卡片自动摊出来去重的 · 点泰语听发音 · 🎵 跳到歌里那一句';
+    if (!quiz) $('#sentenceCard').classList.add('hidden');
+    renderStudyHint();
     // 对战自己管自己那一块界面，这里只负责把它叫起来 / 收干净
     if (battle) Battle.open(); else Battle.close();
     if (solo) renderList();
+  }
+
+  function renderStudyHint() {
+    const quiz = state.page === 'quiz';
+    const battle = state.page === 'battle';
+    if (quiz && state.quiz?.phase === 'sentence') {
+      $('#studyHint').innerHTML = isEnglishUi()
+        ? 'Tap a word to move it · <kbd>Enter</kbd> check · <kbd>Esc</kbd> vocabulary'
+        : '点一个词即可移动 · <kbd>Enter</kbd> 检查 · <kbd>Esc</kbd> 回单词表';
+    } else if (quiz) {
+      $('#studyHint').innerHTML = isEnglishUi()
+        ? 'Shortcuts: <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next · <kbd>Esc</kbd> vocabulary'
+        : '快捷键：<kbd>1</kbd>–<kbd>4</kbd> 选答案 · <kbd>Enter</kbd> 下一个 · <kbd>Esc</kbd> 回单词表';
+    } else if (battle) {
+      $('#studyHint').textContent = isEnglishUi()
+        ? 'Both players answer at once with gestures or keyboard (1234 / 7890); the first correct answer scores.'
+        : '一道题出来两个人同时抢：比手势或者按键盘（1234 / 7890），先答对的当场加一分';
+    } else {
+      $('#studyHint').textContent = isEnglishUi()
+        ? 'This list comes from the song’s word cards · Tap Thai to hear it · 🎵 opens that lyric line'
+        : '这份单词表是从歌词里的逐词卡片自动摊出来去重的 · 点泰语听发音 · 🎵 跳到歌里那一句';
+    }
   }
 
   /** 单词表 →「⚔️ 双人对战」 */
@@ -603,6 +707,11 @@ window.Study = (() => {
     $('#studyFilter').addEventListener('change', (e) => { state.filter = e.target.value; saveOpts(); renderList(); });
     $('#studyMask').addEventListener('change', (e) => { state.mask = e.target.checked; saveOpts(); renderList(); });
 
+    $('#lineJourney').addEventListener('click', (e) => {
+      const node = e.target.closest('.journey-node');
+      if (node) startLine(Number(node.dataset.line));
+    });
+
     $('#dailyStart').addEventListener('click', () => { stopLinePlay(true); startRound(true); });
     $('#studyStart').addEventListener('click', () => { stopLinePlay(true); startRound(false); });
     $('#studyBattle2p').addEventListener('click', startBattle);
@@ -623,8 +732,10 @@ window.Study = (() => {
     $('#studyExportClose').addEventListener('click', () => $('#studyExport').classList.add('hidden'));
 
     $('#studyReset').addEventListener('click', () => {
-      if (!confirm('把这首歌所有词的掌握程度清零，重新开始？')) return;
+      if (!confirm('把这首歌的单词掌握程度和歌词行进度全部清零，重新开始？')) return;
       Vocab.reset();
+      lineProgress.clear();
+      saveLineProgress();
       renderList();
       note('进度已清零');
     });
@@ -653,6 +764,37 @@ window.Study = (() => {
       $('#quizHintCnToggle').setAttribute('aria-expanded', String(show));
     });
     $('#quizNext').addEventListener('click', nextQuestion);
+    $('#sentenceBank').addEventListener('click', (e) => {
+      const btn = e.target.closest('.sentence-token');
+      if (!btn) return;
+      const q = state.quiz;
+      const i = q.bank.findIndex((word) => word.tokenId === Number(btn.dataset.token));
+      if (i >= 0) q.placed.push(q.bank.splice(i, 1)[0]);
+      renderSentence();
+    });
+    $('#sentenceAnswer').addEventListener('click', (e) => {
+      const btn = e.target.closest('.sentence-token');
+      if (!btn) return;
+      const q = state.quiz;
+      const i = q.placed.findIndex((word) => word.tokenId === Number(btn.dataset.token));
+      if (i >= 0) q.bank.push(q.placed.splice(i, 1)[0]);
+      renderSentence();
+    });
+    $('#sentenceReset').addEventListener('click', () => {
+      const q = state.quiz;
+      q.bank.push(...q.placed.splice(0));
+      $('#sentenceFeedback').className = 'sentence-feedback hidden';
+      renderSentence();
+    });
+    $('#sentenceSpeak').addEventListener('click', () => speak(state.quiz.line.th, 'th', $('#sentenceSpeak')));
+    $('#sentenceCheck').addEventListener('click', (e) => {
+      if (e.currentTarget.dataset.done === '1') {
+        e.currentTarget.dataset.done = '';
+        e.currentTarget.textContent = '检查答案';
+        return finishRound();
+      }
+      checkSentence();
+    });
     $('#quizDone').addEventListener('click', (e) => {
       if (e.target.closest('#quizAgain')) return startRound();
       if (e.target.closest('#quizToList')) { state.page = 'list'; state.quiz = null; return applyPage(); }
@@ -670,6 +812,7 @@ window.Study = (() => {
             const w = state.quiz.q.word;
             $('#quizRo').classList.toggle('hidden', !state.showRo || !w.ro);
             $('#quizCn').classList.toggle('hidden', !state.showCn || !w.cn);
+            if (state.quiz.phase === 'sentence') renderSentence();
           }
         });
       });
@@ -698,6 +841,7 @@ window.Study = (() => {
       if (e.code === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         if (!$('#quizDone').classList.contains('hidden')) startRound();
+        else if (q?.phase === 'sentence') checkSentence();
         else if (q && q.answered) nextQuestion();
       }
       if (e.code === 'KeyS' && q && q.q) speak(q.q.word.th, q.q.word.lang, $('#quizSpeak'));
@@ -724,7 +868,10 @@ window.Study = (() => {
     Vocab.init(song);
     Battle.init(song, { exit: () => { state.page = 'list'; state.quiz = null; applyPage(); } });
     hasTimeline = song.timeline !== false;
+    songId = song.id;
+    lessonLines = song.sections.flatMap((sec) => sec.lines).map((line, idx) => ({ ...line, idx })).filter((line) => line.words?.length);
     lineStarts = song.sections.flatMap((sec) => sec.lines.map((l) => l.start));
+    loadLineProgress();
     loadOpts();
     bind();
     watchLineEnd();
@@ -756,8 +903,14 @@ window.Study = (() => {
   // 切换中/英文时，提示里的歌词意思也要立即跟着换；已答题的反馈保持原样。
   window.addEventListener('languagechange', () => {
     if (!state.on) return;
+    renderStudyHint();
     if (state.page === 'list') return renderList();
     if (state.page !== 'quiz' || !state.quiz?.q) return;
+    renderQuizProgress();
+    if (state.quiz.phase === 'sentence') {
+      $('#sentenceMeaning').textContent = lyricMeaning(state.quiz.line);
+      renderSentence();
+    }
     const lines = state.quiz.q.word.lines.filter((line, i, all) =>
       all.findIndex((other) => other.th === line.th && other.ro === line.ro && other.cn === line.cn) === i
     );

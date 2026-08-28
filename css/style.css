@@ -1705,6 +1705,21 @@ body.mode-study .foot { display: none; }
 .study-legend i[data-lv="4"] { background: var(--lv4); }
 .study-legend i[data-lv="5"] { background: var(--lv5); }
 
+/* 歌词行闯关：节点可横向滚动，长歌也不会把页面撑宽。 */
+.line-journey { margin-top: 17px; padding-top: 15px; border-top: 1px solid var(--line-soft); }
+.journey-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; }
+.journey-head > div { display: grid; gap: 2px; }
+.journey-head b { font-size: 14px; }
+.journey-head span { font-size: 11.5px; color: var(--text-3); }
+.journey-head strong { color: var(--accent); font-size: 13px; font-variant-numeric: tabular-nums; }
+.journey-track { height: 7px; margin: 11px 2px 10px; border-radius: 999px; background: var(--card-2); overflow: hidden; }
+.journey-track i { display: block; height: 100%; width: var(--journey); border-radius: inherit; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s ease; }
+.journey-nodes { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 8px; scrollbar-width: thin; }
+.journey-node { flex: 0 0 36px; width: 36px; height: 36px; border: 2px solid var(--line); border-radius: 50%; background: var(--card-2); color: var(--text-3); cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+.journey-node:hover { border-color: var(--accent); color: var(--accent); }
+.journey-node.done { color: #fff; border-color: var(--accent-2); background: var(--accent-2); font-size: 16px; }
+.journey-node.current { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 4px var(--accent-soft); }
+
 /* ── 单词表 ─────────────────────────── */
 .study-toolbar {
   display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
@@ -2183,6 +2198,26 @@ body.mode-study .foot { display: none; }
   margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line-soft);
 }
 
+/* 句子模式：完成当前行的单词后，用同一批词组装原歌词。 */
+.sentence-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px 24px 22px; }
+.sentence-eyebrow { color: var(--accent); font-size: 12px; font-weight: 750; letter-spacing: .04em; }
+.sentence-audio { margin-top: 13px; border: 1px solid var(--line); border-radius: 999px; background: var(--card-2); color: var(--text-2); padding: 7px 12px; cursor: pointer; font: inherit; }
+.sentence-audio:hover, .sentence-audio.speaking { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.sentence-meaning { margin: 15px 0 12px; color: var(--text-2); font-size: 16px; line-height: 1.6; }
+.sentence-answer, .sentence-bank { min-height: 82px; display: flex; align-content: flex-start; align-items: flex-start; flex-wrap: wrap; gap: 9px; padding: 14px; border-radius: 13px; }
+.sentence-answer { border: 2px dashed var(--line); background: var(--card-2); }
+.sentence-answer > span { margin: auto; align-self: center; color: var(--text-3); font-size: 13px; }
+.sentence-bank { margin-top: 13px; border: 1px solid var(--line-soft); }
+.sentence-token { display: grid; gap: 1px; min-width: 68px; padding: 9px 12px; border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 11px; background: var(--card); color: var(--text); cursor: pointer; font: inherit; }
+.sentence-token:hover { border-color: var(--accent); background: var(--accent-soft); }
+.sentence-token b { font-family: var(--thai-font); font-size: 18px; font-weight: 650; }
+.sentence-token small { color: var(--accent-2); font-size: 10.5px; }
+.sentence-feedback { display: grid; gap: 4px; margin-top: 13px; padding: 12px 14px; border-radius: 11px; font-size: 13px; }
+.sentence-feedback.ok { color: var(--lv5); background: rgba(59,165,93,.1); border: 1px solid var(--lv5); }
+.sentence-feedback.bad { color: var(--danger); background: rgba(194,69,58,.08); border: 1px solid var(--danger); }
+.sentence-feedback span { color: var(--text-2); font-family: var(--thai-font); font-size: 16px; }
+.sentence-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 15px; }
+
 /* ── 一轮结束 ───────────────────────── */
 .daily-card {
   display: flex; align-items: center; gap: 14px; margin-bottom: 18px;
@@ -2308,6 +2343,8 @@ body.mode-study .foot { display: none; }
   .quiz-th { font-size: 36px; }
   .quiz-th.en { font-size: 30px; }
   .quiz-card { padding: 20px 15px 14px; }
+  .sentence-card { padding: 20px 15px 16px; }
+  .sentence-actions .btn { flex: 1; }
   .qopt { font-size: 15px; padding: 12px 13px; }
   .qd-score { font-size: 36px; }
 }

@@ -62,8 +62,8 @@ window.I18n = (() => {
     '整句': 'Line', '原曲': 'Song', '循环': 'Loop', '跟读': 'Record', '掌握': 'Mastered', '已掌握': 'Mastered',
     '🔊 整句': '🔊 Line', '▶ 原曲': '▶ Song', '🔁 循环': '🔁 Loop', '🎙 跟读': '🎙 Record', '○ 掌握': '○ Master', '✓ 已掌握': '✓ Mastered',
     '个词已掌握 · 整体进度 ': 'words mastered · Overall progress ', '测验正确率 ': 'Quiz accuracy ', '还没开始测验': 'Not started yet',
-    '🎯 开始测验': '🎯 Start quiz', '⚔️ 双人对战': '⚔️ Two-player battle', '📋 复制单词表': '📋 Copy vocabulary', '↺ 重置进度': '↺ Reset progress',
-    '今日学习': 'TODAY', '用 2 分钟，复习 6 个词': 'Review 6 words in 2 minutes', '开始今日任务': 'Start today’s lesson',
+    '🎯 开始测验': '🎯 Start quiz', '▶ 按顺序学习': '▶ Learn in song order', '⚔️ 双人对战': '⚔️ Two-player battle', '📋 复制单词表': '📋 Copy vocabulary', '↺ 重置进度': '↺ Reset progress',
+    '今日学习': 'TODAY', '用 2 分钟，复习 6 个词': 'Review 6 words in 2 minutes', '学完下一句歌词': 'Complete the next lyric line', '开始今日任务': 'Start today’s lesson',
     '今天已打卡，明天继续！': 'Today complete — see you tomorrow!', '再练一轮': 'Practice again',
     '🔥 今日任务完成，打卡成功': '🔥 Daily lesson complete', '游客': 'Guest', '账户': 'Account',
     '每天一点，泰语慢慢变熟': 'A little Thai, every day', '完成今日任务 →': 'Complete today’s lesson →',
@@ -75,6 +75,13 @@ window.I18n = (() => {
     '只看': 'Filter', '全部': 'All', '还没掌握': 'Not mastered', '还没学过': 'New', '答错过的': 'Answered incorrectly', '遮住意思（自测）': 'Hide meanings (self-test)',
     '← 单词表': '← Vocabulary', '它是什么意思？': 'What does it mean?', '下一个 →': 'Next →', '再听一遍': 'Listen again', '🔊 听发音': '🔊 Listen',
     '提示': 'Hint', '💡 提示': '💡 Hint', '收起提示': 'Hide hint', '显示歌词意思': 'Show lyric meaning', '隐藏歌词意思': 'Hide lyric meaning',
+    '歌词闯关': 'Lyric journey', '按时间顺序，一句一句学': 'Learn each lyric line in song order',
+    '句子模式 · 把刚学过的词排成歌词': 'Sentence mode · Arrange the words you just learned', '🔊 听整句': '🔊 Hear the full line',
+    '你的答案': 'Your answer', '可选单词': 'Word bank', '点击下面的词，组成完整歌词': 'Tap the words below to build the lyric line',
+    '重新排列': 'Reset', '检查答案': 'Check answer', '先把所有词放进句子里': 'Place every word in the sentence first',
+    '顺序还不对，再试一次。提示：可以点击上面的词撤回。': 'Not quite in order yet. Tap a word above to move it back and try again.',
+    '继续下一句 →': 'Continue →', '组装这句话 →': 'Build this line →', '下一个词 →': 'Next word →',
+    '学习下一句': 'Learn the next line', '看单词表': 'View vocabulary',
     '出题自动读一遍': 'Read each question aloud', '泰语声音': 'Thai voice', '🔊 试听「สวัสดี」': '🔊 Test “สวัสดี”', '🔊 试听第一句歌词': '🔊 Test the first lyric',
     '没有声音 / 发音不对怎么办？': 'No sound or incorrect pronunciation?', '歌词时间轴还没校准': 'Lyric timing has not been synced',
     '这台设备还没装泰语发音': 'Thai speech is not installed on this device', '下一句要标的是': 'Next line to mark',
@@ -276,6 +283,11 @@ window.I18n = (() => {
       .replace(/^(\d+) 个词$/, '$1 words')
       .replace(/^第 (\d+) \/ (\d+) 题$/, 'Question $1 of $2')
       .replace(/^第 (\d+) 句$/, 'Line $1')
+      .replace(/^歌词第 (\d+) 句$/, 'Lyric line $1')
+      .replace(/^第 (\d+) 句：(.*)$/, 'Line $1: $2')
+      .replace(/^(\d+) \/ (\d+) 句 · (\d+)%$/, '$1 of $2 lines · $3%')
+      .replace(/^★ 完成第 (\d+) 句！$/, '★ Line $1 complete!')
+      .replace(/^第 (\d+) 句已完成 · 单词正确率 (\d+)%$/, 'Line $1 complete · Word accuracy $2%')
       .replace(/^(\d+) 次$/, '$1 times')
       .replace(/^🔥 连续 (\d+) 天$/, '🔥 $1 day streak')
       .replace(/^⏱ 今天 (\d+) 秒$/, '⏱ Today $1 sec')

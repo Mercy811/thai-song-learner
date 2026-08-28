@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260827b" />
+<link rel="stylesheet" href="css/style.css?v=20260828a" />
 </head>
 <body>
 
@@ -510,7 +510,7 @@
       </div>
       <div class="study-actions">
         <button class="btn ghost hidden" id="studyBackToLesson">← 返回这节课</button>
-        <button class="btn primary big" id="studyStart">🎯 开始测验</button>
+        <button class="btn primary big" id="studyStart">▶ 按顺序学习</button>
         <button class="btn big" id="studyBattle2p" title="一道题出来两个人同时抢答：比手势或者按键盘，先答对的加一分">⚔️ 双人对战</button>
         <button class="btn ghost" id="studyCopy" title="制表符分隔，贴进 Excel / Notion / Anki 都能用">📋 复制单词表</button>
         <button class="btn ghost" id="studyReset" title="所有词的掌握程度清零">↺ 重置进度</button>
@@ -518,6 +518,7 @@
     </div>
     <div class="study-bar" id="studyBar"></div>
     <div class="study-legend" id="studyLegend"></div>
+    <div class="line-journey" id="lineJourney"></div>
   </section>
 
   <!-- 单词表 -->
@@ -546,11 +547,11 @@
     <div class="wordlist" id="wordList"></div>
   </section>
 
-  <!-- 四选一测验 -->
+  <!-- 按歌词顺序：先学当前句的词，再把词组装成整句 -->
   <section id="studyQuiz" class="quiz hidden">
     <div class="quiz-top">
       <button class="btn ghost" id="quizBack">← 单词表</button>
-      <div class="quiz-progress">第 <b id="quizStep">1</b> / <span id="quizTotal">10</span> 题</div>
+      <div class="quiz-progress" id="quizProgress">第 <b>1</b> / 4 词 · 歌词第 1 句</div>
       <div class="quiz-score">✓ <b id="quizRight">0</b>　✗ <b id="quizWrong">0</b>　连对 <b id="quizStreak">0</b></div>
     </div>
 
@@ -576,6 +577,19 @@
         <label class="chip"><input type="checkbox" id="quizShowRo" checked><span>罗马音</span></label>
         <label class="chip"><input type="checkbox" id="quizShowCn"><span>中文谐音</span></label>
         <label class="chip"><input type="checkbox" id="quizAutoSpeak" checked><span>出题自动读一遍</span></label>
+      </div>
+    </div>
+
+    <div class="sentence-card hidden" id="sentenceCard">
+      <div class="sentence-eyebrow">句子模式 · 把刚学过的词排成歌词</div>
+      <button class="sentence-audio" id="sentenceSpeak">🔊 听整句</button>
+      <div class="sentence-meaning" id="sentenceMeaning"></div>
+      <div class="sentence-answer" id="sentenceAnswer" aria-label="你的答案"></div>
+      <div class="sentence-bank" id="sentenceBank" aria-label="可选单词"></div>
+      <div class="sentence-feedback hidden" id="sentenceFeedback"></div>
+      <div class="sentence-actions">
+        <button class="btn ghost" id="sentenceReset">重新排列</button>
+        <button class="btn primary" id="sentenceCheck">检查答案</button>
       </div>
     </div>
 
@@ -911,7 +925,7 @@
 </div>
 
 <script src="js/config.js"></script>
-<script src="js/i18n.js?v=20260827c"></script>
+<script src="js/i18n.js?v=20260828a"></script>
 <script>I18n.init();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/auth.js?v=20260827"></script>
@@ -932,7 +946,7 @@
 <script src="js/lessons.js"></script>
 <script src="js/gesture.js"></script>
 <script src="js/battle.js"></script>
-<script src="js/study.js?v=20260827b"></script>
+<script src="js/study.js?v=20260828c"></script>
 <script src="js/tts.js"></script>
 <script src="js/player.js"></script>
 <script src="js/recorder.js"></script>
