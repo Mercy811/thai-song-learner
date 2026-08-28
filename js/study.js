@@ -103,8 +103,8 @@ window.Study = (() => {
       $('#dailyStreak').textContent = d.streak;
       $('#dailyMinutes').textContent = seconds < 60 ? `${seconds} 秒` : `${Math.max(1, Math.round(seconds / 60))} 分钟`;
       $('#dailyWeek').textContent = `本周 ${d.week} / 7 天`;
-      $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '学完下一句歌词';
-      $('#dailyStart').textContent = d.entry.completed ? '再练一轮' : '开始今日任务';
+      $('#dailyTitle').textContent = d.entry.completed ? '今天已打卡，明天继续！' : '根据已学歌词和掌握程度智能复习';
+      $('#dailyStart').textContent = '练习';
       $('#dailyCard').classList.toggle('completed', !!d.entry.completed);
     }
     renderHomeHeatmap(d);
@@ -235,6 +235,8 @@ window.Study = (() => {
      Player 只有 on 没有 off，所以固定挂一个 tick，靠 playUntil 决定要不要收。 */
   let playUntil = null;
   let playingRow = null;
+  let sentenceDrag = null;
+  let suppressSentenceClick = false;
 
   function stopLinePlay(alsoPause) {
     playUntil = null;
@@ -398,11 +400,86 @@ window.Study = (() => {
     startLine(firstIncomplete.idx, daily);
   }
 
+  function learnedWordPool() {
+    const seen = new Set();
+    const pool = [];
+    lessonLines.filter((line) => lineProgress.has(line.idx)).forEach((line) => {
+      line.words.forEach((raw) => {
+        const word = Vocab.get(raw.th);
+        if (!word?.mean || seen.has(word.th)) return;
+        seen.add(word.th);
+        pool.push(word);
+      });
+    });
+    return pool;
+  }
+
+  function pickPracticeWord(pool, recent) {
+    const available = pool.filter((word) => !recent.includes(word.th));
+    const choices = available.length ? available : pool;
+    const weights = choices.map((word) => {
+      const st = Vocab.stat(word.th);
+      let weight = Math.pow(Vocab.MAX_LV + 1 - st.lv, 2);
+      if (st.r + st.w === 0) weight *= 1.3;
+      if (st.w > 0 && st.streak === 0) weight *= 1.55;
+      return weight;
+    });
+    let cursor = Math.random() * weights.reduce((sum, weight) => sum + weight, 0);
+    for (let i = 0; i < choices.length; i++) {
+      cursor -= weights[i];
+      if (cursor <= 0) return choices[i];
+    }
+    return choices[choices.length - 1];
+  }
+
+  function makePracticeQuestion(word, pool) {
+    const learnedMeans = [...new Set(pool.map((item) => item.mean).filter((mean) => mean && mean !== word.mean))];
+    for (let i = learnedMeans.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [learnedMeans[i], learnedMeans[j]] = [learnedMeans[j], learnedMeans[i]];
+    }
+    const wrong = learnedMeans.slice(0, 3);
+    Vocab.distractorsFor(word).forEach((mean) => {
+      if (wrong.length < 3 && mean !== word.mean && !wrong.includes(mean)) wrong.push(mean);
+    });
+    const options = [word.mean, ...wrong];
+    for (let i = options.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [options[i], options[j]] = [options[j], options[i]];
+    }
+    return { word, answer: word.mean, options };
+  }
+
+  function practiceLineFor(word) {
+    const source = word.lines.find((line) => lineProgress.has(line.idx)) || word.lines[0];
+    return lessonLines.find((line) => line.idx === source?.idx) || source;
+  }
+
+  function hintLinesFor(word, quiz = state.quiz) {
+    if (quiz?.kind !== 'practice') return word.lines;
+    const learned = word.lines.filter((line) => lineProgress.has(line.idx));
+    return learned.length ? learned : word.lines.slice(0, 1);
+  }
+
+  function startPractice(daily = true) {
+    const pool = learnedWordPool();
+    if (!pool.length) return note('先按顺序学完至少一句歌词，再来练习');
+    state.quiz = {
+      kind: 'practice', phase: 'words', step: 0, total: ROUND, daily,
+      right: 0, wrong: 0, streak: 0, best: 0, q: null, answered: false,
+      missed: [], recent: [], pool, currentLine: null,
+    };
+    state.page = 'quiz';
+    applyPage();
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    nextQuestion();
+  }
+
   function startLine(lineIdx, daily = false) {
     const line = lessonLines.find((item) => item.idx === lineIdx);
     if (!line) return;
     const words = line.words.map((raw) => Vocab.get(raw.th)).filter((w) => w && w.mean);
-    state.quiz = { step: 0, total: words.length, daily, right: 0, wrong: 0, streak: 0, best: 0, q: null, answered: false, missed: [], line, words, phase: 'words', placed: [], bank: [] };
+    state.quiz = { kind: 'ordered', step: 0, total: words.length, daily, right: 0, wrong: 0, streak: 0, best: 0, q: null, answered: false, missed: [], line, words, phase: 'words', placed: [], bank: [] };
     state.page = 'quiz';
     applyPage();
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -411,10 +488,18 @@ window.Study = (() => {
 
   function nextQuestion() {
     const q = state.quiz;
-    if (q.step >= q.total) return startSentence();
-    const word = q.words[q.step];
-    if (!word) return startSentence();
-    q.q = Vocab.makeQuestion(word.th);
+    if (q.step >= q.total) return q.kind === 'practice' ? finishPracticeRound() : startSentence();
+    if (q.kind === 'practice') {
+      const word = pickPracticeWord(q.pool, q.recent);
+      if (!word) return finishPracticeRound();
+      q.recent = [word.th, ...q.recent].slice(0, Math.min(RECENT, Math.max(0, q.pool.length - 1)));
+      q.currentLine = practiceLineFor(word);
+      q.q = makePracticeQuestion(word, q.pool);
+    } else {
+      const word = q.words[q.step];
+      if (!word) return startSentence();
+      q.q = Vocab.makeQuestion(word.th);
+    }
     q.answered = false;
     q.step++;
 
@@ -444,7 +529,7 @@ window.Study = (() => {
     $('#quizLv').innerHTML = `${dotsHtml(st.lv)}<span>${esc(Vocab.levelLabel(w.th))}</span>`;
 
     // 提示每道题都重新收起：先只给原歌词，需要时再单独显示中文歌词。
-    const hintLines = w.lines.filter((line, i, lines) =>
+    const hintLines = hintLinesFor(w, state.quiz).filter((line, i, lines) =>
       lines.findIndex((other) => other.th === line.th && other.ro === line.ro && other.cn === line.cn) === i
     );
     $('#quizHintLines').innerHTML = hintLines.map((line) => `
@@ -468,7 +553,9 @@ window.Study = (() => {
     $('#quizFeedback').className = 'quiz-feedback hidden';
     $('#quizFeedback').innerHTML = '';
     $('#quizNext').classList.add('hidden');
-    $('#quizNext').textContent = state.quiz.step === state.quiz.total ? '组装这句话 →' : '下一个词 →';
+    $('#quizNext').textContent = state.quiz.step === state.quiz.total
+      ? (state.quiz.kind === 'practice' ? '查看练习结果 →' : '组装这句话 →')
+      : '下一个词 →';
     renderStudyHint();
   }
 
@@ -495,7 +582,7 @@ window.Study = (() => {
     $('#quizStreak').textContent = q.streak;
 
     // 答完显示正在学习的歌词句，所有词完成后进入组句题。
-    const line = q.line;
+    const line = q.kind === 'practice' ? q.currentLine : q.line;
     const fb = $('#quizFeedback');
     fb.className = 'quiz-feedback ' + (ok ? 'ok' : 'bad');
     fb.innerHTML = `
@@ -536,9 +623,15 @@ window.Study = (() => {
   function renderQuizProgress() {
     const q = state.quiz;
     if (!q) return;
-    $('#quizProgress').innerHTML = isEnglishUi()
-      ? `Word <b>${q.step}</b> of ${q.total} · Lyric line ${q.line.idx + 1}`
-      : `第 <b>${q.step}</b> / ${q.total} 词 · 歌词第 ${q.line.idx + 1} 句`;
+    if (q.kind === 'practice') {
+      $('#quizProgress').innerHTML = isEnglishUi()
+        ? `Adaptive practice · <b>${q.step}</b> of ${q.total}`
+        : `智能练习 · 第 <b>${q.step}</b> / ${q.total} 题`;
+    } else {
+      $('#quizProgress').innerHTML = isEnglishUi()
+        ? `Word <b>${q.step}</b> of ${q.total} · Lyric line ${q.line.idx + 1}`
+        : `第 <b>${q.step}</b> / ${q.total} 词 · 歌词第 ${q.line.idx + 1} 句`;
+    }
   }
 
   function renderSentence() {
@@ -546,6 +639,54 @@ window.Study = (() => {
     const token = (word, where) => `<button class="sentence-token" data-token="${word.tokenId}" data-where="${where}"><b>${esc(word.th)}</b>${state.showRo && word.ro ? `<small>${esc(word.ro)}</small>` : ''}</button>`;
     $('#sentenceAnswer').innerHTML = q.placed.length ? q.placed.map((w) => token(w, 'answer')).join('') : '<span>点击下面的词，组成完整歌词</span>';
     $('#sentenceBank').innerHTML = q.bank.map((w) => token(w, 'bank')).join('');
+  }
+
+  function beginSentenceDrag(e) {
+    const token = e.target.closest('.sentence-token[data-where="answer"]');
+    if (!token || e.button !== 0 || $('#sentenceCheck').dataset.done === '1') return;
+    sentenceDrag = {
+      token, pointerId: e.pointerId, startX: e.clientX, startY: e.clientY, active: false,
+    };
+    token.setPointerCapture?.(e.pointerId);
+  }
+
+  function moveSentenceDrag(e) {
+    const drag = sentenceDrag;
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    if (!drag.active && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 7) return;
+    if (!drag.active) {
+      drag.active = true;
+      suppressSentenceClick = true;
+      drag.token.classList.add('dragging');
+      $('#sentenceAnswer').classList.add('drag-active');
+    }
+    e.preventDefault();
+    const answer = $('#sentenceAnswer');
+    const hit = document.elementFromPoint(e.clientX, e.clientY)?.closest('.sentence-token[data-where="answer"]');
+    if (hit && hit !== drag.token && answer.contains(hit)) {
+      const rect = hit.getBoundingClientRect();
+      const sameRow = e.clientY >= rect.top && e.clientY <= rect.bottom;
+      const before = e.clientY < rect.top + rect.height / 2 || (sameRow && e.clientX < rect.left + rect.width / 2);
+      answer.insertBefore(drag.token, before ? hit : hit.nextSibling);
+    } else if (document.elementFromPoint(e.clientX, e.clientY) === answer) {
+      answer.appendChild(drag.token);
+    }
+  }
+
+  function endSentenceDrag(e) {
+    const drag = sentenceDrag;
+    if (!drag || e.pointerId !== drag.pointerId) return;
+    sentenceDrag = null;
+    drag.token.releasePointerCapture?.(e.pointerId);
+    drag.token.classList.remove('dragging');
+    $('#sentenceAnswer').classList.remove('drag-active');
+    if (!drag.active) return;
+    const order = [...$('#sentenceAnswer').querySelectorAll('.sentence-token')].map((token) => Number(token.dataset.token));
+    const byId = new Map(state.quiz.placed.map((word) => [word.tokenId, word]));
+    state.quiz.placed = order.map((id) => byId.get(id)).filter(Boolean);
+    $('#sentenceFeedback').className = 'sentence-feedback hidden';
+    renderSentence();
+    setTimeout(() => { suppressSentenceClick = false; }, 80);
   }
 
   function checkSentence() {
@@ -591,6 +732,40 @@ window.Study = (() => {
     renderDaily();
   }
 
+  function finishPracticeRound() {
+    const q = state.quiz;
+    const pct = q.step ? Math.round(q.right / q.step * 100) : 0;
+    $('#sentenceCard').classList.add('hidden');
+    $('#quizCard').classList.add('hidden');
+    $('#quizDone').classList.remove('hidden');
+    if (q.daily) {
+      const d = dailyStats();
+      const entry = d.data[d.today] || (d.data[d.today] = {});
+      Object.assign(entry, { completed: true, completedAt: Date.now(), right: q.right, total: q.step });
+      saveDaily(d.data);
+    }
+    const missed = [...new Map(q.missed.map((word) => [word.th, word])).values()];
+    $('#quizDone').innerHTML = `
+      ${q.daily ? '<div class="qd-daily">🔥 今日任务完成，打卡成功</div>' : ''}
+      <div class="qd-score"><b>${q.right}</b> / ${q.step}</div>
+      <div class="qd-word">智能练习完成 · 正确率 ${pct}%${q.best > 1 ? ` · 最高连对 ${q.best}` : ''}</div>
+      ${missed.length ? `<div class="qd-missed">
+        <div class="qd-missed-h">这轮需要加强的词</div>
+        ${missed.map((word) => `<div class="qd-miss" data-th="${esc(word.th)}">
+          <button class="qd-miss-th" data-act="speak">${esc(word.th)}</button>
+          <span class="qd-miss-ro">${esc(word.ro)}</span>
+          <span class="qd-miss-mean">${esc(word.mean)}</span>
+        </div>`).join('')}
+      </div>` : '<div class="qd-clean">这轮全部答对了 🎉</div>'}
+      <div class="qd-actions">
+        <button class="btn primary" id="quizAgain">再练一轮</button>
+        <button class="btn ghost" id="quizToList">看单词表</button>
+      </div>`;
+    renderHead();
+    renderDaily();
+    renderStudyHint();
+  }
+
   /* ════════ 页面切换 ════════ */
 
   function applyPage() {
@@ -614,8 +789,12 @@ window.Study = (() => {
     const battle = state.page === 'battle';
     if (quiz && state.quiz?.phase === 'sentence') {
       $('#studyHint').innerHTML = isEnglishUi()
-        ? 'Tap a word to move it · <kbd>Enter</kbd> check · <kbd>Esc</kbd> vocabulary'
-        : '点一个词即可移动 · <kbd>Enter</kbd> 检查 · <kbd>Esc</kbd> 回单词表';
+        ? 'Drag placed words to reorder · Tap to move one back · <kbd>Enter</kbd> check'
+        : '拖动已放入的词调整顺序 · 点击可撤回 · <kbd>Enter</kbd> 检查';
+    } else if (quiz && state.quiz?.kind === 'practice') {
+      $('#studyHint').innerHTML = isEnglishUi()
+        ? 'Questions adapt to mastery using words from completed lyric lines · <kbd>1</kbd>–<kbd>4</kbd> answer'
+        : '只练已完成歌词中的词，并根据掌握程度动态出题 · <kbd>1</kbd>–<kbd>4</kbd> 选答案';
     } else if (quiz) {
       $('#studyHint').innerHTML = isEnglishUi()
         ? 'Shortcuts: <kbd>1</kbd>–<kbd>4</kbd> answer · <kbd>Enter</kbd> next · <kbd>Esc</kbd> vocabulary'
@@ -712,7 +891,7 @@ window.Study = (() => {
       if (node) startLine(Number(node.dataset.line));
     });
 
-    $('#dailyStart').addEventListener('click', () => { stopLinePlay(true); startRound(true); });
+    $('#dailyStart').addEventListener('click', () => { stopLinePlay(true); startPractice(true); });
     $('#studyStart').addEventListener('click', () => { stopLinePlay(true); startRound(false); });
     $('#studyBattle2p').addEventListener('click', startBattle);
     $('#quizBack').addEventListener('click', () => { stopLinePlay(true); state.page = 'list'; state.quiz = null; applyPage(); });
@@ -773,6 +952,7 @@ window.Study = (() => {
       renderSentence();
     });
     $('#sentenceAnswer').addEventListener('click', (e) => {
+      if (suppressSentenceClick) return;
       const btn = e.target.closest('.sentence-token');
       if (!btn) return;
       const q = state.quiz;
@@ -780,6 +960,10 @@ window.Study = (() => {
       if (i >= 0) q.bank.push(q.placed.splice(i, 1)[0]);
       renderSentence();
     });
+    $('#sentenceAnswer').addEventListener('pointerdown', beginSentenceDrag);
+    document.addEventListener('pointermove', moveSentenceDrag, { passive: false });
+    document.addEventListener('pointerup', endSentenceDrag);
+    document.addEventListener('pointercancel', endSentenceDrag);
     $('#sentenceReset').addEventListener('click', () => {
       const q = state.quiz;
       q.bank.push(...q.placed.splice(0));
@@ -796,7 +980,7 @@ window.Study = (() => {
       checkSentence();
     });
     $('#quizDone').addEventListener('click', (e) => {
-      if (e.target.closest('#quizAgain')) return startRound();
+      if (e.target.closest('#quizAgain')) return state.quiz?.kind === 'practice' ? startPractice(true) : startRound();
       if (e.target.closest('#quizToList')) { state.page = 'list'; state.quiz = null; return applyPage(); }
       const miss = e.target.closest('.qd-miss');
       if (miss) { const w = Vocab.get(miss.dataset.th); speak(w.th, w.lang, miss.querySelector('.qd-miss-th')); }
@@ -840,7 +1024,9 @@ window.Study = (() => {
       }
       if (e.code === 'Enter' || e.code === 'Space') {
         e.preventDefault();
-        if (!$('#quizDone').classList.contains('hidden')) startRound();
+        if (!$('#quizDone').classList.contains('hidden')) {
+          if (q?.kind === 'practice') startPractice(true); else startRound();
+        }
         else if (q?.phase === 'sentence') checkSentence();
         else if (q && q.answered) nextQuestion();
       }
@@ -911,7 +1097,7 @@ window.Study = (() => {
       $('#sentenceMeaning').textContent = lyricMeaning(state.quiz.line);
       renderSentence();
     }
-    const lines = state.quiz.q.word.lines.filter((line, i, all) =>
+    const lines = hintLinesFor(state.quiz.q.word, state.quiz).filter((line, i, all) =>
       all.findIndex((other) => other.th === line.th && other.ro === line.ro && other.cn === line.cn) === i
     );
     $$('.quiz-hint-cn', $('#quizHint')).forEach((el, i) => { el.textContent = lyricMeaning(lines[i]); });

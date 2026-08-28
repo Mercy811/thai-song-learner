@@ -2212,6 +2212,10 @@ body.mode-study .foot { display: none; }
 .sentence-token:hover { border-color: var(--accent); background: var(--accent-soft); }
 .sentence-token b { font-family: var(--thai-font); font-size: 18px; font-weight: 650; }
 .sentence-token small { color: var(--accent-2); font-size: 10.5px; }
+.sentence-answer .sentence-token { position: relative; padding-top: 15px; cursor: grab; touch-action: none; transition: transform .12s, opacity .12s, border-color .12s; }
+.sentence-answer .sentence-token::before { content: ''; position: absolute; top: 6px; left: 50%; width: 20px; height: 3px; transform: translateX(-50%); border-radius: 999px; background: var(--line); }
+.sentence-answer.drag-active { border-color: var(--accent); background: var(--accent-soft); }
+.sentence-answer .sentence-token.dragging { cursor: grabbing; opacity: .62; transform: scale(1.04); border-color: var(--accent); box-shadow: var(--shadow-lg); z-index: 2; }
 .sentence-feedback { display: grid; gap: 4px; margin-top: 13px; padding: 12px 14px; border-radius: 11px; font-size: 13px; }
 .sentence-feedback.ok { color: var(--lv5); background: rgba(59,165,93,.1); border: 1px solid var(--lv5); }
 .sentence-feedback.bad { color: var(--danger); background: rgba(194,69,58,.08); border: 1px solid var(--danger); }

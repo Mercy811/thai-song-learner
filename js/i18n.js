@@ -63,7 +63,7 @@ window.I18n = (() => {
     '🔊 整句': '🔊 Line', '▶ 原曲': '▶ Song', '🔁 循环': '🔁 Loop', '🎙 跟读': '🎙 Record', '○ 掌握': '○ Master', '✓ 已掌握': '✓ Mastered',
     '个词已掌握 · 整体进度 ': 'words mastered · Overall progress ', '测验正确率 ': 'Quiz accuracy ', '还没开始测验': 'Not started yet',
     '🎯 开始测验': '🎯 Start quiz', '▶ 按顺序学习': '▶ Learn in song order', '⚔️ 双人对战': '⚔️ Two-player battle', '📋 复制单词表': '📋 Copy vocabulary', '↺ 重置进度': '↺ Reset progress',
-    '今日学习': 'TODAY', '用 2 分钟，复习 6 个词': 'Review 6 words in 2 minutes', '学完下一句歌词': 'Complete the next lyric line', '开始今日任务': 'Start today’s lesson',
+    '今日学习': 'TODAY', '用 2 分钟，复习 6 个词': 'Review 6 words in 2 minutes', '学完下一句歌词': 'Complete the next lyric line', '根据已学歌词和掌握程度智能复习': 'Adaptive practice from completed lyric lines', '开始今日任务': 'Start today’s lesson',
     '今天已打卡，明天继续！': 'Today complete — see you tomorrow!', '再练一轮': 'Practice again',
     '🔥 今日任务完成，打卡成功': '🔥 Daily lesson complete', '游客': 'Guest', '账户': 'Account',
     '每天一点，泰语慢慢变熟': 'A little Thai, every day', '完成今日任务 →': 'Complete today’s lesson →',
@@ -81,7 +81,9 @@ window.I18n = (() => {
     '重新排列': 'Reset', '检查答案': 'Check answer', '先把所有词放进句子里': 'Place every word in the sentence first',
     '顺序还不对，再试一次。提示：可以点击上面的词撤回。': 'Not quite in order yet. Tap a word above to move it back and try again.',
     '继续下一句 →': 'Continue →', '组装这句话 →': 'Build this line →', '下一个词 →': 'Next word →',
-    '学习下一句': 'Learn the next line', '看单词表': 'View vocabulary',
+    '学习下一句': 'Learn the next line', '看单词表': 'View vocabulary', '练习': 'Practice',
+    '查看练习结果 →': 'View practice results →', '智能练习完成': 'Adaptive practice complete', '这轮需要加强的词': 'Words to strengthen', '这轮全部答对了 🎉': 'Perfect round 🎉',
+    '先按顺序学完至少一句歌词，再来练习': 'Complete at least one lyric line in order before practising',
     '出题自动读一遍': 'Read each question aloud', '泰语声音': 'Thai voice', '🔊 试听「สวัสดี」': '🔊 Test “สวัสดี”', '🔊 试听第一句歌词': '🔊 Test the first lyric',
     '没有声音 / 发音不对怎么办？': 'No sound or incorrect pronunciation?', '歌词时间轴还没校准': 'Lyric timing has not been synced',
     '这台设备还没装泰语发音': 'Thai speech is not installed on this device', '下一句要标的是': 'Next line to mark',
@@ -288,6 +290,8 @@ window.I18n = (() => {
       .replace(/^(\d+) \/ (\d+) 句 · (\d+)%$/, '$1 of $2 lines · $3%')
       .replace(/^★ 完成第 (\d+) 句！$/, '★ Line $1 complete!')
       .replace(/^第 (\d+) 句已完成 · 单词正确率 (\d+)%$/, 'Line $1 complete · Word accuracy $2%')
+      .replace(/^智能练习完成 · 正确率 (\d+)% · 最高连对 (\d+)$/, 'Adaptive practice complete · $1% accuracy · Best streak $2')
+      .replace(/^智能练习完成 · 正确率 (\d+)%$/, 'Adaptive practice complete · $1% accuracy')
       .replace(/^(\d+) 次$/, '$1 times')
       .replace(/^🔥 连续 (\d+) 天$/, '🔥 $1 day streak')
       .replace(/^⏱ 今天 (\d+) 秒$/, '⏱ Today $1 sec')
