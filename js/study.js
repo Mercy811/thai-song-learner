@@ -300,6 +300,9 @@ window.Study = (() => {
     const st = Vocab.stat(w.th);
     const tried = st.r + st.w;
     const first = w.lines[0];
+    const hintLines = w.lines.filter((line, i, lines) =>
+      lines.findIndex((other) => other.th === line.th && other.cn === line.cn) === i
+    );
     return `
       <div class="wrow" data-th="${esc(w.th)}" data-lv="${st.lv}">
         <span class="wrow-no">${w.no}</span>
@@ -317,10 +320,19 @@ window.Study = (() => {
           <span class="lvstat">${tried ? `✓${st.r} ✗${st.w}` : `第 ${first.idx + 1} 句${w.count > 1 ? ` · ${w.count} 次` : ''}`}</span>
         </div>
         <div class="wrow-tools">
+          <button class="wbtn" data-act="hint" aria-expanded="false" title="显示这个词在歌曲中出现的原句">提示</button>
           <button class="wbtn" data-act="goto" title="放这个词所在的原句（唱完这句自动停）">🎵</button>
           <button class="wbtn" data-act="jump" title="到歌词里看这个词在哪句">📖</button>
           <button class="wbtn" data-act="known" title="我已经会了，直接标满">✓</button>
           <button class="wbtn" data-act="relearn" title="清掉这个词的进度，重新学">↺</button>
+        </div>
+        <div class="wrow-hint hidden">
+          ${hintLines.map((line) => `
+            <div class="wrow-hint-line">
+              <div class="wrow-hint-source">${esc(line.th)}</div>
+              ${line.cn ? `<div class="wrow-hint-cn hidden">${esc(line.cn)}</div>` : ''}
+            </div>`).join('')}
+          ${hintLines.some((line) => line.cn) ? '<button class="wbtn wrow-hint-cn-toggle" data-act="hint-cn" aria-expanded="false">显示中文歌词</button>' : ''}
         </div>
       </div>`;
   }
@@ -527,6 +539,24 @@ window.Study = (() => {
 
       if (act === 'speak') { speak(w.th, w.lang, e.target.closest('[data-act]')); return; }
       if (act === 'reveal') { row.querySelector('.wrow-mean').classList.remove('masked'); return; }
+      if (act === 'hint') {
+        const hint = row.querySelector('.wrow-hint');
+        const btn = e.target.closest('[data-act]');
+        const show = hint.classList.contains('hidden');
+        hint.classList.toggle('hidden', !show);
+        btn.setAttribute('aria-expanded', String(show));
+        btn.textContent = show ? '收起提示' : '提示';
+        return;
+      }
+      if (act === 'hint-cn') {
+        const btn = e.target.closest('[data-act]');
+        const lines = $$('.wrow-hint-cn', row);
+        const show = lines.some((line) => line.classList.contains('hidden'));
+        lines.forEach((line) => line.classList.toggle('hidden', !show));
+        btn.setAttribute('aria-expanded', String(show));
+        btn.textContent = show ? '隐藏中文歌词' : '显示中文歌词';
+        return;
+      }
       if (act === 'goto') {
         playLine(w, e.target.closest('[data-act]'));
         return;
