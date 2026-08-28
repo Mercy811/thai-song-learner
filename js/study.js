@@ -182,6 +182,14 @@ window.Study = (() => {
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  const isEnglishUi = () => window.I18n?.language === 'en';
+  const lyricMeaning = (line) => {
+    if (!isEnglishUi()) return line.cn || '';
+    return line.cnEn || (window.I18n ? I18n.t(line.cn || '') : line.cn || '');
+  };
+  const showMeaningLabel = () => isEnglishUi() ? 'Show lyric meaning' : '显示歌词意思';
+  const hideMeaningLabel = () => isEnglishUi() ? 'Hide lyric meaning' : '隐藏歌词意思';
+
   function loadOpts() {
     try {
       Object.assign(state, JSON.parse(localStorage.getItem(LS_OPTS) || '{}'));
@@ -301,7 +309,7 @@ window.Study = (() => {
     const tried = st.r + st.w;
     const first = w.lines[0];
     const hintLines = w.lines.filter((line, i, lines) =>
-      lines.findIndex((other) => other.th === line.th && other.cn === line.cn) === i
+      lines.findIndex((other) => other.th === line.th && other.ro === line.ro && other.cn === line.cn) === i
     );
     return `
       <div class="wrow" data-th="${esc(w.th)}" data-lv="${st.lv}">
@@ -330,9 +338,10 @@ window.Study = (() => {
           ${hintLines.map((line) => `
             <div class="wrow-hint-line">
               <div class="wrow-hint-source">${esc(line.th)}</div>
-              ${line.cn ? `<div class="wrow-hint-cn hidden">${esc(line.cn)}</div>` : ''}
+              ${line.ro ? `<div class="wrow-hint-ro">${esc(line.ro)}</div>` : ''}
+              ${line.cn ? `<div class="wrow-hint-cn hidden">${esc(lyricMeaning(line))}</div>` : ''}
             </div>`).join('')}
-          ${hintLines.some((line) => line.cn) ? '<button class="wbtn wrow-hint-cn-toggle" data-act="hint-cn" aria-expanded="false">显示中文歌词</button>' : ''}
+          ${hintLines.some((line) => line.cn) ? `<button class="wbtn wrow-hint-cn-toggle" data-act="hint-cn" aria-expanded="false">${showMeaningLabel()}</button>` : ''}
         </div>
       </div>`;
   }
@@ -395,6 +404,24 @@ window.Study = (() => {
     $('#quizRo').classList.toggle('hidden', !state.showRo || !w.ro);
     $('#quizCn').classList.toggle('hidden', !state.showCn || !w.cn);
     $('#quizLv').innerHTML = `${dotsHtml(st.lv)}<span>${esc(Vocab.levelLabel(w.th))}</span>`;
+
+    // 提示每道题都重新收起：先只给原歌词，需要时再单独显示中文歌词。
+    const hintLines = w.lines.filter((line, i, lines) =>
+      lines.findIndex((other) => other.th === line.th && other.ro === line.ro && other.cn === line.cn) === i
+    );
+    $('#quizHintLines').innerHTML = hintLines.map((line) => `
+      <div class="quiz-hint-line">
+        <div class="quiz-hint-source">${esc(line.th)}</div>
+        ${line.ro ? `<div class="quiz-hint-ro">${esc(line.ro)}</div>` : ''}
+        ${line.cn ? `<div class="quiz-hint-cn hidden">${esc(lyricMeaning(line))}</div>` : ''}
+      </div>`).join('');
+    $('#quizHint').classList.add('hidden');
+    $('#quizHintToggle').textContent = '💡 提示';
+    $('#quizHintToggle').setAttribute('aria-expanded', 'false');
+    const hasChineseHint = hintLines.some((line) => line.cn);
+    $('#quizHintCnToggle').classList.toggle('hidden', !hasChineseHint);
+    $('#quizHintCnToggle').textContent = showMeaningLabel();
+    $('#quizHintCnToggle').setAttribute('aria-expanded', 'false');
 
     $('#quizOpts').innerHTML = q.options.map((m, i) =>
       `<button class="qopt" data-mean="${esc(m)}"><b>${i + 1}</b><span>${esc(m)}</span></button>`
@@ -554,7 +581,7 @@ window.Study = (() => {
         const show = lines.some((line) => line.classList.contains('hidden'));
         lines.forEach((line) => line.classList.toggle('hidden', !show));
         btn.setAttribute('aria-expanded', String(show));
-        btn.textContent = show ? '隐藏中文歌词' : '显示中文歌词';
+        btn.textContent = show ? hideMeaningLabel() : showMeaningLabel();
         return;
       }
       if (act === 'goto') {
@@ -610,6 +637,20 @@ window.Study = (() => {
     $('#quizSpeak').addEventListener('click', () => {
       const q = state.quiz && state.quiz.q;
       if (q) speak(q.word.th, q.word.lang, $('#quizSpeak'));
+    });
+    $('#quizHintToggle').addEventListener('click', () => {
+      const hint = $('#quizHint');
+      const show = hint.classList.contains('hidden');
+      hint.classList.toggle('hidden', !show);
+      $('#quizHintToggle').textContent = show ? '收起提示' : '💡 提示';
+      $('#quizHintToggle').setAttribute('aria-expanded', String(show));
+    });
+    $('#quizHintCnToggle').addEventListener('click', () => {
+      const lines = $$('.quiz-hint-cn', $('#quizHint'));
+      const show = lines.some((line) => line.classList.contains('hidden'));
+      lines.forEach((line) => line.classList.toggle('hidden', !show));
+      $('#quizHintCnToggle').textContent = show ? hideMeaningLabel() : showMeaningLabel();
+      $('#quizHintCnToggle').setAttribute('aria-expanded', String(show));
     });
     $('#quizNext').addEventListener('click', nextQuestion);
     $('#quizDone').addEventListener('click', (e) => {
@@ -711,6 +752,19 @@ window.Study = (() => {
   // 登录以后云端数据是异步拉回来的，回来的时候如果单词表正开着就重新画一遍，
   // 不然界面会一直停在刚打开页面那一刻的本地数据上
   if (window.Vocab) Vocab.onUpdate(() => { if (state.on && state.page === 'list') { renderHead(); renderList(); } });
+
+  // 切换中/英文时，提示里的歌词意思也要立即跟着换；已答题的反馈保持原样。
+  window.addEventListener('languagechange', () => {
+    if (!state.on) return;
+    if (state.page === 'list') return renderList();
+    if (state.page !== 'quiz' || !state.quiz?.q) return;
+    const lines = state.quiz.q.word.lines.filter((line, i, all) =>
+      all.findIndex((other) => other.th === line.th && other.ro === line.ro && other.cn === line.cn) === i
+    );
+    $$('.quiz-hint-cn', $('#quizHint')).forEach((el, i) => { el.textContent = lyricMeaning(lines[i]); });
+    const btn = $('#quizHintCnToggle');
+    btn.textContent = btn.getAttribute('aria-expanded') === 'true' ? hideMeaningLabel() : showMeaningLabel();
+  });
 
   return { init, initDaily, setActive, isOn: () => state.on, note };
 })();

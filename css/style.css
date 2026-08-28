@@ -1780,6 +1780,7 @@ body.mode-study .foot { display: none; }
 }
 .wrow-hint-line + .wrow-hint-line { margin-top: 8px; }
 .wrow-hint-source { font-size: 14px; line-height: 1.55; color: var(--text); }
+.wrow-hint-ro { margin-top: 2px; font-size: 12.5px; line-height: 1.5; color: var(--accent-2); }
 .wrow-hint-cn { margin-top: 3px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
 .wrow-hint-cn-toggle { margin-top: 8px; padding-left: 0; }
 .wbtn {
@@ -2107,6 +2108,25 @@ body.mode-study .foot { display: none; }
   margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 7px;
   font-size: 11.5px; color: var(--text-3);
 }
+.quiz-hint-toggle, .quiz-hint-cn-toggle {
+  background: transparent; border: 1px solid var(--line); color: var(--text-2);
+  border-radius: 999px; padding: 6px 13px; font: inherit; font-size: 12.5px;
+  cursor: pointer; transition: all .15s;
+}
+.quiz-hint-toggle { margin-top: 12px; }
+.quiz-hint-toggle:hover, .quiz-hint-cn-toggle:hover {
+  background: var(--accent-soft); border-color: var(--accent); color: var(--accent);
+}
+.quiz-hint {
+  margin: 12px auto 0; max-width: 520px; padding: 11px 13px;
+  border-radius: 11px; background: var(--card-2); border-left: 3px solid var(--accent);
+  text-align: left;
+}
+.quiz-hint-line + .quiz-hint-line { margin-top: 9px; }
+.quiz-hint-source { font-family: var(--thai-font); font-size: 16px; line-height: 1.6; color: var(--text); }
+.quiz-hint-ro { margin-top: 2px; font-size: 13px; line-height: 1.5; color: var(--accent-2); }
+.quiz-hint-cn { margin-top: 2px; font-size: 13px; line-height: 1.5; color: var(--text-2); }
+.quiz-hint-cn-toggle { margin-top: 9px; padding-left: 0; border-color: transparent; }
 
 .quiz-ask {
   text-align: center; font-size: 12.5px; color: var(--text-3);
