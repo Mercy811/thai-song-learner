@@ -12,6 +12,8 @@ window.Science = (() => {
 
   const $ = (s, r = document) => r.querySelector(s);
   const NS = 'http://www.w3.org/2000/svg';
+  const english = () => window.I18n?.language === 'en';
+  const meaning = (s) => english() && window.I18n ? I18n.t(s || '') : (s || '');
 
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, (c) =>
@@ -52,7 +54,12 @@ window.Science = (() => {
     const mid = firstAtLeast(50);
     const high = firstAtLeast(80);
 
-    $('#sciStats').innerHTML = `
+    $('#sciStats').innerHTML = english() ? `
+      <div class="sci-stat"><b>${data.totalWords}</b><span>unique Thai words</span></div>
+      <div class="sci-stat"><b>${data.totalOcc}</b><span>total occurrences</span></div>
+      <div class="sci-stat"><b>${mid.cumWords}</b><span>words cover over half (used ≥${mid.count} times)</span></div>
+      <div class="sci-stat"><b>${high.cumWords}</b><span>words cover ${Math.round(high.cumOccPct)}% (used ≥${high.count} times)</span></div>
+    ` : `
       <div class="sci-stat"><b>${data.totalWords}</b><span>不重复的泰语词</span></div>
       <div class="sci-stat"><b>${data.totalOcc}</b><span>总出现次数</span></div>
       <div class="sci-stat"><b>${mid.cumWords}</b><span>词，覆盖过半（出现≥${mid.count}次）</span></div>
@@ -61,7 +68,13 @@ window.Science = (() => {
 
     const restWords = data.totalWords - high.cumWords;
     const restPct = +(100 - high.cumOccPct).toFixed(0);
-    $('#sciExplainNums').innerHTML = `
+    $('#sciExplainNums').innerHTML = english() ? `
+      In the current library of ${data.totalWords} Thai words, <b>${mid.cumWords} words used at least ${mid.count} times
+      (${mid.cumWordsPct}% of the vocabulary) already cover ${mid.cumOccPct}% of all word occurrences.</b>
+      Learning the ${high.cumWords} words used at least ${high.count} times (${high.cumWordsPct}%) raises coverage to ${high.cumOccPct}%.
+      The remaining ${restWords} low-frequency words make up ${(100 - high.cumWordsPct).toFixed(0)}% of the vocabulary but add only ${restPct}% coverage.
+      This is the <b>Pareto principle (the 80/20 rule)</b>: high-frequency words give the greatest return first.
+    ` : `
       具体到库里现在这 ${data.totalWords} 个泰语词：<b>出现 ≥${mid.count} 次的 ${mid.cumWords} 个词
       （占词表 ${mid.cumWordsPct}%）已经覆盖了 ${mid.cumOccPct}% 的用词量</b>；
       再往下学到「出现 ≥${high.count} 次」的 ${high.cumWords} 个词（${high.cumWordsPct}%），
@@ -74,8 +87,8 @@ window.Science = (() => {
   function renderTable(data) {
     $('#sciThBody').innerHTML = data.thresholds.map((t) => `
       <tr>
-        <td class="hl">${t.count} 次</td>
-        <td>${t.cumWords} 个</td>
+        <td class="hl">${t.count}${english() ? ' times' : ' 次'}</td>
+        <td>${t.cumWords}${english() ? ' words' : ' 个'}</td>
         <td>${t.cumWordsPct}%</td>
         <td class="hl">${t.cumOccPct}%</td>
       </tr>`).join('');
@@ -117,18 +130,18 @@ window.Science = (() => {
       const xx = x(rank);
       const anchor = rank === n ? 'end' : (rank === 1 ? 'start' : 'middle');
       const t = el('text', { class: 'sci-axis-label', x: xx, y: H - PAD.bottom + 18, 'text-anchor': anchor });
-      t.textContent = `第 ${rank} 词`;
+      t.textContent = english() ? `Word ${rank}` : `第 ${rank} 词`;
       svg.appendChild(t);
     });
     const xCaption = el('text', { class: 'sci-axis-label', x: PAD.left + plotW / 2, y: H - 4, 'text-anchor': 'middle' });
-    xCaption.textContent = '学到第几个词（按出现次数从高到低）';
+    xCaption.textContent = english() ? 'Words learned (highest frequency first)' : '学到第几个词（按出现次数从高到低）';
     svg.appendChild(xCaption);
 
     // 80% 参考线
     const ref80y = y(80);
     svg.appendChild(el('line', { class: 'sci-ref-line', x1: PAD.left, x2: W - PAD.right, y1: ref80y, y2: ref80y }));
     const ref80Label = el('text', { class: 'sci-ref-label', x: W - PAD.right, y: ref80y - 5, 'text-anchor': 'end' });
-    ref80Label.textContent = '覆盖 80% 参考线';
+    ref80Label.textContent = english() ? '80% coverage reference' : '覆盖 80% 参考线';
     svg.appendChild(ref80Label);
 
     // 面积 + 曲线
@@ -149,8 +162,8 @@ window.Science = (() => {
       const cx = x(r.rank), cy = y(r.cumOccPct);
       svg.appendChild(el('circle', { class: 'sci-mk-dot', cx, cy, r: 4.5 }));
 
-      const label = `出现≥${c}次 · ${t.cumWords}词`;
-      const sub = `覆盖 ${t.cumOccPct}%`;
+      const label = english() ? `≥${c} uses · ${t.cumWords} words` : `出现≥${c}次 · ${t.cumWords}词`;
+      const sub = english() ? `${t.cumOccPct}% coverage` : `覆盖 ${t.cumOccPct}%`;
       const labelAbove = i % 2 === 0;
       const ly = labelAbove ? cy - 34 : cy + 20;
       const anchor = cx > W - PAD.right - 90 ? 'end' : (cx < PAD.left + 70 ? 'start' : 'middle');
@@ -196,10 +209,10 @@ window.Science = (() => {
       const ty = rect.top - posRect.top + cy * svgScaleX * (rect.height / (H * (rect.width / W)));
       tooltip.style.left = Math.min(tx + 14, posRect.width - 190) + 'px';
       tooltip.style.top = Math.max(ty - 60, 4) + 'px';
-      tooltip.innerHTML = `<b>${r.cumOccPct}%</b> 覆盖率<br>
-        <span class="sci-tt-sub">学到第 ${r.rank} 个词（出现 ${r.count} 次）</span>
+      tooltip.innerHTML = `<b>${r.cumOccPct}%</b> ${english() ? 'coverage' : '覆盖率'}<br>
+        <span class="sci-tt-sub">${english() ? `Word ${r.rank} (${r.count} occurrences)` : `学到第 ${r.rank} 个词（出现 ${r.count} 次）`}</span>
         <div class="sci-tt-word">${esc(r.th)}</div>
-        <div class="sci-tt-sub">${esc(r.mean || '')}</div>`;
+        <div class="sci-tt-sub">${esc(meaning(r.mean))}</div>`;
       tooltip.style.opacity = 1;
     }
 
@@ -220,6 +233,12 @@ window.Science = (() => {
     renderStats(data);
     renderChart(data);
     renderTable(data);
+    const explain = $('.sci-explain p:not(#sciExplainNums)');
+    if (explain && english()) explain.innerHTML = `A normal distribution is bell-shaped, with most values in the middle. This curve instead has a <b>steep beginning and a flat long tail</b>. Thai, like most languages, follows <b>Zipf’s law</b>: a small number of common pronouns and function words appear repeatedly, while most words appear only once or twice.`;
+    const initialLanguage = window.I18n?.language;
+    window.addEventListener('languagechange', (event) => {
+      if (event.detail?.language !== initialLanguage) location.reload();
+    });
   }
 
   return { init };

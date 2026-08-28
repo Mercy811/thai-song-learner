@@ -195,6 +195,8 @@ window.Study = (() => {
   }
 
   const isEnglishUi = () => window.I18n?.language === 'en';
+  const wordMeaning = (value) => isEnglishUi() && window.I18n ? I18n.t(value || '') : (value || '');
+  const levelLabel = (value) => isEnglishUi() && window.I18n ? I18n.t(value || '') : (value || '');
   const lyricMeaning = (line) => {
     if (!isEnglishUi()) return line.cn || '';
     return line.cnEn || (window.I18n ? I18n.t(line.cn || '') : line.cn || '');
@@ -279,16 +281,16 @@ window.Study = (() => {
     $('#studyStatTotal').textContent = s.total;
     $('#studyStatPct').textContent = Math.round(s.progress * 100) + '%';
     $('#studyStatAcc').textContent = s.right + s.wrong
-      ? `${Math.round(s.accuracy * 100)}%（答对 ${s.right} · 答错 ${s.wrong}）`
-      : '还没开始测验';
+      ? (isEnglishUi() ? `${Math.round(s.accuracy * 100)}% (${s.right} correct · ${s.wrong} incorrect)` : `${Math.round(s.accuracy * 100)}%（答对 ${s.right} · 答错 ${s.wrong}）`)
+      : (isEnglishUi() ? 'No quiz attempts yet' : '还没开始测验');
 
     // 六段进度条：每一段是这个级别有多少词
     $('#studyBar').innerHTML = s.byLevel.map((n, lv) =>
-      n ? `<i data-lv="${lv}" style="flex:${n}" title="${esc(Vocab.LEVELS[lv])} ${n} 个"></i>` : ''
+      n ? `<i data-lv="${lv}" style="flex:${n}" title="${esc(levelLabel(Vocab.LEVELS[lv]))} ${n}"></i>` : ''
     ).join('');
 
     $('#studyLegend').innerHTML = s.byLevel.map((n, lv) =>
-      `<span class="lg${n ? '' : ' off'}"><i data-lv="${lv}"></i>${esc(lv === 0 ? '生疏 / 没学过' : Vocab.LEVELS[lv])} ${n}</span>`
+      `<span class="lg${n ? '' : ' off'}"><i data-lv="${lv}"></i>${esc(levelLabel(lv === 0 ? '生疏 / 没学过' : Vocab.LEVELS[lv]))} ${n}</span>`
     ).join('');
 
     renderLineJourney();
@@ -350,14 +352,14 @@ window.Study = (() => {
         <div class="wrow-word">
           <button class="wrow-th${w.lang === 'en' ? ' en' : ''}" data-act="speak" title="点一下听发音">${esc(w.th)}</button>
           ${w.ro ? `<span class="wrow-ro">${esc(w.ro)}</span>` : ''}
-          ${w.cn ? `<span class="wrow-cn">${esc(w.cn)}</span>` : ''}
+          ${w.cn && !isEnglishUi() ? `<span class="wrow-cn">${esc(w.cn)}</span>` : ''}
         </div>
         <div class="wrow-mean${state.mask ? ' masked' : ''}" data-act="reveal" title="${state.mask ? '点一下看答案' : ''}">
-          <span>${esc(w.mean)}</span>
+          <span>${esc(wordMeaning(w.mean))}</span>
         </div>
         <div class="wrow-lv">
           ${dotsHtml(st.lv)}
-          <span class="lvname">${esc(Vocab.levelLabel(w.th))}</span>
+          <span class="lvname">${esc(levelLabel(Vocab.levelLabel(w.th)))}</span>
           <span class="lvstat">${tried ? `✓${st.r} ✗${st.w}` : `第 ${first.idx + 1} 句${w.count > 1 ? ` · ${w.count} 次` : ''}`}</span>
         </div>
         <div class="wrow-tools">
@@ -526,7 +528,7 @@ window.Study = (() => {
     $('#quizCn').textContent = w.cn || '';
     $('#quizRo').classList.toggle('hidden', !state.showRo || !w.ro);
     $('#quizCn').classList.toggle('hidden', !state.showCn || !w.cn);
-    $('#quizLv').innerHTML = `${dotsHtml(st.lv)}<span>${esc(Vocab.levelLabel(w.th))}</span>`;
+    $('#quizLv').innerHTML = `${dotsHtml(st.lv)}<span>${esc(levelLabel(Vocab.levelLabel(w.th)))}</span>`;
 
     // 提示每道题都重新收起：先只给原歌词，需要时再单独显示中文歌词。
     const hintLines = hintLinesFor(w, state.quiz).filter((line, i, lines) =>
@@ -547,7 +549,7 @@ window.Study = (() => {
     $('#quizHintCnToggle').setAttribute('aria-expanded', 'false');
 
     $('#quizOpts').innerHTML = q.options.map((m, i) =>
-      `<button class="qopt" data-mean="${esc(m)}"><b>${i + 1}</b><span>${esc(m)}</span></button>`
+      `<button class="qopt" data-mean="${esc(m)}"><b>${i + 1}</b><span>${esc(wordMeaning(m))}</span></button>`
     ).join('');
 
     $('#quizFeedback').className = 'quiz-feedback hidden';
@@ -586,8 +588,8 @@ window.Study = (() => {
     const fb = $('#quizFeedback');
     fb.className = 'quiz-feedback ' + (ok ? 'ok' : 'bad');
     fb.innerHTML = `
-      <div class="fb-head">${ok ? '✓ 对了' : `✗ 是「${esc(q.q.answer)}」`}
-        <span class="fb-lv">${esc(Vocab.levelLabel(w.th))}${ok ? ' ↑' : ' ↓'}</span>
+      <div class="fb-head">${ok ? (isEnglishUi() ? '✓ Correct' : '✓ 对了') : `${isEnglishUi() ? '✗ Answer:' : '✗ 是'}「${esc(wordMeaning(q.q.answer))}」`}
+        <span class="fb-lv">${esc(levelLabel(Vocab.levelLabel(w.th)))}${ok ? ' ↑' : ' ↓'}</span>
       </div>
       <div class="fb-line">
         <span class="fb-no">第 ${line.idx + 1} 句</span>
