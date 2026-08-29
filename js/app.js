@@ -15,6 +15,7 @@
   const LS_PIN_TOPBAR = 'tsl.pinTopbar';
   const LS_PIN_DECK   = 'tsl.pinDeck';
   const SONG_IDS = Object.keys(window.SONGS || {});
+  const displaySongTitle = (song) => I18n.language === 'en' ? (song.title || song.titleCn) : (song.titleCn || song.title);
 
   // 主题在首页、歌曲页、词频页、覆盖率页共用，都要先套上，别等进了某个页面才生效
   document.documentElement.dataset.theme = localStorage.getItem(LS_THEME)
@@ -154,7 +155,7 @@
 
   // 把所有段落里的句子摊平成一维，方便上一句/下一句
   const LINES = SONG.sections.flatMap((sec) =>
-    sec.lines.map((l) => ({ ...l, section: sec.name }))
+    sec.lines.map((l) => ({ ...l, section: I18n.language === 'en' ? (sec.nameEn || sec.name) : sec.name }))
   );
 
   const state = {
@@ -280,8 +281,8 @@
       secEl.className = 'section';
       secEl.innerHTML = `
         <div class="section-head">
-          <h2>${esc(sec.name)}</h2>
-          <span class="en">${esc(sec.nameEn || '')}</span>
+          <h2>${esc(I18n.language === 'en' ? (sec.nameEn || sec.name) : sec.name)}</h2>
+          ${I18n.language === 'en' ? '' : `<span class="en">${esc(sec.nameEn || '')}</span>`}
           ${sec.note ? `<span class="note">${esc(sec.note)}</span>` : ''}
         </div>`;
 
@@ -1104,7 +1105,7 @@
         </span>
         <span class="home-card-body">
           <span class="home-card-th">${esc(s.titleTh || s.title)}</span>
-          <span class="home-card-cn">${esc(s.titleCn || s.title)}</span>
+          <span class="home-card-cn">${esc(displaySongTitle(s))}</span>
           ${by ? `<span class="home-card-by">${esc(by)}</span>` : ''}
         </span>
       </a>`;
@@ -1187,14 +1188,14 @@
       const by = [s2.artist, s2.album].filter(Boolean).join(' · ');
       return `<button class="song-card${id === SONG.id ? ' on' : ''}" data-song="${esc(id)}">
         <span class="song-card-th">${esc(s2.titleTh || s2.title)}</span>
-        <span class="song-card-cn">${esc(s2.titleCn || s2.title)}</span>
+        <span class="song-card-cn">${esc(displaySongTitle(s2))}</span>
         ${by ? `<span class="song-card-by">${esc(by)}</span>` : ''}
         <span class="song-card-meta">
-          <span>${m.count} 句</span>
-          ${m.done ? `<span>已掌握 ${m.done}</span>` : ''}
-          <span>${s2.timeline === false ? '练习模式' : '练习 + KTV'}</span>
+          <span>${esc(I18n.t(`${m.count} 句`))}</span>
+          ${m.done ? `<span>${esc(I18n.t(`已掌握 ${m.done}`))}</span>` : ''}
+          <span>${esc(I18n.t(s2.timeline === false ? '练习模式' : '练习 + KTV'))}</span>
         </span>
-        ${id === SONG.id ? '<span class="song-card-now">正在学</span>' : ''}
+        ${id === SONG.id ? `<span class="song-card-now">${esc(I18n.t('正在学'))}</span>` : ''}
       </button>`;
     }).join('');
   }
@@ -1543,14 +1544,14 @@
 
   function init() {
     // 标题
-    $('#songTitle').textContent = SONG.titleCn || SONG.title;
+    $('#songTitle').textContent = displaySongTitle(SONG);
     $('#songTitleTh').textContent = SONG.titleTh || '';
     $('#songArtist').textContent = [SONG.artist, SONG.album].filter(Boolean).join(' · ');
     // 没填歌手/专辑时，把中间那个分隔点也一起收掉，别在标题下面孤零零挂一个「·」
     const hasBy = !!(SONG.artist || SONG.album);
     $('#songArtist').classList.toggle('hidden', !hasBy);
     $('#songTitleSep').classList.toggle('hidden', !hasBy);
-    document.title = `${SONG.titleCn || SONG.title} — 泰语逐句跟读`;
+    document.title = `${displaySongTitle(SONG)} — ThaiCue`;
 
     // 只做练习模式的歌：KTV / 校准 / 单句循环 / 自动跟随这些靠时间轴的东西全收起来
     document.body.classList.toggle('no-timeline', !HAS_TIMELINE);

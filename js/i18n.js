@@ -17,9 +17,10 @@ window.I18n = (() => {
     '首页': 'Home', '回首页看所有歌': 'Back to all songs', '固定': 'Pin', '固定住这一栏，往下滑也不消失': 'Keep this bar visible while scrolling',
     '泰语歌逐句跟读': 'Thai Songs, Line by Line', '开始学习 →': 'Start learning →',
     '跟着喜欢的歌，听懂泰语': 'Understand Thai through songs you love',
-    '从喜欢的故事开始，每天真正学会一句泰语。': 'Start with a story you love and learn one real Thai line every day.',
+    '从喜欢的故事开始，': 'Start with a story you love, ', '每天真正学会一句泰语。': 'learn one real Thai line every day.',
     '不用先啃语法书。跟着熟悉的剧情场景与 OST，听一句、看懂拆词、跟读一句，再不看提示回忆。': 'Skip the grammar-book start. Use familiar scenes and OSTs to listen, unpack, repeat, and recall one real line.',
     '开始今日 5 分钟学习 →': 'Start today’s 5-minute lesson →',
+    'Jan × JingJing · 今天只学一句 ✨': 'Jan × JingJing · One line for today ✨',
     '逐句、逐词拆解泰语歌词 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点一个词就能听发音。挑一首歌，五分钟就能带走一句真正会唱的泰语。': 'Explore Thai lyrics line by line and word by word, with Thai script, romanization, English meanings, and tap-to-hear pronunciation. Choose a song and learn a line you can truly sing in five minutes.',
     '搜索歌名 / 歌手…': 'Search songs or artists…', '▶ 挑一首开始': '▶ Choose a song', '选一首歌开始': 'Choose a song to begin',
     '没有找到想学的歌？告诉我你想唱什么、想了解什么，或留下任何反馈。': 'Can’t find the song you want? Tell me what you’d like to sing or learn, or share any feedback.',
@@ -28,7 +29,7 @@ window.I18n = (() => {
     '提交后，你的留言会通过邮件发送给网站作者。': 'Your message will be emailed to the site creator.', '正在发送…': 'Sending…',
     '已发送，谢谢你的留言！': 'Sent — thank you for your message!', '没能发送。请稍后再试，或发邮件到 xinyiye811@gmail.com。': 'Couldn’t send. Please try again later or email xinyiye811@gmail.com.',
     '没找到匹配的歌，换个关键词试试。': 'No matching songs. Try another search.', '上次在学': 'Continue',
-    '练习模式': 'Practice mode', '逐句逐词、发音跟读': 'Lyrics, vocabulary, and pronunciation', 'KTV 模式': 'KTV mode',
+    '练习模式': 'Practice mode', '练习 + KTV': 'Practice + KTV', '正在学': 'Learning now', '逐句逐词、发音跟读': 'Lyrics, vocabulary, and pronunciation', 'KTV 模式': 'KTV mode',
     '沉浸式跟唱，弹幕互动': 'Immersive sing-along with live comments', '单词测验': 'Vocabulary quiz', '四选一 + 双人对战': 'Multiple choice and two-player battle',
     '高频词串成故事讲一遍': 'Learn frequent words through stories', '从最常见的词学起': 'Start with the most frequent words', '学多少词能看懂多少': 'See how vocabulary unlocks lyrics',
     '📊 词频总表': '📊 Vocabulary Frequency',
@@ -36,7 +37,7 @@ window.I18n = (() => {
     '个不重复的词 · 来自 ': 'unique words · from ', ' 首歌': ' songs', '总出现 ': 'Total occurrences: ', ' 次 · 从最常见的词学起，覆盖面最快': ' · Learn the most useful words first',
     '📋 复制词表': '📋 Copy vocabulary', '已记住 ': 'Remembered ', '搜索泰语 / 罗马音 / 意思…': 'Search Thai, romanization, or meaning…',
     '出现最多在前': 'Most frequent first', '出现最少在前': 'Least frequent first', '泰语字母序': 'Thai alphabetical order', '状态': 'Status',
-    '全部歌曲': 'All songs', '已记住': 'Remembered', '没记住': 'Not remembered',
+    '全部歌曲': 'All songs', '已记住': 'Remembered', '没记住': 'Not remembered', '记住': 'Remember', '记住了': 'Remembered', '标记这个词记住了没': 'Toggle remembered',
     '这份表把库里所有歌的逐词卡片按泰语文本去重、按出现次数排好——副歌重复几遍就算几次出现。点泰语听发音，点歌名跳去那首歌。': 'This table deduplicates Thai words across the whole library and ranks them by frequency. Repeated choruses count as repeated occurrences. Tap Thai to hear it, or a song title to open that song.',
     '🎓 记忆课': '🎓 Memory Lessons',
     '库里反复出现的词，按主题串成 7 节课的小故事——先认几个「基础词」，再看它们怎么拼成歌词里那些长句子。每节课都能整节朗读，洗澡、走路、开车的时候用耳朵学': 'Frequently recurring words are grouped into seven themed audio lessons. Learn a few building blocks, then see how they combine into longer lyric phrases.',
@@ -334,6 +335,9 @@ window.I18n = (() => {
       .replace(/^智能练习完成 · 正确率 (\d+)% · 最高连对 (\d+)$/, 'Adaptive practice complete · $1% accuracy · Best streak $2')
       .replace(/^智能练习完成 · 正确率 (\d+)%$/, 'Adaptive practice complete · $1% accuracy')
       .replace(/^(\d+) 次$/, '$1 times')
+      .replace(/^(\d+) 句$/, '$1 lines')
+      .replace(/^第 (\d+) 句 · (\d+) 次$/, 'Line $1 · $2 uses')
+      .replace(/^已掌握 (\d+)$/, '$1 mastered')
       .replace(/^🔥 连续 (\d+) 天$/, '🔥 $1 day streak')
       .replace(/^⏱ 今天 (\d+) 秒$/, '⏱ Today $1 sec')
       .replace(/^⏱ 今天 (\d+) 分钟$/, '⏱ Today $1 min')

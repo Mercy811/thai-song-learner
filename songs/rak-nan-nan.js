@@ -299,7 +299,7 @@ window.SONGS = window.SONGS || {};
     titleCn: '愿能长长久久爱着你',
     // 原唱查不太准（这台机器连不上 YouTube，搜出来的名字前后矛盾），
     // 先按 YouTube 链接实际放的翻唱版标，确认了原唱是谁再填回来
-    artist: 'ลีน่า - หมิว（LAMOON official 翻唱版）',
+    artist: 'Lena – Mew (LAMOON official cover)',
     album: '',
     youtubeId: '0pxTI4pe_8w',
 

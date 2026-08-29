@@ -134,7 +134,8 @@ window.Study = (() => {
       if (cursor.getDay() === 0) {
         column++;
         if (cursor.getMonth() !== lastMonth) {
-          monthLabels.push(`<span style="grid-column:${column}">${cursor.toLocaleDateString('zh-CN', { month: 'short' })}</span>`);
+          const locale = window.I18n?.language === 'en' ? 'en-US' : 'zh-CN';
+          monthLabels.push(`<span style="grid-column:${column}">${cursor.toLocaleDateString(locale, { month: 'short' })}</span>`);
           lastMonth = cursor.getMonth();
         }
       }
@@ -360,7 +361,7 @@ window.Study = (() => {
         <div class="wrow-lv">
           ${dotsHtml(st.lv)}
           <span class="lvname">${esc(levelLabel(Vocab.levelLabel(w.th)))}</span>
-          <span class="lvstat">${tried ? `✓${st.r} ✗${st.w}` : `第 ${first.idx + 1} 句${w.count > 1 ? ` · ${w.count} 次` : ''}`}</span>
+          <span class="lvstat">${tried ? `✓${st.r} ✗${st.w}` : esc(I18n.t(`第 ${first.idx + 1} 句${w.count > 1 ? ` · ${w.count} 次` : ''}`))}</span>
         </div>
         <div class="wrow-tools">
           <button class="wbtn" data-act="hint" aria-expanded="false" title="显示这个词在歌曲中出现的原句">提示</button>

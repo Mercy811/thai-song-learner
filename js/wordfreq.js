@@ -64,7 +64,9 @@ window.WordFreq = (() => {
     const byTh = new Map();
     songTitle = {};
     Object.values(window.SONGS || {}).forEach((song) => {
-      songTitle[song.id] = song.titleCn || song.title || song.id;
+      songTitle[song.id] = window.I18n?.language === 'en'
+        ? (song.title || song.titleCn || song.id)
+        : (song.titleCn || song.title || song.id);
       song.sections.forEach((sec) => {
         sec.lines.forEach((line) => {
           (line.words || []).forEach((w) => {
@@ -157,13 +159,13 @@ window.WordFreq = (() => {
         </div>
         <div class="wrow-mean"><span>${esc(window.I18n ? I18n.t(w.mean) : w.mean)}</span></div>
         <div class="frow-count">
-          <b>${w.count}</b><span> 次</span>
+          <b>${w.count}</b><span> ${esc(I18n.t(`${w.count} 次`).replace(String(w.count), '').trim())}</span>
           <div class="frow-bar"><i style="width:${barPct}%"></i></div>
         </div>
         <div class="frow-actions">
           ${window.WordAdmin?.isAdmin() ? `<button class="frow-edit" data-act="edit" title="修改后所有用户都会看到">${w.hidden ? '已隐藏 · 编辑' : '编辑'}</button>` : ''}
-          <button class="frow-mark${isLearned ? ' on' : ''}" data-act="mark" aria-pressed="${isLearned}" title="标记这个词记住了没">${isLearned ? '✅ 记住了' : '⬜ 记住'}</button>
-          <button class="frow-toggle" data-act="toggle" aria-expanded="false">▸ ${w.lines.length} 句</button>
+          <button class="frow-mark${isLearned ? ' on' : ''}" data-act="mark" aria-pressed="${isLearned}" title="${esc(I18n.t('标记这个词记住了没'))}">${isLearned ? `✅ ${esc(I18n.t('记住了'))}` : `⬜ ${esc(I18n.t('记住'))}`}</button>
+          <button class="frow-toggle" data-act="toggle" aria-expanded="false">▸ ${esc(I18n.t(`${w.lines.length} 句`))}</button>
         </div>
       </div>
       <div class="frow-lines hidden">${linesHtml}</div>`;
@@ -257,7 +259,7 @@ window.WordFreq = (() => {
         const panel = row.nextElementSibling;
         const open = panel.classList.toggle('hidden') === false;
         toggle.setAttribute('aria-expanded', String(open));
-        toggle.textContent = `${open ? '▾' : '▸'} ${w.lines.length} 句`;
+        toggle.textContent = `${open ? '▾' : '▸'} ${I18n.t(`${w.lines.length} 句`)}`;
         return;
       }
       const markBtn = e.target.closest('[data-act="mark"]');
@@ -267,7 +269,7 @@ window.WordFreq = (() => {
         if (nowLearned) row.dataset.learned = '1'; else delete row.dataset.learned;
         markBtn.classList.toggle('on', nowLearned);
         markBtn.setAttribute('aria-pressed', String(nowLearned));
-        markBtn.textContent = nowLearned ? '✅ 记住了' : '⬜ 记住';
+        markBtn.textContent = nowLearned ? `✅ ${I18n.t('记住了')}` : `⬜ ${I18n.t('记住')}`;
         renderHead();
         // 当前筛的是「已记住/没记住」，标记完这行可能不该再留在列表里，重排一下
         if (state.learned) render();
