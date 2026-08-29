@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Learn Thai Through Songs</title>
-<meta name="description" content="Learn Thai songs line by line and word by word with romanization, meanings, and pronunciation." />
-<meta name="theme-color" content="#f7f3ee" />
+<title>ThaiCue — Learn Thai through the GL stories you love</title>
+<meta name="description" content="ThaiCue helps Thai GL fans learn one real Thai line a day through beloved stories and OSTs." />
+<meta name="theme-color" content="#fff0f5" />
 <script defer src="https://cloud.umami.is/script.js" data-website-id="ec50336b-90d3-4db7-9019-965936823884" data-domains="thai-song-learner.vercel.app"></script>
 <script>document.documentElement.dataset.i18nPending = '1';</script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%239E3154'/><path d='M27 35h46v30H49L35 76V65h-8z' fill='%23FFF0F5'/><path d='M43 44v13l13-6.5z' fill='%23E96A9A'/></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500;1,600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -94,8 +94,8 @@
   <header class="home-topnav">
     <div class="home-topnav-inner">
       <a class="home-brand" href="?">
-        <span class="home-brand-mark">🎵</span>
-        <span class="home-brand-text">泰语歌<em>逐句</em>跟读</span>
+        <span class="brand-mark" aria-hidden="true"><span>▶</span></span>
+        <span class="home-brand-text"><b>ThaiCue</b><small>GL stories · real Thai</small></span>
       </a>
       <nav class="home-topnav-links">
         <a href="?page=lessons">记忆课</a>
@@ -118,12 +118,21 @@
   </header>
 
   <section class="home-hero">
-    <p class="home-eyebrow">TELL ME A SONG TO LEARN</p>
-    <h1 class="home-title">跟着喜欢的歌，<em>听懂</em>泰语</h1>
-    <p class="home-sub">逐句、逐词拆解泰语歌词 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点一个词就能听发音。挑一首歌，五分钟就能带走一句真正会唱的泰语。</p>
-
-    <p class="home-hero-meta">已收录 <b id="homeStatSongs">0</b> 首歌 · <b id="homeStatWords">0</b> 个泰语词 · 练习 / KTV / 单词测验三种模式</p>
+    <div class="home-hero-copy">
+      <p class="home-eyebrow">5-MINUTE THAI FOR GL FANS</p>
+      <h1 class="home-title">从喜欢的故事开始，<em>每天真正学会一句泰语。</em></h1>
+      <p class="home-claim">Learn Thai through the GL stories you love.</p>
+      <p class="home-sub">不用先啃语法书。跟着熟悉的剧情场景与 OST，听一句、看懂拆词、跟读一句，再不看提示回忆。</p>
+      <button class="btn primary home-hero-cta" id="homeHeroStart">开始今日 5 分钟学习 →</button>
+      <p class="home-hero-meta">已收录 <b id="homeStatSongs">0</b> 首歌 · <b id="homeStatWords">0</b> 个泰语词 · 练习 / KTV / 单词测验三种模式</p>
+    </div>
+    <div class="home-jewel" aria-label="Jewel 粉丝学习引导视觉">
+      <img src="assets/brand/jewel-pink-v1/thaicue-jewel-x-avatar-400.png" alt="Jewel，JanJingJing 的官方吉祥物，在 ThaiCue 非官方粉丝学习项目中作为初期引导视觉">
+      <div class="home-cue-card"><span>Jan × JingJing · 今天只学一句 ✨</span><b>ถ้าเธอรู้งั้นรักกันเลยดีไหม</b><small>thâa thoe rúu, ngán rák kan loei dii mái</small></div>
+    </div>
   </section>
+
+  <aside class="fan-project-note"><strong>Made with love, by fans.</strong><span>Unofficial fan-made learning project. Not affiliated with or endorsed by GMMTV, Jan, or JingJing.</span></aside>
 
   <!-- GitHub contribution graph 风格：把每天学过的痕迹留在首页 -->
   <section class="home-streak" aria-labelledby="homeStreakTitle">
@@ -735,6 +744,7 @@
 
 <footer class="foot">
   <p>逐词释义来自你自己的学习卡片 · 原曲由 YouTube 播放 · 发音使用设备内置语音合成</p>
+  <p class="rights-note">Unofficial fan-made learning project. Not affiliated with or endorsed by GMMTV, Jan, or JingJing.</p>
   <p class="foot-tip">快捷键：<kbd>空格</kbd> 播放/暂停 · <kbd>←</kbd><kbd>→</kbd> 上/下一句<span data-needs="timeline"> · <kbd>R</kbd> 单句循环</span> · <kbd>S</kbd> 朗读当前句</p>
 </footer>
 
@@ -931,9 +941,9 @@
 <script src="js/auth.js?v=20260827"></script>
 <script src="js/sync.js?v=20260827"></script>
 <script src="js/admin.js?v=20260827"></script>
+<script src="songs/dont-wanna-but-i-do.js"></script>
 <script src="songs/hua-jai-sang-hai-rak-thoe.js"></script>
 <script src="songs/safe-near-me.js"></script>
-<script src="songs/dont-wanna-but-i-do.js"></script>
 <script src="songs/rak-nan-nan.js"></script>
 <script src="songs/enemies-with-benefits.js"></script>
 <script src="songs/chop-tua-eng-tawn-yu-kap-thoe.js"></script>

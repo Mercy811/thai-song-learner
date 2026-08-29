@@ -9,6 +9,7 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
   const LS_SONG  = 'tsl.song';
+  const DEFAULT_SONG_ID = 'dont-wanna-but-i-do';
   const LS_THEME = 'tsl.theme';
   // 顶栏 / 播放器要不要吸顶是全局偏好，跟主题一样不分歌
   const LS_PIN_TOPBAR = 'tsl.pinTopbar';
@@ -1080,7 +1081,7 @@
      只在没带 ?song= 参数时渲染（HTML 里其余内容——播放器/歌词/底栏——保持原样待命，
      这里只是把它们先藏起来，换成这块）。 */
   function initHome() {
-    document.title = '泰语歌逐句跟读';
+    document.title = 'ThaiCue — 从喜欢的 GL 故事开始学泰语';
     $('.topbar').classList.add('hidden');
     $('.stickydeck').classList.add('hidden');
     $('.viewbar').classList.add('hidden');
@@ -1121,10 +1122,11 @@
 
     // 顶栏的「开始学习」会接着上次学的歌，没有就跳去挑歌区
     const goStart = () => {
-      if (lastId && window.SONGS[lastId]) { location.href = `?song=${encodeURIComponent(lastId)}`; return; }
-      $('#homeLibrary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const nextId = lastId && window.SONGS[lastId] ? lastId : DEFAULT_SONG_ID;
+      if (window.SONGS[nextId]) location.href = `?song=${encodeURIComponent(nextId)}`;
     };
     $('#btnHomeStart').addEventListener('click', goStart);
+    $('#homeHeroStart').addEventListener('click', goStart);
 
     // 静态网站没有自己的邮件服务器，交给 FormSubmit 转发到站长邮箱。
     const requestForm = $('#homeRequestForm');

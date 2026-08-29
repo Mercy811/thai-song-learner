@@ -1,6 +1,12 @@
-# 泰语歌逐句跟读
+# ThaiCue
 
-给只会中文和英文的人做的泰语歌学习网页。逐句、逐词学 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，任何一个词点一下就能听发音。
+**Learn Thai through the GL stories you love.**
+
+ThaiCue 是为 Thai GL 粉丝打造的非官方泰语学习网站：从喜欢的剧情场景与 OST 开始，每天用 5 分钟真正学会一句泰语。核心微课路径是：**听一句 → 看懂拆词 → 跟读一句 → 不看提示回忆**。
+
+产品保留完整的歌词逐句学习、KTV、单词表、测验、登录与本地进度能力，但首页首先引导用户继续今日学习，而不是先面对一排工具。
+
+> **权利说明：** Unofficial fan-made learning project. Not affiliated with or endorsed by GMMTV, Jan, or JingJing. Jewel 是 JanJingJing/GMMTV 的官方吉祥物，仅作为初期粉丝学习项目的引导视觉；ThaiCue 不声称拥有 Jewel，也不暗示任何官方合作或背书。
 
 **曲库**（右上角 <b>🎵 选歌</b> 切换，也可以用 `?song=歌曲id` 直接开某一首）：
 
