@@ -17,10 +17,6 @@ window.I18n = (() => {
     '首页': 'Home', '回首页看所有歌': 'Back to all songs', '固定': 'Pin', '固定住这一栏，往下滑也不消失': 'Keep this bar visible while scrolling',
     '泰语歌逐句跟读': 'Thai Songs, Line by Line', '开始学习 →': 'Start learning →',
     '跟着喜欢的歌，听懂泰语': 'Understand Thai through songs you love',
-    '从喜欢的故事开始，': 'Start with a story you love, ', '每天真正学会一句泰语。': 'learn one real Thai line every day.',
-    '不用先啃语法书。跟着熟悉的剧情场景与 OST，听一句、看懂拆词、跟读一句，再不看提示回忆。': 'Skip the grammar-book start. Use familiar scenes and OSTs to listen, unpack, repeat, and recall one real line.',
-    '开始今日 5 分钟学习 →': 'Start today’s 5-minute lesson →',
-    'Jan × JingJing · 今天只学一句 ✨': 'Jan × JingJing · One line for today ✨',
     '逐句、逐词拆解泰语歌词 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点一个词就能听发音。挑一首歌，五分钟就能带走一句真正会唱的泰语。': 'Explore Thai lyrics line by line and word by word, with Thai script, romanization, English meanings, and tap-to-hear pronunciation. Choose a song and learn a line you can truly sing in five minutes.',
     '搜索歌名 / 歌手…': 'Search songs or artists…', '▶ 挑一首开始': '▶ Choose a song', '选一首歌开始': 'Choose a song to begin',
     '没有找到想学的歌？告诉我你想唱什么、想了解什么，或留下任何反馈。': 'Can’t find the song you want? Tell me what you’d like to sing or learn, or share any feedback.',
@@ -387,12 +383,12 @@ window.I18n = (() => {
     applying = true;
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
     const page = document.body.dataset.page;
-    const titles = { freq: ['词频总表 — ThaiCue', 'Vocabulary Frequency — ThaiCue'], lessons: ['记忆课 — ThaiCue', 'Memory Lessons — ThaiCue'], science: ['词频覆盖率曲线 — ThaiCue', 'Vocabulary Coverage — ThaiCue'] };
-    document.title = titles[page] ? titles[page][language === 'zh' ? 0 : 1] : (language === 'zh' ? 'ThaiCue — 从喜欢的 GL 故事开始学泰语' : 'ThaiCue — Learn Thai through the GL stories you love');
+    const titles = { freq: ['词频总表 — 泰语歌逐句跟读', 'Vocabulary Frequency — Learn Thai Through Songs'], lessons: ['记忆课 — 泰语歌逐句跟读', 'Memory Lessons — Learn Thai Through Songs'], science: ['词频覆盖率曲线 — 泰语歌逐句跟读', 'Vocabulary Coverage — Learn Thai Through Songs'] };
+    document.title = titles[page] ? titles[page][language === 'zh' ? 0 : 1] : (language === 'zh' ? '泰语歌逐句跟读' : 'Learn Thai Through Songs');
     const description = document.querySelector('meta[name="description"]');
     if (description) description.content = language === 'zh'
-      ? 'ThaiCue 帮你通过喜欢的 Thai GL 剧情与 OST，每天用 5 分钟真正学会一句泰语。'
-      : 'Learn Thai through the GL stories and OSTs you love, one real line in five minutes a day.';
+      ? '逐句、逐词学泰语歌：泰文 + 罗马音 + 中文谐音 + 中文意思，每个词点一下就能听发音。'
+      : 'Learn Thai songs line by line and word by word with romanization, meanings, and pronunciation.';
     translateElement(document.body);
     document.querySelectorAll('[data-language-select]').forEach((select) => { select.value = language; });
     delete document.documentElement.dataset.i18nPending;

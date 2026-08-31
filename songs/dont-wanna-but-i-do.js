@@ -271,7 +271,7 @@ window.SONGS = window.SONGS || {};
 
   window.SONGS['dont-wanna-but-i-do'] = {
     id: 'dont-wanna-but-i-do',
-    title: "I Wanna, I Don't Wanna But I Do",
+    title: "Don't Wanna, But I Do",
     titleTh: 'งั้นรักละ',
     titleCn: '不想说，但我还是说了（那就爱了吧）',
     artist: 'Jan, Jingjing',
