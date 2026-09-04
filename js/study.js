@@ -225,7 +225,7 @@ window.Study = (() => {
     $$('.speaking').forEach((n) => n.classList.remove('speaking'));
     if (el) el.classList.add('speaking');
     TTS.speak(text, {
-      lang: lang === 'en' ? 'en' : 'th',
+      lang: ['en', 'ja', 'zh'].includes(lang) ? lang : 'th',
       rate: Math.max(0.4, ttsRate() - 0.05),
       onend: () => el && el.classList.remove('speaking'),
       onerror: () => el && el.classList.remove('speaking'),

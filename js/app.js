@@ -366,8 +366,9 @@
 
   function wordHtml(w) {
     const isEn = w.lang === 'en';
+    const speechLang = ['en', 'ja', 'zh'].includes(w.lang) ? w.lang : 'th';
     return `
-      <button class="word${isEn ? ' en-word' : ''}" data-th="${esc(w.th)}" data-lang="${isEn ? 'en' : 'th'}" title="点一下听这个词">
+      <button class="word${isEn ? ' en-word' : ''}" data-th="${esc(w.th)}" data-lang="${speechLang}" title="点一下听这个词">
         <div class="w-th">${esc(w.th)}</div>
         ${w.ro ? `<div class="w-ro" data-f="ro">${esc(w.ro)}</div>` : ''}
         ${w.cn ? `<div class="w-cn" data-f="cn">${esc(w.cn)}</div>` : ''}
@@ -865,7 +866,7 @@
     TTS.unlock();
     markSpeaking(btn);
     TTS.speak(line.th, {
-      lang: line.lang === 'en' ? 'en' : 'th',
+      lang: ['en', 'ja', 'zh'].includes(line.lang) ? line.lang : 'th',
       rate: state.ttsRate,
       onend: () => markSpeaking(null),
       onerror: () => markSpeaking(null),

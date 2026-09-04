@@ -46,7 +46,7 @@ window.Vocab = (() => {
               ro: w.ro || '',
               cn: w.cn || '',                                     // 中文谐音
               mean: cfg().meanOverride[w.th] || w.mean || '',      // 中文意思（测验的正确答案）
-              lang: w.lang === 'en' ? 'en' : 'th',
+              lang: ['en', 'ja', 'zh'].includes(w.lang) ? w.lang : 'th',
               section: sec.name,
               lines: [],
             };

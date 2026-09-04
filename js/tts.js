@@ -1,5 +1,5 @@
 /**
- * TTS —— 泰语发音引擎
+ * TTS —— 泰语 / 日语 / 英语 / 中文发音引擎
  *
  * 用浏览器自带的 Web Speech API 朗读泰文，不需要联网 API、不需要密钥。
  * 难点在于「系统里到底有没有泰语声音」，这里做了：
@@ -13,6 +13,7 @@ const TTS = (() => {
   let thaiVoices = [];
   let enVoices = [];
   let zhVoices = [];
+  let jaVoices = [];
   let chosenThaiVoiceURI = localStorage.getItem('tsl.voiceURI') || null;
   let ready = false;
   const readyCallbacks = [];
@@ -21,12 +22,14 @@ const TTS = (() => {
   const isThai = (v) => normLang(v.lang).startsWith('th');
   const isEnglish = (v) => normLang(v.lang).startsWith('en');
   const isChinese = (v) => normLang(v.lang).startsWith('zh');
+  const isJapanese = (v) => normLang(v.lang).startsWith('ja');
 
   function loadVoices() {
     voices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
     thaiVoices = voices.filter(isThai);
     enVoices = voices.filter(isEnglish);
     zhVoices = voices.filter(isChinese);
+    jaVoices = voices.filter(isJapanese);
 
     if (voices.length > 0 && !ready) {
       ready = true;
@@ -86,11 +89,11 @@ const TTS = (() => {
   /**
    * 朗读一段文本
    * @param {string} text
-   * @param {{lang?:'th'|'en'|'zh', rate?:number, onend?:Function, onerror?:Function}} opts
+   * @param {{lang?:'th'|'ja'|'en'|'zh', rate?:number, onend?:Function, onerror?:Function}} opts
    */
   function speak(text, opts = {}) {
     if (!isSupported() || !text) return false;
-    const lang = opts.lang === 'en' ? 'en' : opts.lang === 'zh' ? 'zh' : 'th';
+    const lang = ['th', 'ja', 'en', 'zh'].includes(opts.lang) ? opts.lang : 'th';
 
     stop();
 
@@ -103,6 +106,10 @@ const TTS = (() => {
       const v = getSelectedThaiVoice();
       if (v) u.voice = v;
       u.lang = v ? v.lang : 'th-TH';
+    } else if (lang === 'ja') {
+      const v = jaVoices.find((x) => x.localService) || jaVoices[0];
+      if (v) u.voice = v;
+      u.lang = v ? v.lang : 'ja-JP';
     } else if (lang === 'zh') {
       // 中文朗读不额外做「没有语音」的安装引导——绝大多数系统自带中文语音，
       // 真没有的话交给浏览器按 lang 兜底选一个，静默降级就好
