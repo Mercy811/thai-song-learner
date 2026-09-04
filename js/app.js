@@ -338,30 +338,35 @@
     return parts.length ? parts.join(' ') : '';
   }
 
-  /* ── 尤克里里和弦 ──
-     练习模式给「和弦名 + 按法图」，KTV 那两块地方只给和弦名：
+  /* ── 乐器和弦 ──
+     尤克里里给「和弦名 + 按法图」，钢琴只显示和弦名；KTV 也只给和弦名：
      字号本来就大，再塞指法图会把歌词挤没。 */
-  const chordText = (line) => (line && line.uku ? line.uku.join('  ') : '');
+  const lineChords = (line) => (line && (line.piano || line.uku)) || [];
+  const chordText = (line) => lineChords(line).join('  ');
 
   function chordRowHtml(line) {
-    if (!line.uku || !line.uku.length) return '';
-    const chips = line.uku.map((c) =>
-      `<span class="chord-chip"><b class="chord-name">${esc(c)}</b>${Chords.diagram(c)}</span>`
+    const chords = lineChords(line);
+    if (!chords.length) return '';
+    const chips = chords.map((c) =>
+      `<span class="chord-chip"><b class="chord-name">${esc(c)}</b>${line.piano ? '' : Chords.diagram(c)}</span>`
     ).join('');
     return `<div class="line-chords" data-f="uku">${chips}</div>`;
   }
 
   // 和弦说明条：调性、用到哪几个和弦、按法图是怎么读的
   function renderUkuHint() {
-    const u = SONG.ukulele;
+    const isPiano = !!SONG.piano;
+    const u = SONG.piano || SONG.ukulele;
     // 没配和弦的歌，视图栏那个开关也一并收起来
     $('#showUku').closest('.chip').classList.toggle('hidden', !u);
     if (!u) { state.view.uku = false; return; }
+    $('#showUku').nextElementSibling.textContent = isPiano ? '🎹 钢琴和弦' : '🎸 尤克里里和弦';
+    $('#ktvChordToggle').title = `显示 / 隐藏${isPiano ? '钢琴' : '尤克里里'}和弦`;
     $('#ukuHint').innerHTML = `
-      <b>🎸 ${esc(u.key)} 调</b>
-      <span>${u.capo ? `夹 ${u.capo} 品 · ` : '不用变调夹 · '}${esc(u.tuning)} 标准调弦</span>
-      <span>图上从左到右是 ${esc(u.tuning.split('').join(' '))} 四根弦，○ = 空弦不按，● = 按在那一品</span>
-      <span class="uku-hint-note">和弦按每句的时长分到句子上，段落交界处准，句内换和弦的时机以听感为准</span>`;
+      <b>${isPiano ? '🎹' : '🎸'} ${esc(u.key)} 调</b>
+      ${isPiano
+        ? '<span>每个和弦放在需要弹奏的歌词句开头</span><span class="uku-hint-note">钢琴和弦按 Chordify 逐拍时间与官方 MV 歌词时间轴对齐</span>'
+        : `<span>${u.capo ? `夹 ${u.capo} 品 · ` : '不用变调夹 · '}${esc(u.tuning)} 标准调弦</span><span>图上从左到右是 ${esc(u.tuning.split('').join(' '))} 四根弦，○ = 空弦不按，● = 按在那一品</span><span class="uku-hint-note">和弦按每句的时长分到句子上，段落交界处准，句内换和弦的时机以听感为准</span>`}`;
   }
 
   function wordHtml(w) {

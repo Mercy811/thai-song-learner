@@ -52,6 +52,14 @@ window.SONGS['safe-near-me'] = {
     source: 'chordzaa.com/5571',
   },
 
+  // 钢琴和弦按 Chordify 的逐拍转录重新对齐。页面所用官方 MV 比 Chordify
+  // 的音源早约 0.68 秒；下面每组只列这一句开始后实际需要按下的和弦。
+  piano: {
+    key: 'D',
+    chords: ['Dmaj7', 'D', 'Bm7', 'Em7', 'A', 'A7', 'Gmaj7', 'F#m7'],
+    source: 'chordify.net (version 275024209, 2026-02-28)',
+  },
+
   sections: [
     {
       name: '主歌 A',
@@ -804,3 +812,26 @@ window.SONGS['safe-near-me'] = {
     },
   ],
 };
+
+// 每个和弦都显示在需要弹奏的那句开头；没有再把下一句的和弦提前塞进上一句。
+const SAFE_NEAR_ME_PIANO = {
+  'v1-1': ['Dmaj7'], 'v1-2': ['Bm7'], 'v1-3': ['Em7', 'A'],
+  'v2-1': ['Dmaj7'], 'v2-2': ['Bm7'], 'v2-3': ['Em7', 'A'],
+  'pc-1': ['Gmaj7'], 'pc-2': ['F#m7', 'Bm7'], 'pc-3': ['Em7', 'A'],
+  'c1-1': ['Dmaj7'], 'c1-2': ['Bm7'], 'c1-3': ['Bm7'],
+  'c1-4': ['Em7'], 'c1-5': ['A'],
+  'c2-1': ['Dmaj7'], 'c2-2': ['Bm7'], 'c2-3': ['Em7'], 'c2-4': ['A'],
+  'br-1': ['Bm7', 'Em7', 'A7', 'A'], 'br-2': ['Dmaj7'], 'br-3': ['D'],
+  'br-4': ['Bm7'], 'br-5': ['Bm7'], 'br-6': ['Bm7'], 'br-7': ['Em7'], 'br-8': ['A'],
+  'pc2-1': ['Gmaj7'], 'pc2-2': ['F#m7', 'Bm7'], 'pc2-3': ['Em7', 'A'],
+  'c1b-1': ['D'], 'c1b-2': ['Bm7'], 'c1b-3': ['Bm7'],
+  'c1b-4': ['Em7'], 'c1b-5': ['A'],
+  'c2b-1': ['D'], 'c2b-2': ['Bm7'], 'c2b-3': ['Em7'], 'c2b-4': ['A'],
+  'c1c-1': ['D'], 'c1c-2': ['Bm7'], 'c1c-3': ['Bm7'],
+  'c1c-4': ['Em7'], 'c1c-5': ['A'],
+  'c2c-1': ['D'], 'c2c-2': ['Bm7'], 'c2c-3': ['Em7'], 'c2c-4': ['A', 'D'],
+};
+
+window.SONGS['safe-near-me'].sections.forEach((section) => {
+  section.lines.forEach((line) => { line.piano = SAFE_NEAR_ME_PIANO[line.id] || []; });
+});
