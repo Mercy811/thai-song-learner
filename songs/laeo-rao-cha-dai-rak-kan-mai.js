@@ -3,7 +3,7 @@
  * เพลงประกอบละคร รอยฝันตะวันเดือด (2014)
  *
  * 歌词与演唱分段参考 ArtBangkok；罗马音参考 Deungdutjai，并统一为项目拼写。
- * 尚未逐句校准官方 MV，因此先只开放练习模式。
+ * 时间轴以官方 MV 分离人声后的逐词识别结果为准，并人工修正了重复副歌与间奏。
  */
 window.SONGS = window.SONGS || {};
 
@@ -82,7 +82,21 @@ window.SONGS = window.SONGS || {};
     ]),
   ];
 
-  const withIds = (prefix, rows) => rows.map((row, i) => ({ ...row, id: `${prefix}-${i + 1}` }));
+  const TIMES = {
+    nv: [18.16, 22.00, 32.32, 35.50],
+    np: [44.72, 51.58],
+    c1: [57.06, 64.04, 72.26, 82.94],
+    yv: [104.10, 107.81],
+    yp: [117.13, 124.21],
+    c2: [128.99, 136.01, 144.11, 154.67],
+    out: [174.12, 180.74, 188.72, 199.20, 207.75, 218.28],
+  };
+
+  const withIds = (prefix, rows) => rows.map((row, i) => ({
+    ...row,
+    id: `${prefix}-${i + 1}`,
+    start: TIMES[prefix][i],
+  }));
 
   window.SONGS['laeo-rao-cha-dai-rak-kan-mai'] = {
     id: 'laeo-rao-cha-dai-rak-kan-mai',
@@ -92,7 +106,9 @@ window.SONGS = window.SONGS || {};
     artist: 'ณเดชน์ คูกิมิยะ feat. ญาญ่า อุรัสยา',
     album: 'เพลงประกอบละคร รอยฝันตะวันเดือด',
     youtubeId: 'Flnk4A69_4A',
-    timeline: false,
+    timeline: true,
+    synced: true,
+    timesStyle: 'grouped',
     sections: [
       { name: '男声主歌', nameEn: 'Nadech Verse', lines: withIds('nv', NADECH_VERSE) },
       { name: '男声预副歌', nameEn: 'Nadech Pre-chorus', lines: withIds('np', NADECH_PRE) },
