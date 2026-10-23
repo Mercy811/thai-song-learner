@@ -341,22 +341,25 @@
   /* ── 乐器和弦 ──
      尤克里里给「和弦名 + 按法图」，钢琴给左右手音名；KTV 只给和弦名：
      字号本来就大，再塞指法图会把歌词挤没。 */
-  const lineChords = (line) => (line && (line.piano || line.uku)) || [];
+  const usesPiano = () => !!SONG.piano && (!SONG.ukulele || state.view.instrument !== 'ukulele');
+  const lineChords = (line) => (line && (usesPiano() ? line.piano : line.uku)) || [];
   const chordText = (line) => lineChords(line).join('  ');
 
   function chordRowHtml(line) {
     const chords = lineChords(line);
     if (!chords.length) return '';
     const chips = chords.map((c) =>
-      `<span class="chord-chip${line.piano ? ' piano-chord-chip' : ''}"><b class="chord-name">${esc(c)}</b>${line.piano ? Chords.pianoDiagram(c) : Chords.diagram(c)}</span>`
+      `<span class="chord-chip${usesPiano() ? ' piano-chord-chip' : ''}"><b class="chord-name">${esc(c)}</b>${usesPiano() ? Chords.pianoDiagram(c) : Chords.diagram(c)}</span>`
     ).join('');
     return `<div class="line-chords" data-f="uku">${chips}</div>`;
   }
 
   // 和弦说明条：调性、用到哪几个和弦、按法图是怎么读的
   function renderUkuHint() {
-    const isPiano = !!SONG.piano;
-    const u = SONG.piano || SONG.ukulele;
+    const isPiano = usesPiano();
+    const u = isPiano ? SONG.piano : SONG.ukulele;
+    $('#chordInstrumentControl').classList.toggle('hidden', !(SONG.piano && SONG.ukulele));
+    $('#chordInstrument').value = isPiano ? 'piano' : 'ukulele';
     // 没配和弦的歌，视图栏那个开关也一并收起来
     $('#showUku').closest('.chip').classList.toggle('hidden', !u);
     if (!u) { state.view.uku = false; return; }
@@ -1277,6 +1280,18 @@
       state.pinDeck = !state.pinDeck;
       localStorage.setItem(LS_PIN_DECK, state.pinDeck ? '1' : '0');
       applyPins();
+    });
+
+    $('#chordInstrument').addEventListener('change', (e) => {
+      state.view.instrument = e.target.value;
+      state.view.uku = true;
+      renderUkuHint();
+      $$('.line').forEach((el) => {
+        el.querySelector('.line-chords')?.remove();
+        el.querySelector('.line-main').insertAdjacentHTML('afterbegin', chordRowHtml(LINES[Number(el.dataset.idx)]));
+      });
+      applyView();
+      renderKtvView();
     });
 
     // 视图开关
