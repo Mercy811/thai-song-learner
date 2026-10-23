@@ -308,7 +308,7 @@
         <button class="line-no" title="跳到这一句">${i + 1}</button>
         <div class="line-main">
           ${chordRowHtml(line)}
-          <p class="line-th">${esc(line.th)}</p>
+          <p class="line-th">${chordLyricHtml(line)}</p>
           ${line.ro ? `<p class="line-ro" data-f="ro">${esc(line.ro)}</p>` : ''}
           ${cnRoOf(line) ? `<p class="line-cnro" data-f="cn">${esc(cnRoOf(line))}</p>` : ''}
           <p class="line-cn" data-f="mean">${esc(line.cn)}</p>
@@ -345,9 +345,21 @@
   const lineChords = (line) => (line && (usesPiano() ? line.piano : line.uku)) || [];
   const chordText = (line) => lineChords(line).join('  ');
 
+  function chordLyricHtml(line) {
+    if (usesPiano() || !line.ukuCues) return esc(line.th);
+    let cursor = 0;
+    let html = '';
+    line.ukuCues.forEach((cue) => {
+      html += esc(line.th.slice(cursor, cue.offset));
+      html += `<span class="lyric-chord-anchor" data-f="uku" aria-label="${esc(cue.chord)}，${cue.at ? '唱到这里换和弦' : '句尾换和弦'}"><b>${esc(cue.chord)}</b>${cue.at ? '' : '<small>尾奏</small>'}</span>`;
+      cursor = cue.offset;
+    });
+    return html + esc(line.th.slice(cursor));
+  }
+
   function chordRowHtml(line) {
     const chords = lineChords(line);
-    if (!chords.length) return '';
+    if (!chords.length) return !usesPiano() && line.ukuCarry ? `<div class="line-chords" data-f="uku"><span class="chord-carry">继续 ${esc(line.ukuCarry)} · 本句不换和弦</span></div>` : '';
     const chips = chords.map((c) =>
       `<span class="chord-chip${usesPiano() ? ' piano-chord-chip' : ''}"><b class="chord-name">${esc(c)}</b>${usesPiano() ? Chords.pianoDiagram(c) : Chords.diagram(c)}</span>`
     ).join('');
@@ -369,7 +381,7 @@
       <b>${isPiano ? '🎹' : '🎸'} ${esc(u.key)} 调</b>
       ${isPiano
         ? '<span>左手先按低音，右手按箭头从低到高轻轻顺弹</span><span class="uku-hint-note">每个和弦放在需要弹奏的歌词句开头，并按 Chordify 时间轴对齐</span>'
-        : `<span>${u.capo ? `夹 ${u.capo} 品 · ` : '不用变调夹 · '}${esc(u.tuning)} 标准调弦</span><span>图上从左到右是 ${esc(u.tuning.split('').join(' '))} 四根弦，○ = 空弦不按，● = 按在那一品</span><span class="uku-hint-note">和弦按每句的时长分到句子上，段落交界处准，句内换和弦的时机以听感为准</span>`}`;
+        : `<span>${u.capo ? `夹 ${u.capo} 品 · ` : '不用变调夹 · '}${esc(u.tuning)} 标准调弦</span><span>图上从左到右是 ${esc(u.tuning.split('').join(' '))} 四根弦，○ = 空弦不按，● = 按在那一品</span><span class="uku-hint-note">和弦名对齐下方歌词，唱到标记处换和弦；标记之前延续上一和弦。「尾奏」表示唱完本句再换</span>`}`;
   }
 
   function wordHtml(w) {
@@ -395,6 +407,7 @@
     $('#ktvCnToggle').classList.toggle('on', state.view.cn);
     // 开了和弦歌词区更高，弹幕的飞行区跟着往上让一让，别糊在和弦上
     $('#ktvView').classList.toggle('chords-on', state.view.uku);
+    $('#ktvView').classList.toggle('word-chords-on', state.view.uku && !usesPiano() && !!SONG.ukulele);
     localStorage.setItem(LS.view, JSON.stringify(state.view));
   }
 
@@ -586,9 +599,20 @@
   }
 
   function fillKtvViewSlot(el, line, isLive) {
-    el.querySelector('.ktv-vline-chords').textContent = chordText(line);
+    el.querySelector('.ktv-vline-chords').textContent = line && !usesPiano() && line.ukuCues ? (line.ukuCarry ? `延续 ${line.ukuCarry} · 唱到下方标记处换和弦` : '唱到下方标记处换和弦') : chordText(line);
     const wt = ktvWordTexts(line);
     buildKaraokeRow(el.querySelector('.ktv-vline-th'), line ? line.th : '🎉 这一轮唱完了', wt && wt.th);
+    const thaiRow = el.querySelector('.ktv-vline-th');
+    thaiRow.querySelectorAll('[data-chord]').forEach((node) => node.removeAttribute('data-chord'));
+    if (line && !usesPiano() && line.ukuCues) {
+      line.ukuCues.forEach((cue) => {
+        if (cue.offset === line.th.length) return;
+        const index = graphemes(line.th.slice(0, cue.offset)).length;
+        thaiRow._kchars[index]?.setAttribute('data-chord', cue.chord);
+      });
+      const tail = line.ukuCues.find((cue) => cue.offset === line.th.length);
+      if (tail) el.querySelector('.ktv-vline-chords').textContent += ` · 句尾 ${tail.chord}`;
+    }
     buildKaraokeRow(el.querySelector('.ktv-vline-ro'), line ? (line.ro || '') : '', wt && wt.ro);
     buildKaraokeRow(el.querySelector('.ktv-vline-cnro'), line ? cnRoOf(line) : '', wt && wt.cn);
     el.classList.toggle('en-slot', !!line && line.lang === 'en');
@@ -1288,7 +1312,9 @@
       renderUkuHint();
       $$('.line').forEach((el) => {
         el.querySelector('.line-chords')?.remove();
-        el.querySelector('.line-main').insertAdjacentHTML('afterbegin', chordRowHtml(LINES[Number(el.dataset.idx)]));
+        const line = LINES[Number(el.dataset.idx)];
+        el.querySelector('.line-main').insertAdjacentHTML('afterbegin', chordRowHtml(line));
+        el.querySelector('.line-th').innerHTML = chordLyricHtml(line);
       });
       applyView();
       renderKtvView();

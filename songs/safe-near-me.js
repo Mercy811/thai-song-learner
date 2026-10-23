@@ -42,8 +42,7 @@ window.SONGS['safe-near-me'] = {
 
   // 尤克里里和弦：整首 D 调，主歌/副歌都是 D–Bm–Em–A 转圈，过渡段换成 G–F#m–Bm–B–Em–A。
   // 和声进行抄自 chordzaa.com 的吉他谱（https://www.chordzaa.com/5571/），
-  // 每一句具体分到哪几个和弦，是按这句唱多久、在段落里排第几句推出来的，不是原谱逐句标注 ——
-  // 段落切换的地方准，句内换和弦的时机以听感为准，觉得差一点就自己改 uku 数组。
+  // 文件末尾的 ukuCues 按原谱字词落点覆盖旧的逐句估算；句末标记表示尾奏换和弦。
   ukulele: {
     key: 'D',
     capo: 0,
@@ -834,4 +833,51 @@ const SAFE_NEAR_ME_PIANO = {
 
 window.SONGS['safe-near-me'].sections.forEach((section) => {
   section.lines.forEach((line) => { line.piano = SAFE_NEAR_ME_PIANO[line.id] || []; });
+});
+
+// 按原和弦谱的歌词落点标注，at 是本句中的字词；不是按字数平均分配。
+// source: https://www.chordzaa.com/5571/ (checked 2026-10-23)
+const SAFE_NEAR_ME_UKU_CUES = {
+  'v1-1': [['D', 'อาจจะ'], ['Bm', 'ไป']],
+  'v1-2': [['Em', 'ไป']],
+  'v1-3': [['A', 'เหงา']],
+  'v2-1': [['D', 'อยากจะ'], ['Bm', 'จริง']],
+  'v2-2': [['Em', 'สิ่ง']],
+  'v2-3': [['A', 'ใจฉัน']],
+  'pc-1': [['G', 'อย่าโกรธ']],
+  'pc-2': [['F#m', 'ท่าทาง'], ['Bm', 'เมย'], ['B', null]],
+  'pc-3': [['Em', 'แล้ว'], ['A', 'ไหม']],
+  'c1-1': [['D', 'ที่ปลอดภัย']],
+  'c1-2': [['Bm', 'ฉันจะอยู่']],
+  'c1-3': [['Em', 'zone']],
+  'c1-4': [],
+  'c1-5': [['A', 'เป็น']],
+  'c2-1': [['D', 'ที่ห่วงใย']],
+  'c2-2': [['Bm', 'ฉันปักหมุด']],
+  'c2-3': [['Em', 'สัญญา']],
+  'c2-4': [['A', 'อยู่แต่']],
+  'br-1': [['D', 'You']],
+  'br-2': [], 'br-3': [],
+  'br-4': [['Bm', 'Look']],
+  'br-5': [],
+  'br-6': [['Em', 'Come']],
+  'br-7': [],
+  'br-8': [['A', 'Come']],
+};
+let safeNearMeUkuHeld = null;
+window.SONGS['safe-near-me'].sections.forEach((section) => {
+  section.lines.forEach((line) => {
+    const base = line.id.replace(/^pc2-/, 'pc-').replace(/^c([12])[bc]-/, 'c$1-');
+    const entries = SAFE_NEAR_ME_UKU_CUES[base];
+    if (!entries) throw new Error('Missing ukulele cues: ' + line.id);
+    line.ukuCarry = safeNearMeUkuHeld;
+    line.ukuCues = entries.map(([chord, at]) => {
+      const offset = at === null ? line.th.length : line.th.indexOf(at);
+      if (offset < 0) throw new Error('Missing chord lyric anchor: ' + line.id + ' ' + at);
+      return { chord, offset, at };
+    });
+    if (line.id === 'c2c-4') line.ukuCues.push({ chord: 'D', offset: line.th.indexOf('ของเธอ'), at: 'ของเธอ' });
+    line.uku = line.ukuCues.map((cue) => cue.chord);
+    if (line.uku.length) safeNearMeUkuHeld = line.uku[line.uku.length - 1];
+  });
 });

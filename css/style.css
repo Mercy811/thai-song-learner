@@ -2379,3 +2379,13 @@ body.mode-study .foot { display: none; }
   .wrow { break-inside: avoid; border-bottom: 1px solid #ddd; box-shadow: none; }
   .wrow-mean.masked span { background: none; color: inherit; }
 }
+
+/* 字词落点与歌词共享排版，换行后仍贴着同一个字。 */
+.line-th:has(.lyric-chord-anchor) { line-height: 2.6; padding-top: .4em; }
+.lyric-chord-anchor { display: inline-block; position: relative; width: 0; vertical-align: baseline; }
+.lyric-chord-anchor b { position: absolute; bottom: 1.3em; left: 0; font: 700 14px/1.1 system-ui; color: var(--accent-2); white-space: nowrap; }
+.lyric-chord-anchor small { position: absolute; left: 0; top: .25em; font: 10px/1 system-ui; white-space: nowrap; color: var(--text-3); }
+.chord-carry { color: var(--text-3); font-size: 12px; }
+.ktv-view.word-chords-on .ktv-vline-th { line-height: 1.9; padding-top: .5em; }
+.ktv-view.word-chords-on .kchar[data-chord] { position: relative; }
+.ktv-view.word-chords-on .kchar[data-chord]::before { content: attr(data-chord); position: absolute; left: 0; bottom: 1.4em; font: 700 .42em/1 system-ui; color: #ffc86b; text-shadow: 0 1px 4px #000; white-space: nowrap; }
