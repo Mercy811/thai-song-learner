@@ -871,10 +871,11 @@ function verify(songs) {
 
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
   for (const [value, destination] of [['lessons', '/lessons'], ['freq', '/freq'], ['science', '/science']]) {
-    const rule = (vercel.redirects || []).find((item) => item.source === '/' && item.destination === destination
+    const rule = (vercel.routes || []).find((item) => item.src === '^/$' && item.headers && item.headers.Location === destination
       && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'page' && cond.value === value));
     assert(rule, `vercel.json 缺少 /?page=${value} 重定向`);
-    assert(rule.statusCode === 301 || rule.permanent === true, `/?page=${value} 不是永久重定向`);
+    assert(rule.status === 301 || rule.statusCode === 301, `/?page=${value} 不是 301`);
+    assert(!destination.includes('?'), `/?page=${value} 的 Location 还带着查询串`);
   }
   const songHeader = (vercel.headers || []).find((item) => item.source === '/'
     && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'song')

@@ -2,49 +2,50 @@
   "buildCommand": "node scripts/build-static.js",
   "outputDirectory": "dist",
   "trailingSlash": false,
-  "redirects": [
+  "routes": [
     {
-      "source": "/",
+      "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "lessons" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "destination": "/lessons",
-      "statusCode": 301
+      "status": 301,
+      "headers": { "Location": "/lessons" }
     },
     {
-      "source": "/",
+      "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "freq" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "destination": "/freq",
-      "statusCode": 301
+      "status": 301,
+      "headers": { "Location": "/freq" }
     },
     {
-      "source": "/",
+      "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "science" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "destination": "/science",
-      "statusCode": 301
+      "status": 301,
+      "headers": { "Location": "/science" }
     },
     {
-      "source": "/index.html",
+      "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "lessons" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "destination": "/lessons",
-      "statusCode": 301
+      "status": 301,
+      "headers": { "Location": "/lessons" }
     },
     {
-      "source": "/index.html",
+      "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "freq" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "destination": "/freq",
-      "statusCode": 301
+      "status": 301,
+      "headers": { "Location": "/freq" }
     },
     {
-      "source": "/index.html",
+      "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "science" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "destination": "/science",
-      "statusCode": 301
-    }
+      "status": 301,
+      "headers": { "Location": "/science" }
+    },
+    { "handle": "filesystem" }
   ],
   "headers": [
     {
