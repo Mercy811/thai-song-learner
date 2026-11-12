@@ -7,72 +7,62 @@
       "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "lessons" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "status": 301,
-      "headers": { "Location": "/lessons" },
-      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
+      "dest": "/api/legacy-page?to=lessons"
     },
     {
       "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "freq" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "status": 301,
-      "headers": { "Location": "/freq" },
-      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
+      "dest": "/api/legacy-page?to=freq"
     },
     {
       "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "science" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "status": 301,
-      "headers": { "Location": "/science" },
-      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
+      "dest": "/api/legacy-page?to=science"
     },
     {
       "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "lessons" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "status": 301,
-      "headers": { "Location": "/lessons" },
-      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
+      "dest": "/api/legacy-page?to=lessons"
     },
     {
       "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "freq" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "status": 301,
-      "headers": { "Location": "/freq" },
-      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
+      "dest": "/api/legacy-page?to=freq"
     },
     {
       "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "science" }],
       "missing": [{ "type": "query", "key": "song" }],
-      "status": 301,
-      "headers": { "Location": "/science" },
-      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
+      "dest": "/api/legacy-page?to=science"
+    },
+    {
+      "src": "^/$",
+      "has": [{ "type": "query", "key": "song" }],
+      "headers": { "X-Robots-Tag": "noindex, follow" },
+      "continue": true
+    },
+    {
+      "src": "^/index\\.html$",
+      "has": [{ "type": "query", "key": "song" }],
+      "headers": { "X-Robots-Tag": "noindex, follow" },
+      "continue": true
+    },
+    {
+      "src": "^/$",
+      "has": [{ "type": "query", "key": "view" }],
+      "headers": { "X-Robots-Tag": "noindex, follow" },
+      "continue": true
+    },
+    {
+      "src": "^/index\\.html$",
+      "has": [{ "type": "query", "key": "view" }],
+      "headers": { "X-Robots-Tag": "noindex, follow" },
+      "continue": true
     },
     { "handle": "filesystem" }
-  ],
-  "headers": [
-    {
-      "source": "/",
-      "has": [{ "type": "query", "key": "song" }],
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
-    },
-    {
-      "source": "/index.html",
-      "has": [{ "type": "query", "key": "song" }],
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
-    },
-    {
-      "source": "/",
-      "has": [{ "type": "query", "key": "view" }],
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
-    },
-    {
-      "source": "/index.html",
-      "has": [{ "type": "query", "key": "view" }],
-      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, follow" }]
-    }
   ]
 }

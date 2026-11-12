@@ -767,7 +767,7 @@ function copySite() {
   fs.rmSync(DIST, { recursive: true, force: true });
   fs.mkdirSync(DIST, { recursive: true });
   for (const entry of fs.readdirSync(ROOT)) {
-    if (['dist', '.git', 'node_modules', '.cursor'].includes(entry)) continue;
+    if (['dist', '.git', 'node_modules', '.cursor', 'api'].includes(entry)) continue;
     fs.cpSync(path.join(ROOT, entry), path.join(DIST, entry), { recursive: true });
   }
 }
@@ -870,21 +870,20 @@ function verify(songs) {
   }
 
   const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
-  for (const [value, destination] of [['lessons', '/lessons'], ['freq', '/freq'], ['science', '/science']]) {
-    const rule = (vercel.routes || []).find((item) => item.src === '^/$' && item.headers && item.headers.Location === destination
+  for (const value of ['lessons', 'freq', 'science']) {
+    const rule = (vercel.routes || []).find((item) => item.src === '^/$' && item.dest === `/api/legacy-page?to=${value}`
       && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'page' && cond.value === value));
     assert(rule, `vercel.json 缺少 /?page=${value} 重定向`);
-    assert(rule.status === 301 || rule.statusCode === 301, `/?page=${value} 不是 301`);
-    assert(!destination.includes('?'), `/?page=${value} 的 Location 还带着查询串`);
-    const dropsPage = (rule.transforms || []).some((transform) => transform.type === 'request.query' && transform.op === 'delete'
-      && transform.target && transform.target.key === 'page');
-    assert(dropsPage, `/?page=${value} 没有删掉查询参数 page`);
+    assert(!rule.status && !rule.statusCode, `/?page=${value} 应交给函数写 301，避免边缘补上查询串`);
   }
-  const songHeader = (vercel.headers || []).find((item) => item.source === '/'
+  const legacy = fs.readFileSync(path.join(ROOT, 'api/legacy-page.js'), 'utf8');
+  assert(legacy.includes('statusCode = 301'), 'legacy-page 不是 301');
+  assert(legacy.includes("lessons: '/lessons'"), 'legacy-page 没有 /lessons');
+  const songHeader = (vercel.routes || []).find((item) => item.src === '^/$' && item.continue === true
     && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'song')
-    && (item.headers || []).some((header) => header.key === 'X-Robots-Tag' && /noindex/.test(header.value)));
+    && item.headers && /noindex/.test(item.headers['X-Robots-Tag'] || ''));
   assert(songHeader, 'vercel.json 没有给 ?song= 加 noindex 响应头');
-  const homeHeader = (vercel.headers || []).find((item) => item.source === '/' && !(item.has || []).length);
+  const homeHeader = (vercel.routes || []).find((item) => item.src === '^/$' && !(item.has || []).length && item.headers);
   assert(!homeHeader, 'vercel.json 不应给不带条件的首页加响应头');
 }
 
