@@ -378,8 +378,9 @@ window.SONGS = window.SONGS || {};
     title: 'Hua Jai Sang Hai Rak Thoe',
     titleTh: 'หัวใจสั่งให้รักเธอ',
     titleCn: '心命令我爱你',
-    // 频道/歌手名没查到（这台机器连不上 YouTube），确认后填回来就会显示在标题下面
-    artist: '',
+    // 曲库里这条音源是 YouTube BbP3SrEA5iU，标题写明 cover by LenaMiu
+    // （Lena Lalina × Miu Natsha 的翻唱）。原唱是 แพรว คณิตกุล，但这条跟读跟的是翻唱。
+    artist: 'Lena Lalina x Miu Natsha',
     album: '',
     youtubeId: 'BbP3SrEA5iU',
 
