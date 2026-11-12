@@ -6,10 +6,17 @@
 <script>
   (function () {
     var q = new URLSearchParams(location.search);
-    var page = q.get('page');
+    var page = q.get('view') || q.get('page');
     var song = q.get('song');
-    var boot = (page === 'freq' || page === 'science' || page === 'lessons') ? page : (song ? 'song' : 'home');
+    var section = (page === 'freq' || page === 'science' || page === 'lessons') ? page : '';
+    var boot = section || (song ? 'song' : 'home');
     document.documentElement.dataset.boot = boot;
+    // ?song= 和互动页 ?view= 都不要被当成首页收录。纯首页 / 不进这个分支。
+    if (!section && !song) return;
+    var robots = document.createElement('meta');
+    robots.name = 'robots';
+    robots.content = 'noindex, follow';
+    document.head.appendChild(robots);
   })();
 </script>
 <title>泰语歌逐句跟读 — 跟着喜欢的歌听懂泰语</title>
@@ -21,6 +28,22 @@
 <meta property="og:title" content="泰语歌逐句跟读 — 跟着喜欢的歌听懂泰语" />
 <meta property="og:description" content="用中文逐句、逐词学泰语歌：泰文、罗马音和中文意思，点一个词就能听发音。" />
 <meta property="og:url" content="https://thai-song-learner.vercel.app/" />
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var song = q.get('song');
+    var page = q.get('view') || q.get('page');
+    var origin = 'https://thai-song-learner.vercel.app';
+    var dest = '';
+    if (page === 'lessons' || page === 'freq' || page === 'science') dest = origin + '/' + page;
+    else if (song && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(song)) dest = origin + '/songs/' + song;
+    if (!dest) return;
+    var link = document.querySelector('link[rel="canonical"]');
+    if (link) link.setAttribute('href', dest);
+    var og = document.querySelector('meta[property="og:url"]');
+    if (og) og.setAttribute('content', dest);
+  })();
+</script>
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:title" content="泰语歌逐句跟读 — 跟着喜欢的歌听懂泰语" />
 <meta name="twitter:description" content="用中文逐句、逐词学泰语歌：泰文、罗马音和中文意思，点一个词就能听发音。" />
@@ -56,15 +79,15 @@
     <span class="drawer-item-icon">🏠</span>
     <span class="drawer-item-text"><b>唱歌练习</b><small>选一首歌，跟着练发音、学歌词</small></span>
   </a>
-  <a class="drawer-item" data-page="freq" href="?page=freq">
+  <a class="drawer-item" data-page="freq" href="?view=freq">
     <span class="drawer-item-icon">📊</span>
     <span class="drawer-item-text"><b>词频总表</b><small>全部歌曲的单词，按出现次数排序</small></span>
   </a>
-  <a class="drawer-item" data-page="lessons" href="?page=lessons">
+  <a class="drawer-item" data-page="lessons" href="?view=lessons">
     <span class="drawer-item-icon">🎓</span>
     <span class="drawer-item-text"><b>记忆课</b><small>7 节课，把常见词串成故事讲一遍，能听着学</small></span>
   </a>
-  <a class="drawer-item" data-page="science" href="?page=science">
+  <a class="drawer-item" data-page="science" href="?view=science">
     <span class="drawer-item-icon">📈</span>
     <span class="drawer-item-text"><b>覆盖率曲线</b><small>学多少词能看懂多少歌词？一点小科普</small></span>
   </a>
@@ -80,9 +103,9 @@
         <span class="home-brand-text">泰语歌<em>逐句</em>跟读</span>
       </a>
       <nav class="home-topnav-links">
-        <a href="?page=lessons">记忆课</a>
-        <a href="?page=freq">词频总表</a>
-        <a href="?page=science">覆盖率曲线</a>
+        <a href="?view=lessons">记忆课</a>
+        <a href="?view=freq">词频总表</a>
+        <a href="?view=science">覆盖率曲线</a>
       </nav>
       <div class="home-topnav-actions">
         <button class="account-chip home-account" data-account aria-label="账户">
@@ -149,17 +172,17 @@
       <b>单词测验</b>
       <small>四选一 + 双人对战</small>
     </div>
-    <a class="home-feature-card" href="?page=lessons">
+    <a class="home-feature-card" href="?view=lessons">
       <span class="hf-icon">🎓</span>
       <b>记忆课</b>
       <small>高频词串成故事讲一遍</small>
     </a>
-    <a class="home-feature-card" href="?page=freq">
+    <a class="home-feature-card" href="?view=freq">
       <span class="hf-icon">📊</span>
       <b>词频总表</b>
       <small>从最常见的词学起</small>
     </a>
-    <a class="home-feature-card" href="?page=science">
+    <a class="home-feature-card" href="?view=science">
       <span class="hf-icon">📈</span>
       <b>覆盖率曲线</b>
       <small>学多少词能看懂多少</small>
@@ -234,7 +257,7 @@
 
 <!-- ══ 词频总表：全站所有歌曲的单词，按出现次数排序 ══
      跟具体某首歌无关，是全站范围的东西，所以是独立页面（跟首页平级），
-     不挂在某首歌的模式栏下面——靠 URL 上的 ?page=freq 进来。 -->
+     不挂在某首歌的模式栏下面——靠 URL 上的 ?view=freq 进来。 -->
 <main class="page freqpage hidden" id="freqPageView">
   <div class="page-hero">
     <div class="page-hero-actions"><label class="language-picker" title="语言"><span aria-hidden="true">🌐</span><select data-language-select aria-label="语言"><option value="en">English</option><option value="zh">中文</option></select></label><button id="btnThemeFreq" class="icon-btn" title="切换深浅色">◐</button></div>
@@ -316,7 +339,7 @@
 </div>
 
 <!-- ══ 记忆课：把常出现的词按主题串成故事讲一遍，能听着学 ══
-     跟具体某首歌无关，独立页面——靠 URL 上的 ?page=lessons 进来。
+     跟具体某首歌无关，独立页面——靠 URL 上的 ?view=lessons 进来。
      内容在 js/lessons-data.js 里，渲染 + 朗读播放逻辑在 js/lessons.js。 -->
 <main class="page lessonspage hidden" id="lessonsPageView">
   <div class="page-hero">
@@ -369,7 +392,7 @@
 </main>
 
 <!-- ══ 覆盖率曲线：学多少词能看懂多少歌词的一点小科普 ══
-     同样跟具体某首歌无关，独立页面——靠 URL 上的 ?page=science 进来。 -->
+     同样跟具体某首歌无关，独立页面——靠 URL 上的 ?view=science 进来。 -->
 <main class="page sciencepage hidden" id="sciencePageView">
   <div class="page-hero">
     <div class="page-hero-actions"><label class="language-picker" title="语言"><span aria-hidden="true">🌐</span><select data-language-select aria-label="语言"><option value="en">English</option><option value="zh">中文</option></select></label><button id="btnThemeScience" class="icon-btn" title="切换深浅色">◐</button></div>

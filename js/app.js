@@ -71,10 +71,12 @@
 
   /* ── 顶层路由：首页 / 某首歌 / 词频总表 / 覆盖率曲线 ──
      后两个是全站范围的东西，跟哪首歌无关，所以跟首页一样是独立页面
-     （靠 URL 上的 ?page= 区分，不是挂在某首歌的模式栏下面），
-     每次跳转都是整页刷新，各自管自己的 DOM，互不依赖。 */
+     （靠 URL 上的 ?view= 区分，不是挂在某首歌的模式栏下面），
+     每次跳转都是整页刷新，各自管自己的 DOM，互不依赖。
+     旧的 ?page=lessons|freq|science 会 301 到对应的图文页，这里仍认 page，
+     方便没有这条重定向的本地预览。 */
   const params = new URLSearchParams(location.search);
-  const pageParam = params.get('page');
+  const pageParam = params.get('view') || params.get('page');
   const explicitId = params.get('song');
 
   document.body.dataset.page = pageParam === 'freq' ? 'freq'

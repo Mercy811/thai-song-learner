@@ -1,6 +1,7 @@
 /**
  * 从 songs/*.js 和 js/lessons-data.js 生成可抓取的静态页。
- * 互动播放器仍是原来的 index.html（?song= / ?page= 都继续可用）。
+ * 互动播放器仍是原来的 index.html（?song= 和 ?view=lessons|freq|science 继续可用）。
+ * 旧的 ?page=lessons|freq|science 由 vercel.json 永久重定向到对应图文页。
  * 图文页只放关键词和最多四句关键句，不放完整歌词。
  */
 'use strict';
@@ -17,7 +18,7 @@ const EXCERPT_LIMIT = 4;
 
 const FAQ = [
   {
-    q: 'How do I learn Thai through song lyrics?',
+    q: '怎样用歌曲学泰语？',
     a: '打开首页，选一首歌，进入互动课。每一句都有泰文、罗马音和中文意思，点一个词就能听发音，也可以跟读和做测验。也可以先打开这首歌的图文介绍（网址形如 /songs/歌名），那里有关键词和最多四句关键句，用来预习。图文页不含完整歌词。',
   },
   {
@@ -335,6 +336,11 @@ function vocabTable(words, lang) {
   </table></div>`;
 }
 
+function artistNode(name) {
+  const group = /\s(?:x|feat\.?|ft\.?)\s|[,&]|[–—]/.test(name);
+  return { '@type': group ? 'MusicGroup' : 'Person', name };
+}
+
 function songPage(song) {
   const lines = keyLines(song);
   const vocab = keyVocab(song, lines);
@@ -381,6 +387,7 @@ function songPage(song) {
             : 'Thai vocabulary and pronunciation through a song, explained in Chinese',
           isPartOf: { '@id': `${ORIGIN}/#course` },
           about: heading,
+          ...(song.artist ? { byArtist: artistNode(song.artist) } : {}),
         },
         breadcrumbLd(trail),
       ],
@@ -613,7 +620,7 @@ function contentPages(songs, lessons, freq, coverage) {
     main: `${crumbs(lessonTrail)}
 <h1>记忆课</h1>
 <p class="lede">把曲库里反复出现的泰语词按主题串成 7 节小故事：先认基础词，再看它们怎么拼成更长的说法。下面是每节课的讲解和词汇。朗读、标记学过和测验在互动课里。</p>
-<p><a class="cta" href="/?page=lessons">打开互动记忆课</a></p>
+<p><a class="cta" href="/?view=lessons">打开互动记忆课</a></p>
 ${lessonArticles}`,
   }));
 
@@ -657,7 +664,7 @@ ${lessonArticles}`,
     main: `${crumbs(freqTrail)}
 <h1>词频总表</h1>
 <p class="lede">把全部歌曲的逐词卡片按原文去重，副歌重复几遍就计几次。先学出现最多的词，覆盖面最快。这里是出现最多的 ${top.length} 个，全部 ${freq.length} 个可以在互动页里搜索。</p>
-<p><a class="cta" href="/?page=freq">打开可搜索的词频总表</a></p>
+<p><a class="cta" href="/?view=freq">打开可搜索的词频总表</a></p>
 <div class="table-scroll"><table>
   <caption>出现最多的 ${top.length} 个词</caption>
   <thead><tr><th>原文</th><th>罗马音</th><th>意思</th><th>次数</th><th>出现在</th></tr></thead>
@@ -698,7 +705,7 @@ ${lessonArticles}`,
 <h1>词频覆盖率曲线</h1>
 <p>${esc(scienceText)}</p>
 <p>曲线前陡后平，是因为用词大致服从齐夫定律：少数词反复出现，大多数词只出现一两次。互动页可以把鼠标移到曲线上，看任意一点的数字。</p>
-<p><a class="cta" href="/?page=science">打开互动曲线</a></p>
+<p><a class="cta" href="/?view=science">打开互动曲线</a></p>
 <div class="table-scroll"><table>
   <caption>从最高频开始的几档</caption>
   <thead><tr><th>出现次数至少</th><th>累计词数</th><th>占词表</th><th>累计覆盖率</th></tr></thead>
@@ -779,8 +786,14 @@ function verify(songs) {
   assert(home.includes('"@type":"WebSite"') || home.includes('"@type": "WebSite"'), '首页缺少 WebSite');
   assert(home.includes('LearningResource'), '首页缺少 LearningResource');
   assert(home.includes('FAQPage'), '首页缺少 FAQPage');
-  assert(home.includes('How do I learn Thai through song lyrics?'), '首页缺少示例问题');
+  assert(home.includes('怎样用歌曲学泰语？'), '首页缺少中文示例问题');
+  assert(!home.includes('How do I learn Thai through song lyrics?'), '首页 FAQ 仍是英文问题');
   assert(home.includes('rel="canonical" href="https://thai-song-learner.vercel.app/"'), '首页 canonical 不对');
+  assert(!home.includes('<meta name="robots"'), '首页静态 HTML 不应带 robots meta');
+  assert(home.includes("robots.content = 'noindex, follow'"), '首页缺少 ?song= 的 noindex 脚本');
+  assert(home.includes("origin + '/songs/' + song"), '首页脚本没有把 canonical 指到歌曲页');
+  assert(home.includes('href="?view=lessons"'), '首页互动记忆课链接不对');
+  assert(!home.includes('?page='), '首页仍链到会跳走的 ?page=');
   assert(home.includes('lang="zh-CN"'), '首页语言不是 zh-CN');
 
   const songHtml = read('songs/safe-near-me/index.html');
@@ -823,9 +836,70 @@ function verify(songs) {
     assert(html.includes('rel="canonical"'), `${rel} 缺少 canonical`);
     assert(html.includes('lang="zh-CN"'), `${rel} 语言不是 zh-CN`);
   }
-  assert(read('faq/index.html').includes('FAQPage'), '问答页缺少 FAQPage');
+  const faqHtml = read('faq/index.html');
+  assert(faqHtml.includes('FAQPage'), '问答页缺少 FAQPage');
+  assert(faqHtml.includes('怎样用歌曲学泰语？'), '问答页问题不对');
+  assert(!faqHtml.includes('How do I learn Thai through song lyrics?'), '问答页仍是英文问题');
+  assert(read('lessons/index.html').includes('href="/?view=lessons"'), '记忆课互动链接不对');
+  assert(read('freq/index.html').includes('href="/?view=freq"'), '词频互动链接不对');
+  assert(read('science/index.html').includes('href="/?view=science"'), '覆盖率互动链接不对');
   assert(read('lessons/index.html').includes('ฉัน'), '记忆课页面缺少例词');
   assert(read('science/index.html').includes('齐夫定律'), '覆盖率页面缺少说明');
+
+  const hua = songs.find((song) => song.id === 'hua-jai-sang-hai-rak-thoe');
+  assert(hua && hua.artist === 'Lena Lalina x Miu Natsha', 'hua-jai 的歌手不对');
+
+  const htmlFiles = ['index.html', 'faq/index.html', 'lessons/index.html', 'freq/index.html', 'science/index.html', 'songs/index.html'];
+  for (const song of songs) htmlFiles.push(`songs/${song.id}/index.html`);
+  for (const rel of htmlFiles) {
+    for (const block of jsonLdBlocks(read(rel))) JSON.stringify(block);
+  }
+  for (const song of songs) {
+    if (!song.artist) continue;
+    const html = read(`songs/${song.id}/index.html`);
+    const credit = [song.artist, song.album].filter(Boolean).join(' · ');
+    assert(html.includes(`<p class="by">${esc(credit)}</p>`), `${song.id} 缺少歌手行`);
+    const artists = [];
+    for (const block of jsonLdBlocks(html)) collectByArtist(block, artists);
+    assert(artists.length === 1, `${song.id} 的 byArtist 数量是 ${artists.length}`);
+    const artist = artists[0];
+    assert(artist['@type'] === 'Person' || artist['@type'] === 'MusicGroup', `${song.id} 的 byArtist 类型不对`);
+    assert(artist.name === song.artist, `${song.id} 的 byArtist 名字不对`);
+    const resource = jsonLdBlocks(html).flatMap((block) => block['@graph'] || []).find((node) => node['@type'] === 'LearningResource');
+    assert(resource && resource.byArtist && resource.byArtist.name === song.artist, `${song.id} 的 LearningResource 没有 byArtist`);
+  }
+
+  const vercel = JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8'));
+  for (const [value, destination] of [['lessons', '/lessons'], ['freq', '/freq'], ['science', '/science']]) {
+    const rule = (vercel.redirects || []).find((item) => item.source === '/' && item.destination === destination
+      && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'page' && cond.value === value));
+    assert(rule, `vercel.json 缺少 /?page=${value} 重定向`);
+    assert(rule.statusCode === 301 || rule.permanent === true, `/?page=${value} 不是永久重定向`);
+  }
+  const songHeader = (vercel.headers || []).find((item) => item.source === '/'
+    && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'song')
+    && (item.headers || []).some((header) => header.key === 'X-Robots-Tag' && /noindex/.test(header.value)));
+  assert(songHeader, 'vercel.json 没有给 ?song= 加 noindex 响应头');
+  const homeHeader = (vercel.headers || []).find((item) => item.source === '/' && !(item.has || []).length);
+  assert(!homeHeader, 'vercel.json 不应给不带条件的首页加响应头');
+}
+
+function jsonLdBlocks(html) {
+  const blocks = [];
+  const re = /<script type="application\/ld\+json">([\s\S]*?)<\/script>/g;
+  let match;
+  while ((match = re.exec(html))) blocks.push(JSON.parse(match[1]));
+  return blocks;
+}
+
+function collectByArtist(node, found) {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    node.forEach((item) => collectByArtist(item, found));
+    return;
+  }
+  if (node.byArtist) found.push(node.byArtist);
+  Object.values(node).forEach((value) => collectByArtist(value, found));
 }
 
 function main() {
