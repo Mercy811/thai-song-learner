@@ -1,0 +1,5 @@
+{
+  "buildCommand": "node scripts/build-static.js",
+  "outputDirectory": "dist",
+  "trailingSlash": false
+}

@@ -19,6 +19,9 @@ window.I18n = (() => {
     '跟着喜欢的歌，听懂泰语': 'Understand Thai through songs you love',
     '逐句、逐词拆解泰语歌词 —— 泰文 + 罗马音 + 中文谐音 + 中文意思，点一个词就能听发音。挑一首歌，五分钟就能带走一句真正会唱的泰语。': 'Explore Thai lyrics line by line and word by word, with Thai script, romanization, English meanings, and tap-to-hear pronunciation. Choose a song and learn a line you can truly sing in five minutes.',
     '搜索歌名 / 歌手…': 'Search songs or artists…', '▶ 挑一首开始': '▶ Choose a song', '选一首歌开始': 'Choose a song to begin',
+    '歌曲介绍': 'Song guides', '常见问题': 'FAQ', '每首歌的图文介绍': 'A readable page for each song',
+    '这些链接打开可以阅读的介绍页：关键词和最多四句关键句。上面的卡片在打开脚本后进入互动跟读。': 'These links open a readable page with key words and at most four lines. With scripts on, the cards above open the interactive lesson.',
+    '图文页面': 'Readable pages',
     '没有找到想学的歌？告诉我你想唱什么、想了解什么，或留下任何反馈。': 'Can’t find the song you want? Tell me what you’d like to sing or learn, or share any feedback.',
     '例如：我想学《歌名》；可以增加……吗？': 'For example: I’d love to learn [song title]. Could you add…?',
     '你的邮箱（选填，方便我回复）': 'Your email (optional, so I can reply)', '发送给我 →': 'Send to me →',
@@ -384,11 +387,24 @@ window.I18n = (() => {
     document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
     const page = document.body.dataset.page;
     const titles = { freq: ['词频总表 — 泰语歌逐句跟读', 'Vocabulary Frequency — Learn Thai Through Songs'], lessons: ['记忆课 — 泰语歌逐句跟读', 'Memory Lessons — Learn Thai Through Songs'], science: ['词频覆盖率曲线 — 泰语歌逐句跟读', 'Vocabulary Coverage — Learn Thai Through Songs'] };
-    document.title = titles[page] ? titles[page][language === 'zh' ? 0 : 1] : (language === 'zh' ? '泰语歌逐句跟读' : 'Learn Thai Through Songs');
+    const homeTitle = language === 'zh'
+      ? '泰语歌逐句跟读 — 跟着喜欢的歌听懂泰语'
+      : 'Learn Thai Through Songs';
+    document.title = titles[page]
+      ? titles[page][language === 'zh' ? 0 : 1]
+      : (page === 'home' ? homeTitle : (language === 'zh' ? '泰语歌逐句跟读' : 'Learn Thai Through Songs'));
     const description = document.querySelector('meta[name="description"]');
-    if (description) description.content = language === 'zh'
-      ? '逐句、逐词学泰语歌：泰文 + 罗马音 + 中文谐音 + 中文意思，每个词点一下就能听发音。'
-      : 'Learn Thai songs line by line and word by word with romanization, meanings, and pronunciation.';
+    if (description) {
+      const songCount = document.getElementById('homeStatSongs');
+      const wordCount = document.getElementById('homeStatWords');
+      const n = songCount && songCount.textContent;
+      const w = wordCount && wordCount.textContent;
+      description.content = language === 'zh'
+        ? (n && w && n !== '0'
+          ? `用中文逐句、逐词学泰语歌：泰文、罗马音和中文意思。已收录 ${n} 首歌、${w} 个词。`
+          : '用中文逐句、逐词学泰语歌：泰文、罗马音和中文意思，点一个词就能听发音。')
+        : 'Learn Thai songs line by line and word by word with romanization, meanings, and pronunciation.';
+    }
     translateElement(document.body);
     document.querySelectorAll('[data-language-select]').forEach((select) => { select.value = language; });
     delete document.documentElement.dataset.i18nPending;
