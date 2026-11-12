@@ -132,6 +132,7 @@
      选中的歌记在 localStorage，方便首页把「上次在学」标出来。 */
   const SONG = window.SONGS[explicitId];
   localStorage.setItem(LS_SONG, SONG.id);
+  $('#homeView').classList.add('hidden');
 
   // 有的歌只做练习模式（timeline: false）：没有逐句时间轴，
   // 不自动跟随、不做 KTV、不做校准，歌词自己手动往下滑。
@@ -1114,7 +1115,7 @@
      只在没带 ?song= 参数时渲染（HTML 里其余内容——播放器/歌词/底栏——保持原样待命，
      这里只是把它们先藏起来，换成这块）。 */
   function initHome() {
-    document.title = '泰语歌逐句跟读';
+    document.title = '泰语歌逐句跟读 — 跟着喜欢的歌听懂泰语';
     $('.topbar').classList.add('hidden');
     $('.stickydeck').classList.add('hidden');
     $('.viewbar').classList.add('hidden');
