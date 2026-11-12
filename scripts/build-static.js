@@ -876,6 +876,9 @@ function verify(songs) {
     assert(rule, `vercel.json 缺少 /?page=${value} 重定向`);
     assert(rule.status === 301 || rule.statusCode === 301, `/?page=${value} 不是 301`);
     assert(!destination.includes('?'), `/?page=${value} 的 Location 还带着查询串`);
+    const dropsPage = (rule.transforms || []).some((transform) => transform.type === 'request.query' && transform.op === 'delete'
+      && transform.target && transform.target.key === 'page');
+    assert(dropsPage, `/?page=${value} 没有删掉查询参数 page`);
   }
   const songHeader = (vercel.headers || []).find((item) => item.source === '/'
     && (item.has || []).some((cond) => cond.type === 'query' && cond.key === 'song')

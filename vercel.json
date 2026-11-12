@@ -8,42 +8,48 @@
       "has": [{ "type": "query", "key": "page", "value": "lessons" }],
       "missing": [{ "type": "query", "key": "song" }],
       "status": 301,
-      "headers": { "Location": "/lessons" }
+      "headers": { "Location": "/lessons" },
+      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
     },
     {
       "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "freq" }],
       "missing": [{ "type": "query", "key": "song" }],
       "status": 301,
-      "headers": { "Location": "/freq" }
+      "headers": { "Location": "/freq" },
+      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
     },
     {
       "src": "^/$",
       "has": [{ "type": "query", "key": "page", "value": "science" }],
       "missing": [{ "type": "query", "key": "song" }],
       "status": 301,
-      "headers": { "Location": "/science" }
+      "headers": { "Location": "/science" },
+      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
     },
     {
       "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "lessons" }],
       "missing": [{ "type": "query", "key": "song" }],
       "status": 301,
-      "headers": { "Location": "/lessons" }
+      "headers": { "Location": "/lessons" },
+      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
     },
     {
       "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "freq" }],
       "missing": [{ "type": "query", "key": "song" }],
       "status": 301,
-      "headers": { "Location": "/freq" }
+      "headers": { "Location": "/freq" },
+      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
     },
     {
       "src": "^/index\\.html$",
       "has": [{ "type": "query", "key": "page", "value": "science" }],
       "missing": [{ "type": "query", "key": "song" }],
       "status": 301,
-      "headers": { "Location": "/science" }
+      "headers": { "Location": "/science" },
+      "transforms": [{ "type": "request.query", "op": "delete", "target": { "key": "page" } }]
     },
     { "handle": "filesystem" }
   ],
